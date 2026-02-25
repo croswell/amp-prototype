@@ -1,12 +1,16 @@
 "use client"
 
+import { useMemo } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { type ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { DataTable } from "@/components/ui/data-table"
 import {
+  type PromotionRequest,
   currentUser,
   promotionRequests,
   getHero,
@@ -15,7 +19,7 @@ import {
   formatNumber,
   getStatusColor,
 } from "@/lib/mock-data"
-import { ArrowRight, Compass } from "@phosphor-icons/react"
+import { ArrowRight } from "@phosphor-icons/react"
 
 export function DashboardContent() {
   const searchParams = useSearchParams()
@@ -35,18 +39,86 @@ export function DashboardContent() {
         ? outgoing
         : [...incoming, ...outgoing]
 
-  const recommended = getRecommendedHeroes(role as "publisher" | "advertiser" | "both").slice(0, 4)
-
   const monthlyRevenue = currentUser.recommendedFee * 2
   const yearlyRevenue = monthlyRevenue * 12
 
   const activePromotions = relevantRequests.filter(
-    (r) => r.status !== "pending" && r.status !== "locked"
+    (r) => r.status === "accepted"
   )
   const completedPromotions = relevantRequests.filter(
-    (r) => r.status === "locked"
+    (r) => r.status === "published"
   )
   const totalSpend = outgoing.reduce((sum, r) => sum + r.proposedFee, 0)
+
+  // Activity table columns
+  const activityColumns = useMemo<ColumnDef<PromotionRequest>[]>(
+    () => [
+      {
+        accessorKey: "advertiserId",
+        header: "Sponsor",
+        cell: ({ row }) => {
+          const req = row.original
+          const isIncoming = req.publisherId === currentUser.id
+          const otherHero = getHero(isIncoming ? req.advertiserId : req.publisherId)
+          const initials = otherHero ? otherHero.name.charAt(0) : "?"
+          return (
+            <Link
+              href={`/requests?role=${role}`}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <Avatar className="size-8">
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <span className="font-medium">{otherHero?.name}</span>
+            </Link>
+          )
+        },
+      },
+      {
+        accessorKey: "adHeadline",
+        header: "Promotion",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.adHeadline}</span>
+        ),
+      },
+      {
+        id: "fee",
+        header: "Payout",
+        cell: ({ row }) => (
+          <span className="tabular-nums">
+            {formatCurrency(row.original.proposedFee)}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const s = row.original.status
+          const label = s.charAt(0).toUpperCase() + s.slice(1)
+          return (
+            <Badge variant="secondary" className={getStatusColor(s)}>
+              {label}
+            </Badge>
+          )
+        },
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button size="sm" asChild>
+              <Link href={`/requests?role=${role}`}>
+                View
+              </Link>
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [role]
+  )
 
   // Pick greeting based on local time of day
   const hour = new Date().getHours()
@@ -98,10 +170,10 @@ export function DashboardContent() {
                 Incoming Requests
               </p>
               <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
-                {incoming.length}
+                {incoming.filter((r) => r.status === "inbox").length}
               </p>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
-                from advertisers
+                from sponsors
               </p>
             </CardContent>
           </Card>
@@ -149,10 +221,10 @@ export function DashboardContent() {
         </Card>
       </div>
 
-      {/* Recent promotions */}
+      {/* Recent activity */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium">Recent Promotions</h2>
+          <h2 className="text-lg font-medium">Recent Activity</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link href={`/requests?role=${role}`}>
               View All
@@ -161,107 +233,11 @@ export function DashboardContent() {
           </Button>
         </div>
 
-        <div className="overflow-hidden rounded-md border">
-          {relevantRequests.slice(0, 3).map((req) => {
-            const isIncoming = req.publisherId === currentUser.id
-            const otherHero = getHero(
-              isIncoming ? req.advertiserId : req.publisherId
-            )
-            const initials = otherHero
-              ? otherHero.name.split(" ").map((n) => n[0]).join("")
-              : "?"
-
-            return (
-              <Link
-                key={req.id}
-                href={`/requests/${req.id}?role=${role}`}
-                className="flex items-center gap-3 border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-muted/50"
-              >
-                <Avatar size="sm">
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">
-                    {req.adHeadline}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {otherHero?.name}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium tabular-nums">
-                    {formatCurrency(req.proposedFee)}
-                  </span>
-                  <Badge
-                    variant="secondary"
-                    className={getStatusColor(req.status)}
-                  >
-                    {req.status}
-                  </Badge>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Recommended matches */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium">
-            {role === "publisher"
-              ? "Recommended Advertisers"
-              : role === "advertiser"
-                ? "Recommended Publishers"
-                : "Recommended for You"}
-          </h2>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={`/directory?role=${role}`}>
-              <Compass data-icon="inline-start" className="size-4" />
-              Browse Directory
-            </Link>
-          </Button>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          {recommended.map((hero) => {
-            const initials = hero.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-            return (
-              <Link
-                key={hero.id}
-                href={`/profile/${hero.id}?role=${role}`}
-              >
-                <Card
-                  size="sm"
-                  className="transition-colors hover:bg-muted/50"
-                >
-                  <CardContent>
-                    <div className="flex items-center gap-3">
-                      <Avatar size="sm">
-                        <AvatarFallback>{initials}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{hero.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {hero.tagline}
-                        </p>
-                      </div>
-                      <div className="text-right text-xs">
-                        <p className="font-medium tabular-nums">
-                          {formatNumber(hero.subscriberCount)}
-                        </p>
-                        <p className="text-muted-foreground">subscribers</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            )
-          })}
-        </div>
+        <DataTable
+          columns={activityColumns}
+          data={relevantRequests}
+          pageSize={5}
+        />
       </div>
     </div>
   )

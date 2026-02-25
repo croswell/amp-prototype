@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
+// Progress component no longer needed — using segmented bars instead
 import { Badge } from "@/components/ui/badge"
 import { VerticalPicker } from "@/components/vertical-picker"
 import {
@@ -24,6 +24,7 @@ import {
   CircleNotch,
   Globe,
   LinkSimple,
+  GoogleLogo,
 } from "@phosphor-icons/react"
 
 // ── Step definitions ─────────────────────────────────────────
@@ -41,19 +42,15 @@ type Step =
   | "generating"
   | "profile"
 
-// Progress steps vary by role — 6 steps either way
-function getProgressSteps(role: Role | null): Step[] {
-  const base: Step[] = ["signup", "otp", "role", "links", "niches"]
-  if (role === "publisher") return [...base, "publisher-setup"]
-  if (role === "advertiser") return [...base, "advertiser-setup"]
-  return base
-}
+// Segmented progress — 4 visible steps after signup/otp
+const progressSteps: Step[] = ["role", "links", "niches"]
+// The 4th segment is role-dependent (added dynamically)
 
-function getProgressValue(step: Step, role: Role | null): number {
-  const steps = getProgressSteps(role)
+function getFilledSegments(step: Step, role: Role | null): number {
+  const steps = [...progressSteps, role === "advertiser" ? "advertiser-setup" : "publisher-setup"]
   const index = steps.indexOf(step)
-  if (index === -1) return 100
-  return ((index + 1) / steps.length) * 100
+  if (index === -1) return steps.length // generating/profile = all filled
+  return index + 1
 }
 
 // ── Revenue calculation ──────────────────────────────────────
@@ -93,9 +90,9 @@ export default function OnboardingPage() {
   })
   const [verticals, setVerticals] = useState<Vertical[]>([])
 
-  // Publisher-specific state
-  const [audienceSize, setAudienceSize] = useState("")
-  const [sendFee, setSendFee] = useState("")
+  // Publisher-specific state — pre-filled for the prototype
+  const [audienceSize, setAudienceSize] = useState("10,000")
+  const [sendFee, setSendFee] = useState("250")
   const [promotionsPerMonth, setPromotionsPerMonth] = useState(2)
 
   // Advertiser-specific state
@@ -188,7 +185,11 @@ export default function OnboardingPage() {
   }
 
   // ── Show/hide progress bar ─────────────────────────────────
-  const showProgress = step !== "generating" && step !== "profile"
+  const showProgress =
+    step !== "signup" &&
+    step !== "otp" &&
+    step !== "generating" &&
+    step !== "profile"
 
   // ── Render ─────────────────────────────────────────────────
 
@@ -196,19 +197,46 @@ export default function OnboardingPage() {
     <div className="flex min-h-[calc(100svh-3.5rem)] flex-col items-center justify-center px-4 py-16">
       <div className="w-full max-w-lg space-y-8">
         {showProgress && (
-          <Progress value={getProgressValue(step, role)} className="h-1" />
+          <div className="flex w-full max-w-[200px] gap-1.5">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+                  i < getFilledSegments(step, role)
+                    ? "bg-foreground"
+                    : "bg-muted"
+                }`}
+              />
+            ))}
+          </div>
         )}
 
         {/* ── Step 1: Sign Up ─────────────────────────────── */}
         {step === "signup" && (
-          <div className="space-y-6">
-            <div className="space-y-2">
+          <div className="mx-auto max-w-sm space-y-6">
+            <div className="space-y-2 text-center">
               <h1 className="text-2xl font-medium tracking-tight">
-                Create your Amplify account
+                Welcome to Amplify
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Enter your name and email to get started.
+              <p className="text-pretty text-sm text-muted-foreground">
+                Sign up or sign in to get started.
               </p>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setStep("role")}
+            >
+              <GoogleLogo weight="bold" className="size-4" />
+              Continue with Google
+            </Button>
+
+            {/* Separator */}
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">or</span>
+              <div className="h-px flex-1 bg-border" />
             </div>
 
             <div className="space-y-4">
@@ -246,19 +274,19 @@ export default function OnboardingPage() {
 
         {/* ── Step 2: OTP Verification ────────────────────── */}
         {step === "otp" && (
-          <div className="space-y-6">
+          <div className="mx-auto max-w-sm space-y-6">
             <div className="space-y-2">
               <h1 className="text-2xl font-medium tracking-tight">
                 Check your email
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-pretty text-sm text-muted-foreground">
                 We sent a 6-digit code to{" "}
                 <span className="font-medium text-foreground">{email}</span>.
                 Enter it below.
               </p>
             </div>
 
-            <div className="flex justify-center gap-2">
+            <div className="grid grid-cols-6 gap-1.5">
               {Array.from({ length: 6 }).map((_, i) => (
                 <input
                   key={i}
@@ -271,7 +299,7 @@ export default function OnboardingPage() {
                   value={otp[i] || ""}
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  className="size-12 rounded-sm border border-border bg-background text-center text-lg font-medium focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
+                  className="h-10 w-full rounded-sm border border-border bg-background text-center text-sm font-medium focus:border-foreground focus:outline-none focus:ring-1 focus:ring-foreground"
                 />
               ))}
             </div>
@@ -302,7 +330,7 @@ export default function OnboardingPage() {
               <h1 className="text-2xl font-medium tracking-tight">
                 How will you use Amplify?
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-pretty text-sm text-muted-foreground">
                 Choose the role that best describes you.
               </p>
             </div>
@@ -310,34 +338,34 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => setRole("publisher")}
-                className={`flex flex-col items-center gap-3 rounded-sm border p-6 text-center transition-colors ${
+                className={`flex flex-col items-center gap-3 rounded-sm border-2 p-6 text-center transition-colors ${
                   role === "publisher"
-                    ? "border-foreground bg-foreground text-background"
+                    ? "border-foreground"
                     : "border-border hover:bg-muted"
                 }`}
               >
                 <Newspaper className="size-6" />
                 <div>
                   <p className="text-sm font-medium">Publisher</p>
-                  <p className="mt-1 text-xs opacity-70">
-                    Earn by promoting others in your newsletter
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Earn by promoting others in your email broadcasts
                   </p>
                 </div>
               </button>
 
               <button
                 onClick={() => setRole("advertiser")}
-                className={`flex flex-col items-center gap-3 rounded-sm border p-6 text-center transition-colors ${
+                className={`flex flex-col items-center gap-3 rounded-sm border-2 p-6 text-center transition-colors ${
                   role === "advertiser"
-                    ? "border-foreground bg-foreground text-background"
+                    ? "border-foreground"
                     : "border-border hover:bg-muted"
                 }`}
               >
                 <Megaphone className="size-6" />
                 <div>
-                  <p className="text-sm font-medium">Advertiser</p>
-                  <p className="mt-1 text-xs opacity-70">
-                    Get promoted to engaged audiences
+                  <p className="text-sm font-medium">Sponsor</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Pay to get promoted to engaged audiences
                   </p>
                 </div>
               </button>
@@ -361,7 +389,7 @@ export default function OnboardingPage() {
               <h1 className="text-2xl font-medium tracking-tight">
                 Add your links
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-pretty text-sm text-muted-foreground">
                 Help others vet you before partnering. All fields are
                 optional.
               </p>
@@ -465,9 +493,9 @@ export default function OnboardingPage() {
                   ? "What verticals will you promote?"
                   : "What verticals describe your product?"}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-pretty text-sm text-muted-foreground">
                 {role === "publisher"
-                  ? "Select the niches that match your audience. This helps us find the right advertisers for you."
+                  ? "Select the niches that match your audience. This helps us find the right sponsors for you."
                   : "Select the verticals that describe your product. This helps us match you with the right publishers."}
               </p>
             </div>
@@ -492,11 +520,11 @@ export default function OnboardingPage() {
           <div className="space-y-6">
             <div className="space-y-2">
               <h1 className="text-2xl font-medium tracking-tight">
-                Set up your publisher profile
+                See your earning potential
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Tell us about your broadcast audience so we can recommend a
-                send fee and show you what you could earn.
+              <p className="text-pretty text-sm text-muted-foreground">
+                Tell us about your broadcast audience and we&apos;ll show you
+                what you could earn with Amplify.
               </p>
             </div>
 
@@ -596,20 +624,18 @@ export default function OnboardingPage() {
             </div>
 
             {/* ── Revenue Projection — THE AHA MOMENT ──── */}
-            {feeNum > 0 && (
-              <div className="rounded-sm border bg-muted/50 p-6">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Your projected annual revenue
-                </p>
-                <p className="mt-1 text-4xl font-semibold tracking-tight">
-                  {formatCurrency(annualRevenue)}
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {formatCurrency(feeNum)}/send &times;{" "}
-                  {promotionsPerMonth}/month &times; 12 months
-                </p>
-              </div>
-            )}
+            <div className="rounded-sm border bg-muted/50 p-6">
+              <p className="text-sm font-medium text-muted-foreground">
+                Your projected annual revenue
+              </p>
+              <p className="mt-1 text-4xl font-semibold tracking-tight">
+                {formatCurrency(annualRevenue)}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {formatCurrency(feeNum)}/send &times;{" "}
+                {promotionsPerMonth}/month &times; 12 months
+              </p>
+            </div>
 
             <Button
               className="w-full"
@@ -630,7 +656,7 @@ export default function OnboardingPage() {
               <h1 className="text-2xl font-medium tracking-tight">
                 Create your promotion
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-pretty text-sm text-muted-foreground">
                 This is the ad that publishers will include in their email
                 broadcasts. Keep it concise and compelling.
               </p>
@@ -728,7 +754,7 @@ export default function OnboardingPage() {
                   ? "Setting up your publisher profile"
                   : "Setting up your promotion"}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-pretty text-sm text-muted-foreground">
                 Hang tight — we&apos;re getting everything ready.
               </p>
             </div>
@@ -744,9 +770,9 @@ export default function OnboardingPage() {
                   ? "Your publisher profile is ready"
                   : "Your promotion is ready"}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-pretty text-sm text-muted-foreground">
                 {role === "publisher"
-                  ? "Here's how you'll appear to advertisers in the network."
+                  ? "Here's how you'll appear to sponsors in the network."
                   : "Here's a summary of your setup. You can edit this anytime."}
               </p>
             </div>
@@ -764,8 +790,8 @@ export default function OnboardingPage() {
 
               <div className="space-y-1 text-center">
                 <p className="text-lg font-medium">{name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {role === "publisher" ? "Publisher" : "Advertiser"}
+                <p className="text-pretty text-sm text-muted-foreground">
+                  {role === "publisher" ? "Publisher" : "Sponsor"}
                 </p>
               </div>
 
@@ -797,14 +823,6 @@ export default function OnboardingPage() {
                     </span>
                     <span className="font-medium">
                       {formatCurrency(feeNum)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between border-t pt-3 text-sm">
-                    <span className="text-muted-foreground">
-                      Projected revenue
-                    </span>
-                    <span className="font-medium">
-                      {formatCurrency(annualRevenue)}/year
                     </span>
                   </div>
                 </div>

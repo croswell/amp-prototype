@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card"
 import {
   Broadcast,
+  CaretRight,
   Megaphone,
   Rocket,
 } from "@phosphor-icons/react/dist/ssr"
@@ -22,12 +23,12 @@ const experiences = [
   },
   {
     title: "Publisher Experience",
-    description: "Incoming promotion requests, revenue dashboard, and directory of advertisers",
+    description: "Incoming promotion requests, revenue dashboard, and directory of sponsors",
     href: "/dashboard?role=publisher",
     icon: Broadcast,
   },
   {
-    title: "Advertiser Experience",
+    title: "Sponsor Experience",
     description: "Outgoing promotion requests, curated publisher directory, and campaign tracking",
     href: "/dashboard?role=advertiser",
     icon: Megaphone,
@@ -38,16 +39,13 @@ export default function PrototypeIndex() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center px-4 py-16">
       <div className="w-full max-w-2xl space-y-8">
-        <div className="space-y-2 text-center">
-          <p className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="inline-block rounded-sm border border-dashed border-amber-300 bg-amber-50 px-2.5 py-1 font-mono text-xs font-medium uppercase tracking-widest text-amber-600">
             Prototype
-          </p>
+          </span>
           <h1 className="text-3xl font-medium tracking-tight">
             Kajabi Amplify
           </h1>
-          <p className="text-muted-foreground">
-            A curated promotion network where Kajabi heroes buy and sell email broadcast promotions.
-          </p>
         </div>
 
         <div className="grid gap-3">
@@ -55,14 +53,15 @@ export default function PrototypeIndex() {
             <Link key={exp.href} href={exp.href} className="group">
               <Card size="sm" className="transition-colors group-hover:bg-muted/50">
                 <CardHeader>
-                  <div className="flex items-start gap-4">
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
+                  <div className="flex items-center gap-4">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-neutral-200 dark:bg-neutral-700">
                       <exp.icon className="size-5 text-muted-foreground" />
                     </div>
-                    <div className="space-y-1">
+                    <div className="min-w-0 flex-1 space-y-1">
                       <CardTitle>{exp.title}</CardTitle>
                       <CardDescription>{exp.description}</CardDescription>
                     </div>
+                    <CaretRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5" />
                   </div>
                 </CardHeader>
               </Card>

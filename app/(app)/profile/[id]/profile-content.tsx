@@ -1,6 +1,5 @@
 "use client"
 
-import { use } from "react"
 import Link from "next/link"
 import { useParams, useSearchParams } from "next/navigation"
 import { notFound } from "next/navigation"
@@ -16,6 +15,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import {
+  type Hero,
   type Role,
   getHero,
   formatNumber,
@@ -28,6 +28,16 @@ import {
   Star,
   EnvelopeSimple,
 } from "@phosphor-icons/react"
+
+// Generate mock ad copy for an advertiser based on their profile data.
+// In the real product this comes from their setup flow.
+function getMockAdCopy(hero: Hero) {
+  return {
+    headline: hero.tagline,
+    body: hero.bio,
+    cta: "Learn More",
+  }
+}
 
 export function ProfileContent() {
   const params = useParams()
@@ -44,6 +54,124 @@ export function ProfileContent() {
     .map((n) => n[0])
     .join("")
 
+  // Publisher viewing an advertiser → show the advertiser profile
+  const isAdvertiserProfile =
+    role === "publisher" &&
+    (hero.role === "advertiser" || hero.role === "both")
+
+  if (isAdvertiserProfile) {
+    const ad = getMockAdCopy(hero)
+    return (
+      <div className="space-y-6">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href={`/directory?role=${role}`}>
+            <ArrowLeft data-icon="inline-start" className="size-4" />
+            Back to Directory
+          </Link>
+        </Button>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Left: profile info */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <Avatar size="lg">
+                  <AvatarFallback className="text-base">{initials}</AvatarFallback>
+                </Avatar>
+                <h1 className="text-lg font-medium">{hero.name}</h1>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {hero.bio}
+                </p>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {hero.verticals.map((v) => (
+                    <Badge key={v} variant="outline">
+                      {v}
+                    </Badge>
+                  ))}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Links
+                  </p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    <a
+                      href={hero.website}
+                      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      <Globe className="size-3.5" />
+                      Website
+                    </a>
+                    {hero.socialLinks.map((link) => (
+                      <a
+                        key={link.platform}
+                        href={link.url}
+                        className="flex items-center gap-1.5 text-sm capitalize text-muted-foreground hover:text-foreground"
+                      >
+                        <Globe className="size-3.5" />
+                        {link.platform}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Right: promotion card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Promotion</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Brief */}
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Brief
+                  </p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {hero.bio}
+                  </p>
+                </div>
+
+                {/* Ad copy preview */}
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Ad copy
+                  </p>
+                  <EmailBlockPreview
+                    headline={ad.headline}
+                    body={ad.body}
+                    cta={ad.cta}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Payout per send</p>
+                    <p className="text-lg font-medium tabular-nums">
+                      {formatCurrency(hero.recommendedFee)}
+                    </p>
+                  </div>
+                  <Button>Set Up &amp; Accept</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  // Default: advertiser viewing a publisher (existing layout)
   const canSendRequest =
     role === "advertiser" || role === "both"
       ? hero.role === "publisher" || hero.role === "both"

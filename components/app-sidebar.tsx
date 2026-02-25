@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import {
@@ -12,7 +13,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   House,
   Compass,
@@ -25,6 +29,12 @@ export function AppSidebar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const role = searchParams.get("role") || "both"
+  const { setOpenMobile } = useSidebar()
+
+  // Close mobile sidebar when navigating to a new page
+  useEffect(() => {
+    setOpenMobile(false)
+  }, [pathname, setOpenMobile])
 
   const mainLinks = [
     {
@@ -63,7 +73,7 @@ export function AppSidebar() {
                 <div className="flex size-8 items-center justify-center rounded-sm bg-foreground text-background">
                   <span className="text-xs font-bold">A</span>
                 </div>
-                <span className="text-sm font-medium">Amplify</span>
+                <span className="text-sm font-medium text-primary">Amplify</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -89,17 +99,31 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/settings"}>
-              <Link href={`/settings?role=${role}`}>
-                <Gear className="size-4" />
-                <span>Settings</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="p-0">
+        <div className="px-4 pt-4">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={pathname === "/settings"}>
+                <Link href={`/settings?role=${role}`}>
+                  <Gear className="size-4" />
+                  <span>Settings</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
+        <div className="border-t" />
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Avatar className="size-8">
+            <AvatarFallback className="text-xs">AJ</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium leading-tight">Alex Johnson</span>
+            <span className="text-xs text-muted-foreground">
+              {role === "advertiser" ? "Sponsor" : "Publisher"}
+            </span>
+          </div>
+        </div>
       </SidebarFooter>
     </Sidebar>
   )

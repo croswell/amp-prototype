@@ -86,7 +86,7 @@ export function AppNav() {
                 </Avatar>
                 <div className="text-left">
                   <p className="text-xs font-medium">{currentUser.name}</p>
-                  <p className="text-[10px] text-muted-foreground">Advertiser</p>
+                  <p className="text-[10px] text-muted-foreground">Sponsor</p>
                 </div>
                 {role === "advertiser" && <Check className="ml-auto size-3.5" />}
               </Link>

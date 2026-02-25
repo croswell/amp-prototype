@@ -41,43 +41,36 @@ export function HeroCard({ hero, roleParam }: HeroCardProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center gap-3 text-xs">
-              <div>
-                <span className="font-medium tabular-nums">
-                  {formatNumber(hero.subscriberCount)}
-                </span>{" "}
-                <span className="text-muted-foreground">subscribers</span>
-              </div>
-              <div>
-                <span className="font-medium tabular-nums">
-                  {hero.openRate}%
-                </span>{" "}
-                <span className="text-muted-foreground">open rate</span>
-              </div>
+            {/* Stats — single line */}
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium tabular-nums text-foreground">
+                {formatNumber(hero.subscriberCount)}
+              </span>{" "}
+              subscribers{" · "}
+              <span className="font-medium tabular-nums text-foreground">
+                {hero.openRate}%
+              </span>{" "}
+              open rate
             </div>
 
-            <div className="flex items-center gap-1.5">
+            {/* Engagement badge */}
+            <div>
               <Badge
                 variant="secondary"
                 className={getEngagementColor(hero.engagementTier)}
               >
                 {hero.engagementTier} engagement
               </Badge>
-              {hero.role === "both" ? (
-                <>
-                  <Badge variant="secondary">Publisher</Badge>
-                  <Badge variant="secondary">Advertiser</Badge>
-                </>
-              ) : (
-                <Badge variant="secondary" className="capitalize">
-                  {hero.role}
-                </Badge>
-              )}
             </div>
 
-            <div className="flex flex-wrap gap-1">
+            {/* Niche badges — more padding */}
+            <div className="flex flex-wrap gap-1.5">
               {hero.verticals.map((v) => (
-                <Badge key={v} variant="outline" className="text-[10px]">
+                <Badge
+                  key={v}
+                  variant="outline"
+                  className="h-auto px-2.5 py-0.5"
+                >
                   {v}
                 </Badge>
               ))}

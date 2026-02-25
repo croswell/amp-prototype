@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { PayoutBadge } from "@/components/payout-badge"
 import {
   Card,
   CardContent,
@@ -21,39 +22,33 @@ export function HeroCard({ hero, onClick }: HeroCardProps) {
   const niche = hero.verticals[0]
 
   return (
-    <Card size="sm" className="h-full">
-      <CardHeader>
-        <div className="flex items-start gap-3">
-          <Avatar>
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium leading-tight">{hero.name}</p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {hero.tagline}
-            </p>
+    <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.() }} className="h-full w-full cursor-pointer text-left">
+      <Card size="sm" className="h-full transition-colors hover:border-foreground/50">
+        <CardHeader className="space-y-2">
+          <div className="flex items-center gap-2.5">
+            <Avatar className="size-9">
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            <p className="font-medium leading-tight">{hero.name}</p>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {hero.bio}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
             {niche && (
-              <Badge variant="outline" className="shrink-0">
+              <Badge variant="secondary" className="h-9 shrink-0 border-0 px-3 text-sm">
                 {niche}
               </Badge>
             )}
-            <span className="text-sm font-medium tabular-nums">
-              {formatCurrency(hero.recommendedFee)}
-            </span>
-          </div>
-          {onClick && (
-            <Button variant="outline" size="sm" onClick={onClick}>
+            <PayoutBadge amount={hero.recommendedFee} className="h-9 shrink-0 px-3 text-sm" />
+            <Button variant="outline" size="sm" className="ml-auto shrink-0 cursor-pointer">
               View
             </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

@@ -17,6 +17,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { EmailBlockPreview } from "@/components/email-block-preview"
+import { PayoutBadge } from "@/components/payout-badge"
 import { CalendarBlank, Timer, X } from "@phosphor-icons/react"
 import {
   type RequestStatus,
@@ -212,9 +213,7 @@ function BriefStep({
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Payout</p>
-            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-              {formatCurrency(request.proposedFee)}
-            </Badge>
+            <PayoutBadge amount={request.proposedFee} />
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Preferred date</p>
@@ -368,9 +367,7 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Payout</p>
-            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-              {formatCurrency(request.proposedFee)}
-            </Badge>
+            <PayoutBadge amount={request.proposedFee} />
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Scheduled for</p>
@@ -428,9 +425,7 @@ function PublishedView({ request }: { request: PromotionRequest }) {
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Payout</p>
-            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-              {formatCurrency(request.proposedFee)}
-            </Badge>
+            <PayoutBadge amount={request.proposedFee} />
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Published on</p>
@@ -487,9 +482,7 @@ function ExpiredView({ request }: { request: PromotionRequest }) {
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Proposed payout</p>
-            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-              {formatCurrency(request.proposedFee)}
-            </Badge>
+            <PayoutBadge amount={request.proposedFee} />
           </div>
         </div>
       </SheetBody>

@@ -264,14 +264,6 @@ export function DirectoryContent() {
         </div>
       )}
 
-      {/* Results count */}
-      {filtered.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          Showing {startIndex + 1}&ndash;
-          {Math.min(endIndex, filtered.length)} of {filtered.length}
-        </p>
-      )}
-
       <div className="grid gap-4 sm:grid-cols-2">
         {paginatedHeroes.map((hero) => (
           <HeroCard key={hero.id} hero={hero} onClick={() => setSelectedHeroId(hero.id)} />
@@ -290,48 +282,56 @@ export function DirectoryContent() {
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1 pt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={safePage <= 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          >
-            <CaretLeft className="size-4" />
-            Previous
-          </Button>
-          {getPageNumbers().map((page, i) =>
-            page === "..." ? (
-              <span
-                key={`ellipsis-${i}`}
-                className="px-2 text-xs text-muted-foreground"
-              >
-                ...
-              </span>
-            ) : (
+      {filtered.length > 0 && (
+        <div className="flex items-center pt-2">
+          <p className="text-xs text-muted-foreground">
+            Showing {startIndex + 1}&ndash;
+            {Math.min(endIndex, filtered.length)} of {filtered.length}
+          </p>
+          {totalPages > 1 && (
+            <div className="ml-auto flex items-center gap-1">
               <Button
-                key={page}
-                variant={page === safePage ? "default" : "ghost"}
+                variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => setCurrentPage(page)}
+                disabled={safePage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
-                {page}
+                <CaretLeft className="size-4" />
+                Previous
               </Button>
-            )
+              {getPageNumbers().map((page, i) =>
+                page === "..." ? (
+                  <span
+                    key={`ellipsis-${i}`}
+                    className="px-2 text-xs text-muted-foreground"
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <Button
+                    key={page}
+                    variant={page === safePage ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 p-0"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                )
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={safePage >= totalPages}
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+              >
+                Next
+                <CaretRight className="size-4" />
+              </Button>
+            </div>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={safePage >= totalPages}
-            onClick={() =>
-              setCurrentPage((p) => Math.min(totalPages, p + 1))
-            }
-          >
-            Next
-            <CaretRight className="size-4" />
-          </Button>
         </div>
       )}
 

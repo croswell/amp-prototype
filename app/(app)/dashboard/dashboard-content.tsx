@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DataTable } from "@/components/ui/data-table"
-import { PromotionSheet, BADGE_COLORS } from "@/components/promotion-sheet"
+import { PromotionSheet } from "@/components/promotion-sheet"
+import { PayoutBadge } from "@/components/payout-badge"
 import {
   type PromotionRequest,
   currentUser,
@@ -93,9 +94,7 @@ export function DashboardContent() {
         id: "fee",
         header: "Payout",
         cell: ({ row }) => (
-          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-            {formatCurrency(row.original.proposedFee)}
-          </Badge>
+          <PayoutBadge amount={row.original.proposedFee} />
         ),
       },
       {

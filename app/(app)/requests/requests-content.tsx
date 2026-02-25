@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { DataTable } from "@/components/ui/data-table"
-import { PromotionSheet, BADGE_COLORS } from "@/components/promotion-sheet"
+import { PromotionSheet } from "@/components/promotion-sheet"
+import { PayoutBadge } from "@/components/payout-badge"
 import { X } from "@phosphor-icons/react"
 import {
   type RequestStatus,
@@ -124,9 +125,7 @@ export function RequestsContent() {
         id: "fee",
         header: "Payout",
         cell: ({ row }) => (
-          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-            {formatCurrency(row.original.proposedFee)}
-          </Badge>
+          <PayoutBadge amount={row.original.proposedFee} />
         ),
       },
       {
@@ -197,9 +196,7 @@ export function RequestsContent() {
         id: "fee",
         header: "Payout",
         cell: ({ row }) => (
-          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-            {formatCurrency(row.original.proposedFee)}
-          </Badge>
+          <PayoutBadge amount={row.original.proposedFee} />
         ),
       },
       {

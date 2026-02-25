@@ -28,13 +28,13 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
     <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.() }} className="h-full w-full cursor-pointer text-left">
       <Card className="h-full transition-colors hover:border-foreground/50">
         <CardHeader className="space-y-3">
-          <div className="flex items-center gap-2.5">
-            <Avatar className="size-11">
+          <div className="flex items-center gap-3.5">
+            <Avatar className="size-13">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="text-base font-medium leading-tight">{hero.name}</p>
-              {niche && <p className="mt-1 text-xs text-muted-foreground">{niche}</p>}
+              {niche && <p className="mt-1.5 text-xs text-muted-foreground">{niche}</p>}
             </div>
             <Button variant="outline" size="sm" className="ml-auto hidden shrink-0 cursor-pointer sm:inline-flex">
               View

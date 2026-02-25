@@ -151,8 +151,8 @@ export function RequestsContent() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button variant="outline" size="sm" onClick={() => openSheet(row.original)}>
-              View
+            <Button size="sm" onClick={() => openSheet(row.original)}>
+              Review
             </Button>
           </div>
         ),

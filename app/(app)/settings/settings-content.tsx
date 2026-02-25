@@ -35,7 +35,13 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
-import { VerticalPicker } from "@/components/vertical-picker"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { currentUser, formatCurrency, formatNumber, getEngagementColor } from "@/lib/mock-data"
 import type { Vertical } from "@/lib/mock-data"
@@ -155,7 +161,7 @@ export function SettingsContent() {
   const [linkedin, setLinkedin] = useState(
     currentUser.socialLinks.find((l) => l.platform === "linkedin")?.url || ""
   )
-  const [verticals, setVerticals] = useState<Vertical[]>(currentUser.verticals)
+  const [vertical, setVertical] = useState<Vertical>(currentUser.verticals[0])
 
   // ── Publisher state ────────────────────────────────────────
   const [audienceSize, setAudienceSize] = useState(
@@ -443,8 +449,26 @@ export function SettingsContent() {
               </div>
 
               <div className="space-y-2">
-                <Label>Verticals</Label>
-                <VerticalPicker selected={verticals} onChange={setVerticals} />
+                <Label>Niche</Label>
+                <Select value={vertical} onValueChange={(v) => setVertical(v as Vertical)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose your niche" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
+                    <SelectItem value="Business & Marketing">Business & Marketing</SelectItem>
+                    <SelectItem value="Personal Development">Personal Development</SelectItem>
+                    <SelectItem value="Creative Arts">Creative Arts</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Parenting">Parenting</SelectItem>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                    <SelectItem value="Lifestyle">Lifestyle</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Your primary industry category. This is shown on your profile.
+                </p>
               </div>
             </CardContent>
           </Card>

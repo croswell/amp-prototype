@@ -1,13 +1,9 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { type ColumnDef } from "@tanstack/react-table"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { HeroCard } from "@/components/hero-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DataTable } from "@/components/ui/data-table"
-import { Separator } from "@/components/ui/separator"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -40,17 +36,7 @@ import {
   formatCurrency,
   formatNumber,
   getEngagementColor,
-  promotionRequests,
 } from "@/lib/mock-data"
-import { BADGE_COLORS } from "@/components/promotion-sheet"
-
-// Look up a sponsor's campaign title from their promotion requests
-function getCampaignTitle(heroId: string): string {
-  const req = promotionRequests.find((r) => r.sponsorId === heroId)
-  if (req) return req.adHeadline
-  const hero = getHero(heroId)
-  return hero?.tagline ?? ""
-}
 import { useState, useMemo } from "react"
 import {
   MagnifyingGlass,
@@ -77,28 +63,6 @@ const ALL_VERTICALS: Vertical[] = [
 
 const ITEMS_PER_PAGE = 25
 
-// Deterministic schedule range based on hero ID (e.g. "Mar 9 – Mar 15")
-function getScheduleRange(heroId: string): string {
-  const hash = heroId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  const dayOffset = (hash % 4) * 7 + 7
-  const start = new Date()
-  start.setDate(start.getDate() + dayOffset)
-  // Round to nearest Monday
-  const day = start.getDay()
-  const diff = day === 0 ? 1 : day === 1 ? 0 : 8 - day
-  start.setDate(start.getDate() + diff)
-  const end = new Date(start)
-  end.setDate(end.getDate() + 6) // Sunday of same week
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-  return `${fmt(start)} – ${fmt(end)}`
-}
-
-// Deterministic days remaining (1–7) based on hero ID
-function getDaysRemaining(heroId: string): number {
-  const hash = heroId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  return (hash % 7) + 1
-}
 
 export function DirectoryContent() {
   const searchParams = useSearchParams()
@@ -143,80 +107,7 @@ export function DirectoryContent() {
     return result
   }, [targetRole, searchQuery, selectedVerticals, dismissedIds])
 
-  // Column definitions for the sponsor data table
-  const sponsorColumns = useMemo<ColumnDef<Hero>[]>(
-    () => [
-      {
-        accessorKey: "name",
-        header: "Sponsor",
-        cell: ({ row }) => {
-          const hero = row.original
-          const initials = hero.name.charAt(0)
-          return (
-            <button
-              onClick={() => setSelectedHeroId(hero.id)}
-              className="flex items-center gap-3 cursor-pointer text-left"
-            >
-              <Avatar className="size-8">
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-              </Avatar>
-              <span className="font-medium">{hero.name}</span>
-            </button>
-          )
-        },
-      },
-      {
-        id: "campaign",
-        header: "Campaign",
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {getCampaignTitle(row.original.id)}
-          </span>
-        ),
-      },
-      {
-        id: "payout",
-        header: "Payout",
-        cell: ({ row }) => (
-          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
-            {formatCurrency(row.original.recommendedFee)}
-          </Badge>
-        ),
-      },
-      {
-        id: "schedule",
-        header: "Schedule",
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {getScheduleRange(row.original.id)}
-          </span>
-        ),
-      },
-      {
-        id: "expires",
-        header: "Expires",
-        cell: ({ row }) => (
-          <span className="text-muted-foreground">
-            {getDaysRemaining(row.original.id)} days
-          </span>
-        ),
-      },
-      {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm" onClick={() => setSelectedHeroId(row.original.id)}>
-              View
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    []
-  )
-
-  // Manual pagination for the grid view (sponsor role)
+  // Pagination
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
   const [currentPage, setCurrentPage] = useState(1)
   const safePage = Math.min(currentPage, Math.max(totalPages, 1))
@@ -373,86 +264,75 @@ export function DirectoryContent() {
         </div>
       )}
 
-      {/* Sponsor data table (publisher view) or hero grid (sponsor view) */}
-      {role === "publisher" ? (
-        <DataTable
-          columns={sponsorColumns}
-          data={filtered}
-          pageSize={ITEMS_PER_PAGE}
-        />
-      ) : (
-        <>
-          {/* Results count */}
-          {filtered.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              Showing {startIndex + 1}&ndash;
-              {Math.min(endIndex, filtered.length)} of {filtered.length}
-            </p>
-          )}
+      {/* Results count */}
+      {filtered.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Showing {startIndex + 1}&ndash;
+          {Math.min(endIndex, filtered.length)} of {filtered.length}
+        </p>
+      )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {paginatedHeroes.map((hero) => (
-              <HeroCard key={hero.id} hero={hero} roleParam={role} onClick={() => setSelectedHeroId(hero.id)} />
-            ))}
-          </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {paginatedHeroes.map((hero) => (
+          <HeroCard key={hero.id} hero={hero} onClick={() => setSelectedHeroId(hero.id)} />
+        ))}
+      </div>
 
-          {/* Empty state */}
-          {filtered.length === 0 && (
-            <div className="py-12 text-center">
-              <p className="text-sm text-muted-foreground">
-                {searchQuery
-                  ? "No results for that search."
-                  : "No matches for the selected filters."}
-              </p>
-            </div>
-          )}
+      {/* Empty state */}
+      {filtered.length === 0 && (
+        <div className="py-12 text-center">
+          <p className="text-sm text-muted-foreground">
+            {searchQuery
+              ? "No results for that search."
+              : "No matches for the selected filters."}
+          </p>
+        </div>
+      )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-1 pt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={safePage <= 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 pt-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={safePage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            <CaretLeft className="size-4" />
+            Previous
+          </Button>
+          {getPageNumbers().map((page, i) =>
+            page === "..." ? (
+              <span
+                key={`ellipsis-${i}`}
+                className="px-2 text-xs text-muted-foreground"
               >
-                <CaretLeft className="size-4" />
-                Previous
-              </Button>
-              {getPageNumbers().map((page, i) =>
-                page === "..." ? (
-                  <span
-                    key={`ellipsis-${i}`}
-                    className="px-2 text-xs text-muted-foreground"
-                  >
-                    ...
-                  </span>
-                ) : (
-                  <Button
-                    key={page}
-                    variant={page === safePage ? "default" : "ghost"}
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                )
-              )}
+                ...
+              </span>
+            ) : (
               <Button
-                variant="ghost"
+                key={page}
+                variant={page === safePage ? "default" : "ghost"}
                 size="sm"
-                disabled={safePage >= totalPages}
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
+                className="h-8 w-8 p-0"
+                onClick={() => setCurrentPage(page)}
               >
-                Next
-                <CaretRight className="size-4" />
+                {page}
               </Button>
-            </div>
+            )
           )}
-        </>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={safePage >= totalPages}
+            onClick={() =>
+              setCurrentPage((p) => Math.min(totalPages, p + 1))
+            }
+          >
+            Next
+            <CaretRight className="size-4" />
+          </Button>
+        </div>
       )}
 
       {/* ── Hero profile Sheet ── */}

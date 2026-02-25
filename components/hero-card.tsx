@@ -1,6 +1,6 @@
-import Link from "next/link"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -8,21 +8,20 @@ import {
 } from "@/components/ui/card"
 import {
   type Hero,
-  formatNumber,
-  getEngagementColor,
+  formatCurrency,
 } from "@/lib/mock-data"
 
 interface HeroCardProps {
   hero: Hero
-  roleParam: string
   onClick?: () => void
 }
 
-export function HeroCard({ hero, roleParam, onClick }: HeroCardProps) {
+export function HeroCard({ hero, onClick }: HeroCardProps) {
   const initials = hero.name.charAt(0)
+  const niche = hero.verticals[0]
 
-  const card = (
-    <Card size="sm" className="h-full transition-colors hover:bg-muted/50">
+  return (
+    <Card size="sm" className="h-full">
       <CardHeader>
         <div className="flex items-start gap-3">
           <Avatar>
@@ -37,57 +36,24 @@ export function HeroCard({ hero, roleParam, onClick }: HeroCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {/* Stats — single line */}
-          <div className="text-xs text-muted-foreground">
-            <span className="font-medium tabular-nums text-foreground">
-              {formatNumber(hero.subscriberCount)}
-            </span>{" "}
-            subscribers{" · "}
-            <span className="font-medium tabular-nums text-foreground">
-              {hero.openRate}%
-            </span>{" "}
-            open rate
-          </div>
-
-          {/* Engagement badge */}
-          <div>
-            <Badge
-              variant="secondary"
-              className={getEngagementColor(hero.engagementTier)}
-            >
-              {hero.engagementTier} engagement
-            </Badge>
-          </div>
-
-          {/* Niche badges — more padding */}
-          <div className="flex flex-wrap gap-1.5">
-            {hero.verticals.map((v) => (
-              <Badge
-                key={v}
-                variant="outline"
-                className="h-auto px-2.5 py-0.5"
-              >
-                {v}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {niche && (
+              <Badge variant="outline" className="shrink-0">
+                {niche}
               </Badge>
-            ))}
+            )}
+            <span className="text-sm font-medium tabular-nums">
+              {formatCurrency(hero.recommendedFee)}
+            </span>
           </div>
+          {onClick && (
+            <Button variant="outline" size="sm" onClick={onClick}>
+              View
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
-  )
-
-  if (onClick) {
-    return (
-      <button onClick={onClick} className="w-full text-left">
-        {card}
-      </button>
-    )
-  }
-
-  return (
-    <Link href={`/profile/${hero.id}?role=${roleParam}`}>
-      {card}
-    </Link>
   )
 }

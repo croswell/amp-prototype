@@ -98,7 +98,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-0">
-        <div className="px-4 pt-4">
+        <div className="px-4 pt-4 pb-3">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === "/settings"}>
@@ -111,7 +111,7 @@ export function AppSidebar() {
           </SidebarMenu>
         </div>
         <div className="border-t" />
-        <div className="flex items-center gap-3 p-4">
+        <div className="flex items-center gap-3 px-4 pt-4 pb-6">
           <Avatar className="size-8">
             <AvatarFallback className="text-xs">AJ</AvatarFallback>
           </Avatar>

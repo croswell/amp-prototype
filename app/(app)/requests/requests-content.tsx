@@ -256,7 +256,7 @@ export function RequestsContent() {
                 {tab.key === "inbox" && (
                   <Badge
                     variant="secondary"
-                    className="ml-1 h-4.5 px-1.5 py-0 text-[10px] tabular-nums text-muted-foreground"
+                    className="ml-1 h-4.5 px-1.5 py-0 text-[10px] tabular-nums text-foreground"
                   >
                     {count}
                   </Badge>

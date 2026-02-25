@@ -43,13 +43,14 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "expired", label: "Expired" },
 ]
 
-// Palette color pairs: light bg + dark text in light mode, inverted in dark mode
+// Palette color pairs: light palette color as bg tint, darkened text for contrast
 const BADGE_COLORS = {
-  green: "bg-[#CBD7CC] text-[#405B50] dark:bg-[#405B50] dark:text-[#CBD7CC]",
-  blue: "bg-[#9FC2CC] text-[#3A6278] dark:bg-[#3A6278] dark:text-[#9FC2CC]",
-  gold: "bg-[#EFD3A9] text-[#D6A151] dark:bg-[#D6A151] dark:text-[#EFD3A9]",
-  terracotta: "bg-[#AD715C] text-[#733725] dark:bg-[#733725] dark:text-[#AD715C]",
-  lavender: "bg-[#D7CBD5] text-[#52405B] dark:bg-[#52405B] dark:text-[#D7CBD5]",
+  green: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
+  greenOutline: "text-[#405B50] dark:text-[#CBD7CC]",
+  blue: "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]",
+  gold: "bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]",
+  terracotta: "bg-[#AD715C]/30 text-[#4A2318] dark:bg-[#733725]/40 dark:text-[#AD715C]",
+  lavender: "bg-[#D7CBD5]/50 text-[#352938] dark:bg-[#52405B]/40 dark:text-[#D7CBD5]",
 } as const
 
 // Deterministic days remaining based on request ID
@@ -172,9 +173,9 @@ export function RequestsContent() {
         id: "fee",
         header: "Payout",
         cell: ({ row }) => (
-          <span className="tabular-nums">
+          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
             {formatCurrency(row.original.proposedFee)}
-          </span>
+          </Badge>
         ),
       },
       {
@@ -234,9 +235,9 @@ export function RequestsContent() {
         id: "fee",
         header: "Payout",
         cell: ({ row }) => (
-          <span className="tabular-nums">
+          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
             {formatCurrency(row.original.proposedFee)}
-          </span>
+          </Badge>
         ),
       },
       {
@@ -415,7 +416,7 @@ function BriefStep({
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Payout</p>
-            <Badge className={`${BADGE_COLORS.green} tabular-nums`}>
+            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
               {formatCurrency(request.proposedFee)}
             </Badge>
           </div>
@@ -559,17 +560,19 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
           cta={request.adCta}
         />
 
-        <div className="flex gap-6 text-sm">
-          <div>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Payout</p>
-            <p className="font-medium tabular-nums">{formatCurrency(request.proposedFee)}</p>
+            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
+              {formatCurrency(request.proposedFee)}
+            </Badge>
           </div>
-          <div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Scheduled for</p>
-            <p className="flex items-center gap-1.5">
-              <CalendarBlank className="size-3.5 text-muted-foreground" />
+            <Badge className={BADGE_COLORS.blue}>
+              <CalendarBlank className="size-3" />
               {formatDate(request.proposedDate)}
-            </p>
+            </Badge>
           </div>
         </div>
       </div>
@@ -614,17 +617,19 @@ function PublishedView({ request }: { request: PromotionRequest }) {
           cta={request.adCta}
         />
 
-        <div className="flex gap-6 text-sm">
-          <div>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Payout</p>
-            <p className="font-medium tabular-nums">{formatCurrency(request.proposedFee)}</p>
+            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
+              {formatCurrency(request.proposedFee)}
+            </Badge>
           </div>
-          <div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Published on</p>
-            <p className="flex items-center gap-1.5">
-              <CalendarBlank className="size-3.5 text-muted-foreground" />
+            <Badge className={BADGE_COLORS.blue}>
+              <CalendarBlank className="size-3" />
               {formatDate(request.proposedDate)}
-            </p>
+            </Badge>
           </div>
         </div>
       </div>
@@ -671,12 +676,12 @@ function ExpiredView({ request }: { request: PromotionRequest }) {
           <p className="text-sm leading-relaxed text-muted-foreground">{request.brief}</p>
         </div>
 
-        <div className="flex gap-6 text-sm">
-          <div>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Proposed payout</p>
-            <p className="font-medium tabular-nums text-muted-foreground">
+            <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
               {formatCurrency(request.proposedFee)}
-            </p>
+            </Badge>
           </div>
         </div>
       </div>

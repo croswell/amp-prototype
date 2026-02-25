@@ -85,9 +85,9 @@ export function DashboardContent() {
         id: "fee",
         header: "Payout",
         cell: ({ row }) => (
-          <span className="tabular-nums">
+          <Badge variant="outline" className="text-[#405B50] dark:text-[#CBD7CC] tabular-nums">
             {formatCurrency(row.original.proposedFee)}
-          </span>
+          </Badge>
         ),
       },
       {

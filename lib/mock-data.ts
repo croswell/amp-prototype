@@ -650,13 +650,13 @@ export function getEngagementColor(tier: EngagementTier): string {
 export function getStatusColor(status: RequestStatus): string {
   switch (status) {
     case "inbox":
-      return "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400"
+      return "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]"
     case "accepted":
-      return "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+      return "bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
     case "published":
-      return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+      return "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]"
     case "expired":
-      return "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400"
+      return "bg-[#D7CBD5]/50 text-[#352938] dark:bg-[#52405B]/40 dark:text-[#D7CBD5]"
   }
 }
 

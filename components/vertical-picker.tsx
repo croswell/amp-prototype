@@ -37,7 +37,7 @@ export function VerticalPicker({ selected, onChange }: VerticalPickerProps) {
           <button key={v} type="button" onClick={() => toggle(v)}>
             <Badge
               variant={isActive ? "default" : "outline"}
-              className="cursor-pointer px-3 py-1 text-xs"
+              className="cursor-pointer px-3 py-3 text-xs"
             >
               {v}
             </Badge>

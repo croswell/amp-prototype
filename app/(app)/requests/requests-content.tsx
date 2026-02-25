@@ -12,13 +12,14 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { DataTable } from "@/components/ui/data-table"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { X, CalendarBlank, Timer } from "@phosphor-icons/react"
 import {
@@ -41,6 +42,15 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "published", label: "Published" },
   { key: "expired", label: "Expired" },
 ]
+
+// Palette color pairs: light bg + dark text in light mode, inverted in dark mode
+const BADGE_COLORS = {
+  green: "bg-[#CBD7CC] text-[#405B50] dark:bg-[#405B50] dark:text-[#CBD7CC]",
+  blue: "bg-[#9FC2CC] text-[#3A6278] dark:bg-[#3A6278] dark:text-[#9FC2CC]",
+  gold: "bg-[#EFD3A9] text-[#D6A151] dark:bg-[#D6A151] dark:text-[#EFD3A9]",
+  terracotta: "bg-[#AD715C] text-[#733725] dark:bg-[#733725] dark:text-[#AD715C]",
+  lavender: "bg-[#D7CBD5] text-[#52405B] dark:bg-[#52405B] dark:text-[#D7CBD5]",
+} as const
 
 // Deterministic days remaining based on request ID
 function getDaysRemaining(id: string): number {
@@ -297,8 +307,8 @@ export function RequestsContent() {
       </Tabs>
 
       {/* ── Request dialog ── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+      <Sheet open={dialogOpen} onOpenChange={setDialogOpen}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
           {selectedRequest && effectiveStatus === "inbox" && dialogStep === "brief" && (
             <BriefStep
               request={selectedRequest}
@@ -329,8 +339,8 @@ export function RequestsContent() {
           {selectedRequest && effectiveStatus === "expired" && (
             <ExpiredView request={selectedRequest} />
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
@@ -355,10 +365,10 @@ function BriefStep({
 
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>{request.adHeadline}</DialogTitle>
-        <DialogDescription>Review this sponsorship request</DialogDescription>
-      </DialogHeader>
+      <SheetHeader>
+        <SheetTitle>{request.adHeadline}</SheetTitle>
+        <SheetDescription>Review this sponsorship request</SheetDescription>
+      </SheetHeader>
 
       <div className="space-y-4">
         {/* Sponsor info */}
@@ -376,7 +386,7 @@ function BriefStep({
         {sponsor && sponsor.verticals.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {sponsor.verticals.map((v) => (
-              <Badge key={v} variant="outline" className="text-xs">
+              <Badge key={v} className={`text-xs ${BADGE_COLORS.terracotta}`}>
                 {v}
               </Badge>
             ))}
@@ -402,36 +412,38 @@ function BriefStep({
         </div>
 
         {/* Deal details */}
-        <div className="flex gap-6 text-sm">
-          <div>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Payout</p>
-            <p className="font-medium tabular-nums">{formatCurrency(request.proposedFee)}</p>
+            <Badge className={`${BADGE_COLORS.green} tabular-nums`}>
+              {formatCurrency(request.proposedFee)}
+            </Badge>
           </div>
-          <div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Preferred date</p>
-            <p className="flex items-center gap-1.5">
-              <CalendarBlank className="size-3.5 text-muted-foreground" />
+            <Badge className={BADGE_COLORS.blue}>
+              <CalendarBlank className="size-3" />
               {formatDate(request.proposedDate)}
-            </p>
+            </Badge>
           </div>
-          <div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Expires</p>
-            <p className="flex items-center gap-1.5">
-              <Timer className="size-3.5 text-muted-foreground" />
+            <Badge className={BADGE_COLORS.gold}>
+              <Timer className="size-3" />
               {getDaysRemaining(request.id)} days
-            </p>
+            </Badge>
           </div>
         </div>
       </div>
 
-      <DialogFooter>
+      <SheetFooter>
         <Button variant="outline" onClick={onDismiss}>
           Dismiss
         </Button>
         <Button onClick={onAccept}>
           Accept & Review
         </Button>
-      </DialogFooter>
+      </SheetFooter>
     </>
   )
 }
@@ -461,12 +473,12 @@ function EditStep({
 }) {
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>Edit & Schedule</DialogTitle>
-        <DialogDescription>
+      <SheetHeader>
+        <SheetTitle>Edit & Schedule</SheetTitle>
+        <SheetDescription>
           Adjust the ad copy and pick a send date for your newsletter.
-        </DialogDescription>
-      </DialogHeader>
+        </SheetDescription>
+      </SheetHeader>
 
       <div className="space-y-4">
         <div className="space-y-2">
@@ -504,14 +516,14 @@ function EditStep({
         </div>
       </div>
 
-      <DialogFooter>
+      <SheetFooter>
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
         <Button onClick={onSchedule}>
           Schedule
         </Button>
-      </DialogFooter>
+      </SheetFooter>
     </>
   )
 }
@@ -524,14 +536,14 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
 
   return (
     <>
-      <DialogHeader>
+      <SheetHeader>
         <div className="flex items-center gap-2">
-          <DialogTitle className="flex-1">{request.adHeadline}</DialogTitle>
+          <SheetTitle className="flex-1">{request.adHeadline}</SheetTitle>
           <Badge variant="secondary" className={getStatusColor("accepted")}>
             {STATUS_LABELS.accepted}
           </Badge>
         </div>
-      </DialogHeader>
+      </SheetHeader>
 
       <div className="space-y-4">
         <div className="flex items-center gap-3">
@@ -562,7 +574,11 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
         </div>
       </div>
 
-      <DialogFooter showCloseButton />
+      <SheetFooter>
+        <SheetClose asChild>
+          <Button variant="outline">Close</Button>
+        </SheetClose>
+      </SheetFooter>
     </>
   )
 }
@@ -575,14 +591,14 @@ function PublishedView({ request }: { request: PromotionRequest }) {
 
   return (
     <>
-      <DialogHeader>
+      <SheetHeader>
         <div className="flex items-center gap-2">
-          <DialogTitle className="flex-1">{request.adHeadline}</DialogTitle>
+          <SheetTitle className="flex-1">{request.adHeadline}</SheetTitle>
           <Badge variant="secondary" className={getStatusColor("published")}>
             {STATUS_LABELS.published}
           </Badge>
         </div>
-      </DialogHeader>
+      </SheetHeader>
 
       <div className="space-y-4">
         <div className="flex items-center gap-3">
@@ -613,7 +629,11 @@ function PublishedView({ request }: { request: PromotionRequest }) {
         </div>
       </div>
 
-      <DialogFooter showCloseButton />
+      <SheetFooter>
+        <SheetClose asChild>
+          <Button variant="outline">Close</Button>
+        </SheetClose>
+      </SheetFooter>
     </>
   )
 }
@@ -626,14 +646,14 @@ function ExpiredView({ request }: { request: PromotionRequest }) {
 
   return (
     <>
-      <DialogHeader>
+      <SheetHeader>
         <div className="flex items-center gap-2">
-          <DialogTitle className="flex-1">{request.adHeadline}</DialogTitle>
+          <SheetTitle className="flex-1">{request.adHeadline}</SheetTitle>
           <Badge variant="secondary" className={getStatusColor("expired")}>
             {STATUS_LABELS.expired}
           </Badge>
         </div>
-      </DialogHeader>
+      </SheetHeader>
 
       <div className="space-y-4">
         <div className="flex items-center gap-3">
@@ -661,7 +681,11 @@ function ExpiredView({ request }: { request: PromotionRequest }) {
         </div>
       </div>
 
-      <DialogFooter showCloseButton />
+      <SheetFooter>
+        <SheetClose asChild>
+          <Button variant="outline">Close</Button>
+        </SheetClose>
+      </SheetFooter>
     </>
   )
 }

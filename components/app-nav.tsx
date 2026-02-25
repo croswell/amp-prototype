@@ -30,8 +30,9 @@ export function AppNav() {
         <div className="flex items-center gap-6">
           <Link
             href={`/?role=${role}`}
-            className="text-sm font-medium tracking-tight"
+            className="flex items-center gap-2 text-sm font-medium tracking-tight"
           >
+            <img src="/icon-black.svg" alt="" className="size-6 rounded-sm" />
             Amplify
           </Link>
           <div className="flex items-center gap-1">

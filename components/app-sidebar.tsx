@@ -70,10 +70,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex size-8 items-center justify-center rounded-sm bg-foreground text-background">
-                  <span className="text-xs font-bold">A</span>
-                </div>
-                <span className="text-sm font-medium text-primary">Amplify</span>
+                <img src="/logo-black.svg" alt="Amplify" className="h-6" />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

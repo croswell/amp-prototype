@@ -164,12 +164,13 @@ export default function OnboardingPage() {
         {/* ── Step 1: Sign in with Kajabi ──────────────────── */}
         {step === "kajabi-signin" && (
           <div className="mx-auto max-w-sm space-y-6">
-            <div className="space-y-2 text-center">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <img src="/icon-black.svg" alt="Amplify" className="size-12 rounded-md" />
               <h1 className="text-2xl font-medium tracking-tight">
                 Welcome to Amplify
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
-                Amplify connects Kajabi creators for cross-promotion. Sign in to
+                Amplify connects Kajabi experts for cross-promotion. Sign in to
                 import your audience data and get started.
               </p>
             </div>

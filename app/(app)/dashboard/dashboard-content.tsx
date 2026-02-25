@@ -143,14 +143,14 @@ export function DashboardContent() {
         {(role === "publisher" || role === "both") && (
           <Card size="sm">
             <CardContent>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Ad Revenue
               </p>
               <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
                 {formatCurrency(yearlyRevenue)}
               </p>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
-                estimated yearly
+                last 30 days
               </p>
             </CardContent>
           </Card>
@@ -158,7 +158,7 @@ export function DashboardContent() {
         {(role === "sponsor" || role === "both") && (
           <Card size="sm">
             <CardContent>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Total Spend
               </p>
               <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
@@ -173,7 +173,7 @@ export function DashboardContent() {
         {role === "publisher" && (
           <Card size="sm">
             <CardContent>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Incoming Requests
               </p>
               <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
@@ -188,7 +188,7 @@ export function DashboardContent() {
         {role === "sponsor" && (
           <Card size="sm">
             <CardContent>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Campaigns Sent
               </p>
               <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
@@ -202,7 +202,7 @@ export function DashboardContent() {
         )}
         <Card size="sm">
           <CardContent>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Active Promotions
             </p>
             <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
@@ -215,7 +215,7 @@ export function DashboardContent() {
         </Card>
         <Card size="sm">
           <CardContent>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Completed
             </p>
             <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">

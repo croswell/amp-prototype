@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { type ColumnDef } from "@tanstack/react-table"
@@ -9,14 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DataTable } from "@/components/ui/data-table"
+import { PromotionSheet, BADGE_COLORS } from "@/components/promotion-sheet"
 import {
   type PromotionRequest,
   currentUser,
   promotionRequests,
   getHero,
-  getRecommendedHeroes,
   formatCurrency,
-  formatNumber,
   getStatusColor,
 } from "@/lib/mock-data"
 import { ArrowRight } from "@phosphor-icons/react"
@@ -24,6 +23,15 @@ import { ArrowRight } from "@phosphor-icons/react"
 export function DashboardContent() {
   const searchParams = useSearchParams()
   const role = searchParams.get("role") || "both"
+
+  // Sheet state
+  const [selectedRequest, setSelectedRequest] = useState<PromotionRequest | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  function openSheet(request: PromotionRequest) {
+    setSelectedRequest(request)
+    setSheetOpen(true)
+  }
 
   const incoming = promotionRequests.filter(
     (r) => r.publisherId === currentUser.id
@@ -62,15 +70,15 @@ export function DashboardContent() {
           const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
           const initials = otherHero ? otherHero.name.charAt(0) : "?"
           return (
-            <Link
-              href={`/requests?role=${role}`}
-              className="flex items-center gap-3 cursor-pointer"
+            <button
+              onClick={() => openSheet(req)}
+              className="flex items-center gap-3 cursor-pointer text-left"
             >
               <Avatar className="size-8">
                 <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
               <span className="font-medium">{otherHero?.name}</span>
-            </Link>
+            </button>
           )
         },
       },
@@ -85,7 +93,7 @@ export function DashboardContent() {
         id: "fee",
         header: "Payout",
         cell: ({ row }) => (
-          <Badge variant="outline" className="text-[#405B50] dark:text-[#CBD7CC] tabular-nums">
+          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
             {formatCurrency(row.original.proposedFee)}
           </Badge>
         ),
@@ -108,15 +116,14 @@ export function DashboardContent() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button size="sm" asChild>
-              <Link href={`/requests?role=${role}`}>
-                View
-              </Link>
+            <Button size="sm" onClick={() => openSheet(row.original)}>
+              View
             </Button>
           </div>
         ),
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [role]
   )
 
@@ -239,6 +246,12 @@ export function DashboardContent() {
           pageSize={5}
         />
       </div>
+
+      <PromotionSheet
+        request={selectedRequest}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </div>
   )
 }

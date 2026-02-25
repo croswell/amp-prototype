@@ -266,7 +266,7 @@ export function DirectoryContent() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {paginatedHeroes.map((hero) => (
-          <HeroCard key={hero.id} hero={hero} onClick={() => setSelectedHeroId(hero.id)} />
+          <HeroCard key={hero.id} hero={hero} showPublisherStats={role === "sponsor"} onClick={() => setSelectedHeroId(hero.id)} />
         ))}
       </div>
 

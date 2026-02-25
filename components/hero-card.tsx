@@ -15,69 +15,82 @@ import {
 interface HeroCardProps {
   hero: Hero
   roleParam: string
+  onClick?: () => void
 }
 
-export function HeroCard({ hero, roleParam }: HeroCardProps) {
+export function HeroCard({ hero, roleParam, onClick }: HeroCardProps) {
   const initials = hero.name
     .split(" ")
     .map((n) => n[0])
     .join("")
 
+  const card = (
+    <Card size="sm" className="h-full transition-colors hover:bg-muted/50">
+      <CardHeader>
+        <div className="flex items-start gap-3">
+          <Avatar>
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium leading-tight">{hero.name}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {hero.tagline}
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {/* Stats — single line */}
+          <div className="text-xs text-muted-foreground">
+            <span className="font-medium tabular-nums text-foreground">
+              {formatNumber(hero.subscriberCount)}
+            </span>{" "}
+            subscribers{" · "}
+            <span className="font-medium tabular-nums text-foreground">
+              {hero.openRate}%
+            </span>{" "}
+            open rate
+          </div>
+
+          {/* Engagement badge */}
+          <div>
+            <Badge
+              variant="secondary"
+              className={getEngagementColor(hero.engagementTier)}
+            >
+              {hero.engagementTier} engagement
+            </Badge>
+          </div>
+
+          {/* Niche badges — more padding */}
+          <div className="flex flex-wrap gap-1.5">
+            {hero.verticals.map((v) => (
+              <Badge
+                key={v}
+                variant="outline"
+                className="h-auto px-2.5 py-0.5"
+              >
+                {v}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  if (onClick) {
+    return (
+      <button onClick={onClick} className="w-full text-left">
+        {card}
+      </button>
+    )
+  }
+
   return (
     <Link href={`/profile/${hero.id}?role=${roleParam}`}>
-      <Card size="sm" className="h-full transition-colors hover:bg-muted/50">
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <Avatar>
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium leading-tight">{hero.name}</p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {hero.tagline}
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {/* Stats — single line */}
-            <div className="text-xs text-muted-foreground">
-              <span className="font-medium tabular-nums text-foreground">
-                {formatNumber(hero.subscriberCount)}
-              </span>{" "}
-              subscribers{" · "}
-              <span className="font-medium tabular-nums text-foreground">
-                {hero.openRate}%
-              </span>{" "}
-              open rate
-            </div>
-
-            {/* Engagement badge */}
-            <div>
-              <Badge
-                variant="secondary"
-                className={getEngagementColor(hero.engagementTier)}
-              >
-                {hero.engagementTier} engagement
-              </Badge>
-            </div>
-
-            {/* Niche badges — more padding */}
-            <div className="flex flex-wrap gap-1.5">
-              {hero.verticals.map((v) => (
-                <Badge
-                  key={v}
-                  variant="outline"
-                  className="h-auto px-2.5 py-0.5"
-                >
-                  {v}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {card}
     </Link>
   )
 }

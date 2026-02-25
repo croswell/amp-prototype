@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -8,6 +7,7 @@ import { HeroCard } from "@/components/hero-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
+import { Separator } from "@/components/ui/separator"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -22,10 +22,23 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from "@/components/ui/sheet"
+import { EmailBlockPreview } from "@/components/email-block-preview"
+import {
   type Hero,
   type Vertical,
   heroes,
+  getHero,
   formatCurrency,
+  formatNumber,
+  getEngagementColor,
 } from "@/lib/mock-data"
 import { useState, useMemo } from "react"
 import {
@@ -35,6 +48,7 @@ import {
   Check,
   CaretLeft,
   CaretRight,
+  Globe,
 } from "@phosphor-icons/react"
 
 const ALL_VERTICALS: Vertical[] = [
@@ -82,6 +96,8 @@ export function DirectoryContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterOpen, setFilterOpen] = useState(false)
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+  const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
+  const selectedHero = selectedHeroId ? getHero(selectedHeroId) ?? null : null
 
   // Publishers see sponsors, sponsors see publishers
   const targetRole = role === "publisher" ? "sponsor" : "publisher"
@@ -125,15 +141,15 @@ export function DirectoryContent() {
           const hero = row.original
           const initials = hero.name.charAt(0)
           return (
-            <Link
-              href={`/profile/${hero.id}?role=publisher`}
-              className="flex items-center gap-3 cursor-pointer"
+            <button
+              onClick={() => setSelectedHeroId(hero.id)}
+              className="flex items-center gap-3 cursor-pointer text-left"
             >
               <Avatar className="size-8">
                 <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
               <span className="font-medium">{hero.name}</span>
-            </Link>
+            </button>
           )
         },
       },
@@ -169,10 +185,8 @@ export function DirectoryContent() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button size="sm" asChild>
-              <Link href={`/profile/${row.original.id}?role=publisher`}>
-                View
-              </Link>
+            <Button size="sm" onClick={() => setSelectedHeroId(row.original.id)}>
+              View
             </Button>
           </div>
         ),
@@ -356,7 +370,7 @@ export function DirectoryContent() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             {paginatedHeroes.map((hero) => (
-              <HeroCard key={hero.id} hero={hero} roleParam={role} />
+              <HeroCard key={hero.id} hero={hero} roleParam={role} onClick={() => setSelectedHeroId(hero.id)} />
             ))}
           </div>
 
@@ -418,6 +432,195 @@ export function DirectoryContent() {
           )}
         </>
       )}
+
+      {/* ── Hero profile Sheet ── */}
+      <Sheet open={!!selectedHero} onOpenChange={(open) => !open && setSelectedHeroId(null)}>
+        <SheetContent className="sm:max-w-lg overflow-y-auto">
+          {selectedHero && role === "publisher" && (
+            <SponsorProfileSheet hero={selectedHero} />
+          )}
+          {selectedHero && role !== "publisher" && (
+            <PublisherProfileSheet hero={selectedHero} />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sheet profile views
+// ─────────────────────────────────────────────────────────────
+
+function SponsorProfileSheet({ hero }: { hero: Hero }) {
+  const initials = hero.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+
+  return (
+    <>
+      <SheetHeader>
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <div>
+            <SheetTitle>{hero.name}</SheetTitle>
+            <SheetDescription>{hero.tagline}</SheetDescription>
+          </div>
+        </div>
+      </SheetHeader>
+
+      <div className="space-y-4 px-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {hero.bio}
+        </p>
+
+        <div className="flex flex-wrap gap-1.5">
+          {hero.verticals.map((v) => (
+            <Badge key={v} variant="outline">
+              {v}
+            </Badge>
+          ))}
+        </div>
+
+        <Separator />
+
+        {/* Links */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Links</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <a
+              href={hero.website}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <Globe className="size-3.5" />
+              Website
+            </a>
+            {hero.socialLinks.map((link) => (
+              <a
+                key={link.platform}
+                href={link.url}
+                className="flex items-center gap-1.5 text-sm capitalize text-muted-foreground hover:text-foreground"
+              >
+                <Globe className="size-3.5" />
+                {link.platform}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Promotion preview */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Promotion</p>
+          <EmailBlockPreview
+            headline={hero.tagline}
+            body={hero.bio}
+            cta="Learn More"
+          />
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground">Payout per send</p>
+          <p className="text-lg font-medium tabular-nums">
+            {formatCurrency(hero.recommendedFee)}
+          </p>
+        </div>
+      </div>
+
+      <SheetFooter>
+        <SheetClose asChild>
+          <Button variant="outline">Decline</Button>
+        </SheetClose>
+        <Button>Accept</Button>
+      </SheetFooter>
+    </>
+  )
+}
+
+function PublisherProfileSheet({ hero }: { hero: Hero }) {
+  const initials = hero.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+
+  return (
+    <>
+      <SheetHeader>
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <div>
+            <SheetTitle>{hero.name}</SheetTitle>
+            <SheetDescription>{hero.tagline}</SheetDescription>
+          </div>
+        </div>
+      </SheetHeader>
+
+      <div className="space-y-4 px-4">
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs text-muted-foreground">Subscribers</p>
+            <p className="text-lg font-medium tabular-nums">
+              {formatNumber(hero.subscriberCount)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Open Rate</p>
+            <p className="text-lg font-medium tabular-nums">
+              {hero.openRate}%
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Click Rate</p>
+            <p className="text-lg font-medium tabular-nums">
+              {hero.clickRate}%
+            </p>
+          </div>
+        </div>
+
+        <Badge
+          variant="secondary"
+          className={getEngagementColor(hero.engagementTier)}
+        >
+          {hero.engagementTier} engagement
+        </Badge>
+
+        <Separator />
+
+        <div>
+          <p className="text-xs text-muted-foreground">Recommended Fee</p>
+          <p className="text-lg font-medium tabular-nums">
+            {formatCurrency(hero.recommendedFee)}
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* Sample promotion */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">
+            Sample Promotion
+          </p>
+          <EmailBlockPreview
+            headline={`Recommended by ${hero.name.split(" ")[0]}`}
+            body={`${hero.name} hand-picks every promotion they share. Their audience trusts their recommendations because they only endorse products they believe in.`}
+            cta="Learn More"
+            publisherName={hero.name}
+          />
+        </div>
+      </div>
+
+      <SheetFooter>
+        <SheetClose asChild>
+          <Button variant="outline">Close</Button>
+        </SheetClose>
+        <Button>Send Request</Button>
+      </SheetFooter>
+    </>
   )
 }

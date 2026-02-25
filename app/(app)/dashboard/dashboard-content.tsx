@@ -243,7 +243,8 @@ export function DashboardContent() {
         <DataTable
           columns={activityColumns}
           data={relevantRequests}
-          pageSize={5}
+          pageSize={10}
+          hidePagination
         />
       </div>
 

@@ -74,7 +74,7 @@ const ALL_VERTICALS: Vertical[] = [
   "Lifestyle",
 ]
 
-const ITEMS_PER_PAGE = 12
+const ITEMS_PER_PAGE = 25
 
 // Deterministic schedule range based on hero ID (e.g. "Mar 9 – Mar 15")
 function getScheduleRange(heroId: string): string {

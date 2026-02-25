@@ -274,12 +274,14 @@ export function RequestsContent() {
             return (
               <TabsTrigger key={tab.key} value={tab.key}>
                 {tab.label}
-                <Badge
-                  variant="secondary"
-                  className="ml-1.5 px-1.5 py-0 text-[10px] tabular-nums text-muted-foreground"
-                >
-                  {count}
-                </Badge>
+                {tab.key === "inbox" && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-1.5 px-1.5 py-0 text-[10px] tabular-nums text-muted-foreground"
+                  >
+                    {count}
+                  </Badge>
+                )}
               </TabsTrigger>
             )
           })}

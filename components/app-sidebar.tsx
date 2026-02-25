@@ -120,7 +120,7 @@ export function AppSidebar() {
           <div className="flex flex-col">
             <span className="text-sm font-medium leading-tight">Alex Johnson</span>
             <span className="text-xs text-muted-foreground">
-              {role === "advertiser" ? "Sponsor" : "Publisher"}
+              {role === "sponsor" ? "Sponsor" : "Publisher"}
             </span>
           </div>
         </div>

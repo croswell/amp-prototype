@@ -79,8 +79,8 @@ export function AppNav() {
                 {role === "publisher" && <Check className="ml-auto size-3.5" />}
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild disabled={role === "advertiser"}>
-              <Link href={`${pathname}?role=advertiser`} className="flex items-center gap-2">
+            <DropdownMenuItem asChild disabled={role === "sponsor"}>
+              <Link href={`${pathname}?role=sponsor`} className="flex items-center gap-2">
                 <Avatar size="sm">
                   <AvatarFallback>{firstInitial}</AvatarFallback>
                 </Avatar>
@@ -88,7 +88,7 @@ export function AppNav() {
                   <p className="text-xs font-medium">{currentUser.name}</p>
                   <p className="text-[10px] text-muted-foreground">Sponsor</p>
                 </div>
-                {role === "advertiser" && <Check className="ml-auto size-3.5" />}
+                {role === "sponsor" && <Check className="ml-auto size-3.5" />}
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>

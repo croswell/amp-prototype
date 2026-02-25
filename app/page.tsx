@@ -30,7 +30,7 @@ const experiences = [
   {
     title: "Sponsor Experience",
     description: "Outgoing promotion requests, curated publisher directory, and campaign tracking",
-    href: "/dashboard?role=advertiser",
+    href: "/dashboard?role=sponsor",
     icon: Megaphone,
   },
 ]

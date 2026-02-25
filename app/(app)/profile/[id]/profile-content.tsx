@@ -29,7 +29,7 @@ import {
   EnvelopeSimple,
 } from "@phosphor-icons/react"
 
-// Generate mock ad copy for an advertiser based on their profile data.
+// Generate mock ad copy for a sponsor based on their profile data.
 // In the real product this comes from their setup flow.
 function getMockAdCopy(hero: Hero) {
   return {
@@ -54,12 +54,12 @@ export function ProfileContent() {
     .map((n) => n[0])
     .join("")
 
-  // Publisher viewing an advertiser → show the advertiser profile
-  const isAdvertiserProfile =
+  // Publisher viewing a sponsor → show the sponsor profile
+  const isSponsorProfile =
     role === "publisher" &&
-    (hero.role === "advertiser" || hero.role === "both")
+    (hero.role === "sponsor" || hero.role === "both")
 
-  if (isAdvertiserProfile) {
+  if (isSponsorProfile) {
     const ad = getMockAdCopy(hero)
     return (
       <div className="space-y-6">
@@ -171,9 +171,9 @@ export function ProfileContent() {
     )
   }
 
-  // Default: advertiser viewing a publisher (existing layout)
+  // Default: sponsor viewing a publisher (existing layout)
   const canSendRequest =
-    role === "advertiser" || role === "both"
+    role === "sponsor" || role === "both"
       ? hero.role === "publisher" || hero.role === "both"
       : false
 

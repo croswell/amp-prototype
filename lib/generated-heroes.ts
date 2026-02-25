@@ -290,5 +290,5 @@ function generateHero(index: number, role: Role): Hero {
 
 export const generatedHeroes: Hero[] = [
   ...Array.from({ length: 95 }, (_, i) => generateHero(i + 1, "publisher")),
-  ...Array.from({ length: 95 }, (_, i) => generateHero(i + 1, "advertiser")),
+  ...Array.from({ length: 95 }, (_, i) => generateHero(i + 1, "sponsor")),
 ]

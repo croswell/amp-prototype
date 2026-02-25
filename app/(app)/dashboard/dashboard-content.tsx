@@ -29,13 +29,13 @@ export function DashboardContent() {
     (r) => r.publisherId === currentUser.id
   )
   const outgoing = promotionRequests.filter(
-    (r) => r.advertiserId === currentUser.id
+    (r) => r.sponsorId === currentUser.id
   )
   // Show only the requests relevant to the current role
   const relevantRequests =
     role === "publisher"
       ? incoming
-      : role === "advertiser"
+      : role === "sponsor"
         ? outgoing
         : [...incoming, ...outgoing]
 
@@ -54,12 +54,12 @@ export function DashboardContent() {
   const activityColumns = useMemo<ColumnDef<PromotionRequest>[]>(
     () => [
       {
-        accessorKey: "advertiserId",
+        accessorKey: "sponsorId",
         header: "Sponsor",
         cell: ({ row }) => {
           const req = row.original
           const isIncoming = req.publisherId === currentUser.id
-          const otherHero = getHero(isIncoming ? req.advertiserId : req.publisherId)
+          const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
           const initials = otherHero ? otherHero.name.charAt(0) : "?"
           return (
             <Link
@@ -148,7 +148,7 @@ export function DashboardContent() {
             </CardContent>
           </Card>
         )}
-        {(role === "advertiser" || role === "both") && (
+        {(role === "sponsor" || role === "both") && (
           <Card size="sm">
             <CardContent>
               <p className="text-xs text-muted-foreground">
@@ -178,7 +178,7 @@ export function DashboardContent() {
             </CardContent>
           </Card>
         )}
-        {role === "advertiser" && (
+        {role === "sponsor" && (
           <Card size="sm">
             <CardContent>
               <p className="text-xs text-muted-foreground">

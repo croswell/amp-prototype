@@ -81,7 +81,7 @@ export function RequestsContent() {
     const filtered =
       role === "publisher"
         ? promotionRequests.filter((r) => r.publisherId === currentUser.id)
-        : promotionRequests.filter((r) => r.advertiserId === currentUser.id)
+        : promotionRequests.filter((r) => r.sponsorId === currentUser.id)
     return filtered.map((r) => ({
       ...r,
       status: statusOverrides[r.id] || r.status,
@@ -131,12 +131,12 @@ export function RequestsContent() {
   const inboxColumns = useMemo<ColumnDef<PromotionRequest>[]>(
     () => [
       {
-        accessorKey: "advertiserId",
+        accessorKey: "sponsorId",
         header: "Sponsor",
         cell: ({ row }) => {
           const req = row.original
           const isIncoming = req.publisherId === currentUser.id
-          const otherHero = getHero(isIncoming ? req.advertiserId : req.publisherId)
+          const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
           const initials = otherHero ? otherHero.name.charAt(0) : "?"
           return (
             <button
@@ -193,12 +193,12 @@ export function RequestsContent() {
   const defaultColumns = useMemo<ColumnDef<PromotionRequest>[]>(
     () => [
       {
-        accessorKey: "advertiserId",
+        accessorKey: "sponsorId",
         header: "Sponsor",
         cell: ({ row }) => {
           const req = row.original
           const isIncoming = req.publisherId === currentUser.id
-          const otherHero = getHero(isIncoming ? req.advertiserId : req.publisherId)
+          const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
           const initials = otherHero ? otherHero.name.charAt(0) : "?"
           return (
             <button
@@ -256,8 +256,8 @@ export function RequestsContent() {
 
   // ── Dialog content ──
 
-  const advertiser = selectedRequest
-    ? getHero(selectedRequest.advertiserId)
+  const sponsor = selectedRequest
+    ? getHero(selectedRequest.sponsorId)
     : null
   const effectiveStatus = selectedRequest
     ? getEffectiveStatus(selectedRequest)
@@ -348,9 +348,9 @@ function BriefStep({
   onDismiss: () => void
   onAccept: () => void
 }) {
-  const advertiser = getHero(request.advertiserId)
-  const initials = advertiser
-    ? advertiser.name.split(" ").map((n) => n[0]).join("")
+  const sponsor = getHero(request.sponsorId)
+  const initials = sponsor
+    ? sponsor.name.split(" ").map((n) => n[0]).join("")
     : "?"
 
   return (
@@ -367,15 +367,15 @@ function BriefStep({
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{advertiser?.name}</p>
-            <p className="text-xs text-muted-foreground">{advertiser?.tagline}</p>
+            <p className="text-sm font-medium">{sponsor?.name}</p>
+            <p className="text-xs text-muted-foreground">{sponsor?.tagline}</p>
           </div>
         </div>
 
         {/* Verticals */}
-        {advertiser && advertiser.verticals.length > 0 && (
+        {sponsor && sponsor.verticals.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {advertiser.verticals.map((v) => (
+            {sponsor.verticals.map((v) => (
               <Badge key={v} variant="outline" className="text-xs">
                 {v}
               </Badge>
@@ -517,9 +517,9 @@ function EditStep({
 }
 
 function AcceptedView({ request }: { request: PromotionRequest }) {
-  const advertiser = getHero(request.advertiserId)
-  const initials = advertiser
-    ? advertiser.name.split(" ").map((n) => n[0]).join("")
+  const sponsor = getHero(request.sponsorId)
+  const initials = sponsor
+    ? sponsor.name.split(" ").map((n) => n[0]).join("")
     : "?"
 
   return (
@@ -538,7 +538,7 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
           <Avatar size="sm">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
-          <p className="text-sm font-medium">{advertiser?.name}</p>
+          <p className="text-sm font-medium">{sponsor?.name}</p>
         </div>
 
         <EmailBlockPreview
@@ -568,9 +568,9 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
 }
 
 function PublishedView({ request }: { request: PromotionRequest }) {
-  const advertiser = getHero(request.advertiserId)
-  const initials = advertiser
-    ? advertiser.name.split(" ").map((n) => n[0]).join("")
+  const sponsor = getHero(request.sponsorId)
+  const initials = sponsor
+    ? sponsor.name.split(" ").map((n) => n[0]).join("")
     : "?"
 
   return (
@@ -589,7 +589,7 @@ function PublishedView({ request }: { request: PromotionRequest }) {
           <Avatar size="sm">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
-          <p className="text-sm font-medium">{advertiser?.name}</p>
+          <p className="text-sm font-medium">{sponsor?.name}</p>
         </div>
 
         <EmailBlockPreview
@@ -619,9 +619,9 @@ function PublishedView({ request }: { request: PromotionRequest }) {
 }
 
 function ExpiredView({ request }: { request: PromotionRequest }) {
-  const advertiser = getHero(request.advertiserId)
-  const initials = advertiser
-    ? advertiser.name.split(" ").map((n) => n[0]).join("")
+  const sponsor = getHero(request.sponsorId)
+  const initials = sponsor
+    ? sponsor.name.split(" ").map((n) => n[0]).join("")
     : "?"
 
   return (
@@ -641,8 +641,8 @@ function ExpiredView({ request }: { request: PromotionRequest }) {
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{advertiser?.name}</p>
-            <p className="text-xs text-muted-foreground">{advertiser?.tagline}</p>
+            <p className="text-sm font-medium">{sponsor?.name}</p>
+            <p className="text-xs text-muted-foreground">{sponsor?.tagline}</p>
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { generatedHeroes } from "./generated-heroes"
 // Types
 // ============================================================
 
-export type Role = "publisher" | "advertiser" | "both"
+export type Role = "publisher" | "sponsor" | "both"
 export type EngagementTier = "high" | "medium" | "low"
 export type RequestStatus =
   | "inbox"
@@ -45,7 +45,7 @@ export interface Hero {
 
 export interface PromotionRequest {
   id: string
-  advertiserId: string
+  sponsorId: string
   publisherId: string
   status: RequestStatus
   brief: string
@@ -147,7 +147,7 @@ export const heroes: Hero[] = [
     id: "hero-4",
     name: "Jake Morrison",
     avatar: "/avatars/jake.jpg",
-    role: "advertiser",
+    role: "sponsor",
     tagline: "Online course creation made simple",
     verticals: ["Education", "Creative Arts"],
     subscriberCount: 12000,
@@ -190,7 +190,7 @@ export const heroes: Hero[] = [
     id: "hero-6",
     name: "David Kim",
     avatar: "/avatars/david.jpg",
-    role: "advertiser",
+    role: "sponsor",
     tagline: "Podcast growth accelerator",
     verticals: ["Technology", "Business & Marketing"],
     subscriberCount: 8500,
@@ -256,7 +256,7 @@ export const heroes: Hero[] = [
     id: "hero-9",
     name: "Lisa Park",
     avatar: "/avatars/lisa.jpg",
-    role: "advertiser",
+    role: "sponsor",
     tagline: "Membership site mastery",
     verticals: ["Education", "Business & Marketing"],
     subscriberCount: 15000,
@@ -333,7 +333,7 @@ export const promotionRequests: PromotionRequest[] = [
   // ── Inbox: new inbound requests to the current user ──
   {
     id: "req-1",
-    advertiserId: "hero-4",
+    sponsorId: "hero-4",
     publisherId: "current-user",
     status: "accepted",
     brief: "I teach creators how to package their knowledge into profitable online courses. I'm looking to promote my free Course Launch Blueprint — a step-by-step framework that's helped 500+ creators launch their first course. I think your audience of knowledge entrepreneurs would be a perfect fit.",
@@ -349,7 +349,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-6",
-    advertiserId: "hero-6",
+    sponsorId: "hero-6",
     publisherId: "current-user",
     status: "inbox",
     brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience using AI-powered growth strategies. We've helped 2,000+ podcasters double their downloads. I'd love to reach your audience since many of your subscribers are also launching podcasts.",
@@ -365,7 +365,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-7",
-    advertiserId: "hero-9",
+    sponsorId: "hero-9",
     publisherId: "current-user",
     status: "inbox",
     brief: "I built a 7-figure membership site and now teach others to do the same. I'm promoting my free training on creating recurring revenue through memberships. Your audience of knowledge entrepreneurs would love this — memberships are the natural next step after courses.",
@@ -382,7 +382,7 @@ export const promotionRequests: PromotionRequest[] = [
   // ── Accepted: publisher said yes, not yet reviewed ──
   {
     id: "req-2",
-    advertiserId: "hero-6",
+    sponsorId: "hero-6",
     publisherId: "hero-1",
     status: "accepted",
     brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience. Your coaching audience includes a lot of creators launching podcasts, so I think this would be a natural fit.",
@@ -398,7 +398,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-10",
-    advertiserId: "hero-3",
+    sponsorId: "hero-3",
     publisherId: "current-user",
     status: "accepted",
     brief: "I'm launching a new leadership coaching program for women and want to reach Alex's audience of knowledge entrepreneurs. Many of them are women building businesses who'd benefit from leadership skills.",
@@ -414,7 +414,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-11",
-    advertiserId: "hero-7",
+    sponsorId: "hero-7",
     publisherId: "current-user",
     status: "accepted",
     brief: "I'm promoting my Connected Parenting digital workshop. Many knowledge entrepreneurs are also parents looking for better work-life balance strategies.",
@@ -431,7 +431,7 @@ export const promotionRequests: PromotionRequest[] = [
   // ── In Review: copy is being reviewed ──
   {
     id: "req-3",
-    advertiserId: "current-user",
+    sponsorId: "current-user",
     publisherId: "hero-3",
     status: "accepted",
     brief: "I'm promoting the spring cohort of my Course Creator Accelerator — a 12-week program that helps entrepreneurs package their expertise into profitable online courses. The program has generated over $2M in student revenue. Priya's community of ambitious women would be a perfect audience.",
@@ -447,7 +447,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-12",
-    advertiserId: "hero-5",
+    sponsorId: "hero-5",
     publisherId: "current-user",
     status: "published",
     brief: "I'm promoting my Wealth Mindset Masterclass to Alex's audience. Entrepreneurs need strong money mindsets to scale, and this masterclass delivers exactly that.",
@@ -463,7 +463,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-13",
-    advertiserId: "hero-10",
+    sponsorId: "hero-10",
     publisherId: "current-user",
     status: "accepted",
     brief: "I'm launching a Marketing Fundamentals bootcamp and want to reach Alex's audience of knowledge entrepreneurs who need marketing skills to grow.",
@@ -480,7 +480,7 @@ export const promotionRequests: PromotionRequest[] = [
   // ── Scheduled: date is locked in ──
   {
     id: "req-4",
-    advertiserId: "hero-9",
+    sponsorId: "hero-9",
     publisherId: "hero-10",
     status: "accepted",
     brief: "I built a 7-figure membership site and now teach my system to others. I'm promoting a free training on creating recurring revenue through memberships. Ryan's solopreneur audience would be a perfect fit.",
@@ -496,7 +496,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-5",
-    advertiserId: "current-user",
+    sponsorId: "current-user",
     publisherId: "hero-7",
     status: "accepted",
     brief: "I'm promoting the Course Creator Accelerator to Emma's parenting community. Many parents are looking for flexible ways to earn income, and an online course is a natural fit for their expertise.",
@@ -512,7 +512,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-14",
-    advertiserId: "hero-2",
+    sponsorId: "hero-2",
     publisherId: "current-user",
     status: "accepted",
     brief: "I'm promoting my Fit Founder Challenge — a 30-day fitness program designed specifically for busy entrepreneurs. Alex's audience of knowledge entrepreneurs would benefit from this.",
@@ -528,7 +528,7 @@ export const promotionRequests: PromotionRequest[] = [
   },
   {
     id: "req-15",
-    advertiserId: "hero-8",
+    sponsorId: "hero-8",
     publisherId: "current-user",
     status: "expired",
     brief: "I'm promoting my Brand Builder Workshop for creative professionals. Alex's audience includes creators who need to build their personal brand to grow.",
@@ -545,7 +545,7 @@ export const promotionRequests: PromotionRequest[] = [
   // ── Published: went live ──
   {
     id: "req-8",
-    advertiserId: "hero-4",
+    sponsorId: "hero-4",
     publisherId: "current-user",
     status: "published",
     brief: "I promoted my Weekend Course Sprint — a 48-hour intensive that helps creators go from idea to live course. No tech skills required. This was aimed at Alex's audience of knowledge entrepreneurs.",
@@ -562,7 +562,7 @@ export const promotionRequests: PromotionRequest[] = [
   // ── Archived: dismissed/expired ──
   {
     id: "req-9",
-    advertiserId: "hero-8",
+    sponsorId: "hero-8",
     publisherId: "current-user",
     status: "expired",
     brief: "I teach creative entrepreneurs how to build a professional brand without hiring a designer. I'm promoting my Design Toolkit, which would be useful for education-focused creators building their personal brand.",
@@ -586,8 +586,8 @@ export function getPublishers(): Hero[] {
   return heroes.filter((h) => h.role === "publisher" || h.role === "both")
 }
 
-export function getAdvertisers(): Hero[] {
-  return heroes.filter((h) => h.role === "advertiser" || h.role === "both")
+export function getSponsors(): Hero[] {
+  return heroes.filter((h) => h.role === "sponsor" || h.role === "both")
 }
 
 export function getHero(id: string): Hero | undefined {
@@ -609,8 +609,8 @@ export function getRequestsForUser(
     if (roleFilter === "publisher" || roleFilter === "both") {
       if (r.publisherId === userId) return true
     }
-    if (roleFilter === "advertiser" || roleFilter === "both") {
-      if (r.advertiserId === userId) return true
+    if (roleFilter === "sponsor" || roleFilter === "both") {
+      if (r.sponsorId === userId) return true
     }
     return false
   })
@@ -665,9 +665,9 @@ export function getRecommendedHeroes(forRole: Role): Hero[] {
   const userVerticals = new Set(currentUser.verticals)
   return heroes
     .filter((h) => {
-      // Publishers see advertisers and vice versa
-      if (forRole === "publisher") return h.role === "advertiser" || h.role === "both"
-      if (forRole === "advertiser") return h.role === "publisher" || h.role === "both"
+      // Publishers see sponsors and vice versa
+      if (forRole === "publisher") return h.role === "sponsor" || h.role === "both"
+      if (forRole === "sponsor") return h.role === "publisher" || h.role === "both"
       return true
     })
     .sort((a, b) => {

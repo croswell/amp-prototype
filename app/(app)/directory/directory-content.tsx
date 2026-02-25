@@ -84,7 +84,7 @@ export function DirectoryContent() {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
 
   // Publishers see sponsors, sponsors see publishers
-  const targetRole = role === "publisher" ? "advertiser" : "publisher"
+  const targetRole = role === "publisher" ? "sponsor" : "publisher"
   const roleLabel = role === "publisher" ? "sponsors" : "publishers"
 
   const filtered = useMemo(() => {

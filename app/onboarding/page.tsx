@@ -29,7 +29,7 @@ import {
 
 // ── Step definitions ─────────────────────────────────────────
 // Steps branch after "niches" based on role selection.
-// Publishers get a revenue reveal step. Advertisers get an ad setup step.
+// Publishers get a revenue reveal step. Sponsors get an ad setup step.
 
 type Step =
   | "signup"
@@ -38,7 +38,7 @@ type Step =
   | "links"
   | "niches"
   | "publisher-setup"
-  | "advertiser-setup"
+  | "sponsor-setup"
   | "generating"
   | "profile"
 
@@ -47,7 +47,7 @@ const progressSteps: Step[] = ["role", "links", "niches"]
 // The 4th segment is role-dependent (added dynamically)
 
 function getFilledSegments(step: Step, role: Role | null): number {
-  const steps = [...progressSteps, role === "advertiser" ? "advertiser-setup" : "publisher-setup"]
+  const steps = [...progressSteps, role === "sponsor" ? "sponsor-setup" : "publisher-setup"]
   const index = steps.indexOf(step)
   if (index === -1) return steps.length // generating/profile = all filled
   return index + 1
@@ -95,7 +95,7 @@ export default function OnboardingPage() {
   const [sendFee, setSendFee] = useState("250")
   const [promotionsPerMonth, setPromotionsPerMonth] = useState(2)
 
-  // Advertiser-specific state
+  // Sponsor-specific state
   const [adHeadline, setAdHeadline] = useState("")
   const [adBody, setAdBody] = useState("")
   const [destinationUrl, setDestinationUrl] = useState("")
@@ -132,7 +132,7 @@ export default function OnboardingPage() {
     name.trim().length > 0 && email.trim().length > 0
   const canContinueOtp = otp.length === 6
   const canContinuePublisher = audienceNum >= 1000 && feeNum > 0
-  const canContinueAdvertiser =
+  const canContinueSponsor =
     adHeadline.trim().length > 0 &&
     adBody.trim().length > 0 &&
     destinationUrl.trim().length > 0
@@ -166,7 +166,7 @@ export default function OnboardingPage() {
     if (role === "publisher") {
       setStep("publisher-setup")
     } else {
-      setStep("advertiser-setup")
+      setStep("sponsor-setup")
     }
   }
 
@@ -354,9 +354,9 @@ export default function OnboardingPage() {
               </button>
 
               <button
-                onClick={() => setRole("advertiser")}
+                onClick={() => setRole("sponsor")}
                 className={`flex flex-col items-center gap-3 rounded-sm border-2 p-6 text-center transition-colors ${
-                  role === "advertiser"
+                  role === "sponsor"
                     ? "border-foreground"
                     : "border-border hover:bg-muted"
                 }`}
@@ -648,9 +648,9 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* ── Step 6b: Advertiser Setup — Ad Details ────── */}
+        {/* ── Step 6b: Sponsor Setup — Ad Details ────── */}
         {/* One promotion. No campaign management, no multiple creatives. */}
-        {step === "advertiser-setup" && (
+        {step === "sponsor-setup" && (
           <div className="space-y-6">
             <div className="space-y-2">
               <h1 className="text-2xl font-medium tracking-tight">
@@ -735,7 +735,7 @@ export default function OnboardingPage() {
 
             <Button
               className="w-full"
-              disabled={!canContinueAdvertiser}
+              disabled={!canContinueSponsor}
               onClick={() => setStep("generating")}
             >
               Continue
@@ -828,8 +828,8 @@ export default function OnboardingPage() {
                 </div>
               )}
 
-              {/* Advertiser-specific preview */}
-              {role === "advertiser" && (
+              {/* Sponsor-specific preview */}
+              {role === "sponsor" && (
                 <div className="flex w-full flex-col gap-3">
                   <div className="border-t pt-3">
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

@@ -152,7 +152,7 @@ export function RequestsContent() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => openSheet(row.original)}>
+            <Button variant="outline" size="sm" onClick={() => openSheet(row.original)}>
               View
             </Button>
           </div>
@@ -225,7 +225,7 @@ export function RequestsContent() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => openSheet(row.original)}>
+            <Button variant="outline" size="sm" onClick={() => openSheet(row.original)}>
               View
             </Button>
           </div>
@@ -242,7 +242,12 @@ export function RequestsContent() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-medium tracking-tight">Promotions</h1>
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-medium tracking-tight">Promotions</h1>
+        <p className="text-sm text-muted-foreground">
+          Manage your promotion requests and track their progress.
+        </p>
+      </div>
 
       <Tabs defaultValue="inbox">
         <TabsList variant="line">

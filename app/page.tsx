@@ -40,7 +40,8 @@ export default function PrototypeIndex() {
     <div className="flex min-h-svh flex-col items-center justify-center px-4 py-16">
       <div className="w-full max-w-2xl space-y-8">
         <div className="flex flex-col items-center gap-4 text-center">
-          <img src="/logo-black.svg" alt="Amplify" className="h-8" />
+          <img src="/logo-black.svg" alt="Amplify" className="h-8 dark:hidden" />
+          <img src="/logo-white.svg" alt="Amplify" className="hidden h-8 dark:block" />
           <span className="inline-block rounded-sm border border-dashed border-amber-300 bg-amber-50 px-2.5 py-1 font-mono text-xs font-medium uppercase tracking-widest text-amber-600">
             Prototype
           </span>

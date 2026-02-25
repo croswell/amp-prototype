@@ -70,7 +70,8 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <img src="/logo-black.svg" alt="Amplify" className="h-6" />
+                <img src="/logo-black.svg" alt="Amplify" className="h-6 dark:hidden" />
+                <img src="/logo-white.svg" alt="Amplify" className="hidden h-6 dark:block" />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -110,7 +111,7 @@ export function AppSidebar() {
           </SidebarMenu>
         </div>
         <div className="border-t" />
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3 p-4">
           <Avatar className="size-8">
             <AvatarFallback className="text-xs">AJ</AvatarFallback>
           </Avatar>

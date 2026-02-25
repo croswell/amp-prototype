@@ -60,6 +60,7 @@ import {
   CaretLeft,
   CaretRight,
   Globe,
+  X as XIcon,
 } from "@phosphor-icons/react"
 
 const ALL_VERTICALS: Vertical[] = [
@@ -205,7 +206,7 @@ export function DirectoryContent() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => setSelectedHeroId(row.original.id)}>
+            <Button variant="outline" size="sm" onClick={() => setSelectedHeroId(row.original.id)}>
               View
             </Button>
           </div>
@@ -279,10 +280,11 @@ export function DirectoryContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-medium tracking-tight">
-          Verified {role === "publisher" ? "Sponsors" : "Publishers"}
-        </h1>
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-medium tracking-tight">Discover</h1>
+        <p className="text-sm text-muted-foreground">
+          Verified {role === "publisher" ? "sponsors" : "publishers"}, hand-selected and curated by our team.
+        </p>
       </div>
 
       {/* Search + Filter */}
@@ -473,15 +475,20 @@ export function DirectoryContent() {
 // ─────────────────────────────────────────────────────────────
 
 function SponsorProfileSheet({ hero }: { hero: Hero }) {
-  const initials = hero.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
+  const initials = hero.name.charAt(0)
 
   return (
     <>
       <SheetHeader>
-        <SheetTitle className="text-lg">{hero.name}</SheetTitle>
+        <div className="flex items-center gap-3">
+          <SheetTitle className="flex-1 text-lg">{hero.name}</SheetTitle>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <XIcon />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
+        </div>
       </SheetHeader>
 
       <SheetBody className="space-y-4">
@@ -550,15 +557,20 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
 }
 
 function PublisherProfileSheet({ hero }: { hero: Hero }) {
-  const initials = hero.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
+  const initials = hero.name.charAt(0)
 
   return (
     <>
       <SheetHeader>
-        <SheetTitle className="text-lg">{hero.name}</SheetTitle>
+        <div className="flex items-center gap-3">
+          <SheetTitle className="flex-1 text-lg">{hero.name}</SheetTitle>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <XIcon />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
+        </div>
       </SheetHeader>
 
       <SheetBody className="space-y-4">

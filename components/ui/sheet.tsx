@@ -4,8 +4,6 @@ import * as React from "react"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { XIcon } from "@phosphor-icons/react"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -46,11 +44,9 @@ function SheetContent({
   className,
   children,
   side = "right",
-  showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
-  showCloseButton?: boolean
 }) {
   return (
     <SheetPortal>
@@ -62,15 +58,6 @@ function SheetContent({
         {...props}
       >
         {children}
-        {showCloseButton && (
-          <SheetPrimitive.Close data-slot="sheet-close" asChild>
-            <Button variant="ghost" className="absolute top-4 right-4" size="icon-sm">
-              <XIcon
-              />
-              <span className="sr-only">Close</span>
-            </Button>
-          </SheetPrimitive.Close>
-        )}
       </SheetPrimitive.Content>
     </SheetPortal>
   )
@@ -80,7 +67,7 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("shrink-0 border-b border-border px-6 py-4 pr-12 flex flex-col gap-1.5", className)}
+      className={cn("shrink-0 border-b border-border p-6 flex flex-col gap-1.5", className)}
       {...props}
     />
   )
@@ -100,7 +87,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn("shrink-0 border-t border-border px-6 py-4 flex flex-row gap-2 [&>*]:flex-1", className)}
+      className={cn("shrink-0 border-t border-border p-6 flex flex-row gap-2 [&>*]:flex-1", className)}
       {...props}
     />
   )

@@ -41,10 +41,7 @@ function getDaysRemaining(heroId: string): number {
 }
 
 export function SponsorCard({ hero, onAccept, onDismiss }: SponsorCardProps) {
-  const initials = hero.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
+  const initials = hero.name.charAt(0)
 
   const budget = hero.recommendedFee
   const preferredWeek = getPreferredWeek(hero.id)

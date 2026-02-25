@@ -37,7 +37,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { VerticalPicker } from "@/components/vertical-picker"
 import { EmailBlockPreview } from "@/components/email-block-preview"
-import { currentUser, formatCurrency } from "@/lib/mock-data"
+import { currentUser, formatCurrency, formatNumber, getEngagementColor } from "@/lib/mock-data"
 import type { Vertical } from "@/lib/mock-data"
 import { Globe, LinkSimple, SignOut, Plus, PencilSimple } from "@phosphor-icons/react"
 
@@ -395,7 +395,7 @@ export function SettingsContent() {
         <TabsList variant="line">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           {isPublisher && (
-            <TabsTrigger value="publisher">Publisher Settings</TabsTrigger>
+            <TabsTrigger value="publisher">Pricing & Availability</TabsTrigger>
           )}
           {isSponsor && (
             <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
@@ -510,12 +510,40 @@ export function SettingsContent() {
 
         {/* ── Publisher Settings Tab ──────────────────────────── */}
         {isPublisher && (
-          <TabsContent value="publisher" className="mt-6">
+          <TabsContent value="publisher" className="mt-6 space-y-8">
+            {/* Engagement tier */}
             <Card>
               <CardHeader>
-                <CardTitle>Pricing & Availability</CardTitle>
+                <CardTitle>Engagement Tier</CardTitle>
+                <CardDescription>
+                  Your tier is based on your audience size and open rate. Higher engagement unlocks better sponsorship rates.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="secondary"
+                    className={getEngagementColor(currentUser.engagementTier)}
+                  >
+                    {currentUser.engagementTier.charAt(0).toUpperCase() + currentUser.engagementTier.slice(1)}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Subscribers</p>
+                    <p className="text-lg font-medium tabular-nums">
+                      {formatNumber(currentUser.subscriberCount)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Open rate</p>
+                    <p className="text-lg font-medium tabular-nums">
+                      {currentUser.openRate}%
+                    </p>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="audience-size">Broadcast audience size</Label>
                   <Input
@@ -526,24 +554,21 @@ export function SettingsContent() {
                     onChange={(e) => handleAudienceChange(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    The number of subscribers on your email broadcast list.
+                    Update this if your subscriber count has changed.
                   </p>
                 </div>
+              </CardContent>
+            </Card>
 
-                {audienceNum >= 1000 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">
-                      Engagement tier:
-                    </span>
-                    <Badge
-                      variant="secondary"
-                      className="bg-emerald-50 text-emerald-700"
-                    >
-                      High
-                    </Badge>
-                  </div>
-                )}
-
+            {/* Pricing & availability */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Pricing & Availability</CardTitle>
+                <CardDescription>
+                  Set your rate and how many promotions you'll accept per month.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="send-fee">Your send fee</Label>
                   <InputGroup>

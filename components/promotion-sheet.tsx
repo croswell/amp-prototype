@@ -17,7 +17,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { EmailBlockPreview } from "@/components/email-block-preview"
-import { CalendarBlank, Timer } from "@phosphor-icons/react"
+import { CalendarBlank, Timer, X } from "@phosphor-icons/react"
 import {
   type RequestStatus,
   type PromotionRequest,
@@ -30,7 +30,7 @@ import {
 // Palette color pairs: light palette color as bg tint, darkened text for contrast
 export const BADGE_COLORS = {
   green: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
-  greenOutline: "text-[#405B50] dark:text-[#CBD7CC]",
+  greenOutline: "text-[#405B50] dark:text-[#86CEAC]",
   blue: "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]",
   gold: "bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]",
   terracotta: "bg-[#AD715C]/30 text-[#4A2318] dark:bg-[#733725]/40 dark:text-[#AD715C]",
@@ -159,27 +159,27 @@ function BriefStep({
 }) {
   const sponsor = getHero(request.sponsorId)
   const initials = sponsor
-    ? sponsor.name.split(" ").map((n) => n[0]).join("")
+    ? sponsor.name.charAt(0)
     : "?"
 
   return (
     <>
       <SheetHeader>
-        <SheetDescription>Promotion request</SheetDescription>
-        <SheetTitle className="text-lg">{request.adHeadline}</SheetTitle>
+        <div className="flex items-center gap-3">
+          <Avatar size="lg">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <X />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
+        </div>
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        {/* Sponsor info */}
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">{sponsor?.name}</p>
-            <p className="text-xs text-muted-foreground">{sponsor?.tagline}</p>
-          </div>
-        </div>
 
         {/* Verticals */}
         {sponsor && sponsor.verticals.length > 0 && (
@@ -271,7 +271,15 @@ function EditStep({
   return (
     <>
       <SheetHeader>
-        <SheetTitle>Edit & Schedule</SheetTitle>
+        <div className="flex items-center gap-3">
+          <SheetTitle className="flex-1">Edit & Schedule</SheetTitle>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <X />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
+        </div>
         <SheetDescription>
           Adjust the ad copy and pick a send date for your newsletter.
         </SheetDescription>
@@ -326,27 +334,30 @@ function EditStep({
 function AcceptedView({ request }: { request: PromotionRequest }) {
   const sponsor = getHero(request.sponsorId)
   const initials = sponsor
-    ? sponsor.name.split(" ").map((n) => n[0]).join("")
+    ? sponsor.name.charAt(0)
     : "?"
 
   return (
     <>
       <SheetHeader>
-        <div className="flex items-center gap-2">
-          <SheetTitle className="flex-1">{request.adHeadline}</SheetTitle>
+        <div className="flex items-center gap-3">
+          <Avatar size="lg">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
           <Badge variant="secondary" className={getStatusColor("accepted")}>
             {STATUS_LABELS.accepted}
           </Badge>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <X />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
         </div>
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Avatar size="sm">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <p className="text-sm font-medium">{sponsor?.name}</p>
-        </div>
 
         <EmailBlockPreview
           headline={request.adHeadline}
@@ -383,27 +394,30 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
 function PublishedView({ request }: { request: PromotionRequest }) {
   const sponsor = getHero(request.sponsorId)
   const initials = sponsor
-    ? sponsor.name.split(" ").map((n) => n[0]).join("")
+    ? sponsor.name.charAt(0)
     : "?"
 
   return (
     <>
       <SheetHeader>
-        <div className="flex items-center gap-2">
-          <SheetTitle className="flex-1">{request.adHeadline}</SheetTitle>
+        <div className="flex items-center gap-3">
+          <Avatar size="lg">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
           <Badge variant="secondary" className={getStatusColor("published")}>
             {STATUS_LABELS.published}
           </Badge>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <X />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
         </div>
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Avatar size="sm">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <p className="text-sm font-medium">{sponsor?.name}</p>
-        </div>
 
         <EmailBlockPreview
           headline={request.adHeadline}
@@ -440,30 +454,30 @@ function PublishedView({ request }: { request: PromotionRequest }) {
 function ExpiredView({ request }: { request: PromotionRequest }) {
   const sponsor = getHero(request.sponsorId)
   const initials = sponsor
-    ? sponsor.name.split(" ").map((n) => n[0]).join("")
+    ? sponsor.name.charAt(0)
     : "?"
 
   return (
     <>
       <SheetHeader>
-        <div className="flex items-center gap-2">
-          <SheetTitle className="flex-1">{request.adHeadline}</SheetTitle>
+        <div className="flex items-center gap-3">
+          <Avatar size="lg">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
           <Badge variant="secondary" className={getStatusColor("expired")}>
             {STATUS_LABELS.expired}
           </Badge>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <X />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
         </div>
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Avatar size="sm">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">{sponsor?.name}</p>
-            <p className="text-xs text-muted-foreground">{sponsor?.tagline}</p>
-          </div>
-        </div>
 
         <div className="space-y-1.5">
           <p className="text-xs font-medium text-muted-foreground">Original brief</p>

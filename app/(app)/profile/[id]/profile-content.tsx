@@ -49,10 +49,7 @@ export function ProfileContent() {
     notFound()
   }
 
-  const initials = hero.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
+  const initials = hero.name.charAt(0)
 
   // Publisher viewing a sponsor → show the sponsor profile
   const isSponsorProfile =

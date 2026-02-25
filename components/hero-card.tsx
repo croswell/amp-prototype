@@ -19,10 +19,7 @@ interface HeroCardProps {
 }
 
 export function HeroCard({ hero, roleParam, onClick }: HeroCardProps) {
-  const initials = hero.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
+  const initials = hero.name.charAt(0)
 
   const card = (
     <Card size="sm" className="h-full transition-colors hover:bg-muted/50">

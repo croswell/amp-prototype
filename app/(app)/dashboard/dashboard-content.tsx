@@ -18,7 +18,7 @@ import {
   formatCurrency,
   getStatusColor,
 } from "@/lib/mock-data"
-import { ArrowRight } from "@phosphor-icons/react"
+import { ArrowRight, CurrencyDollar, Tray, Lightning, PaperPlaneTilt, CheckCircle } from "@phosphor-icons/react"
 
 export function DashboardContent() {
   const searchParams = useSearchParams()
@@ -116,7 +116,7 @@ export function DashboardContent() {
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button size="sm" onClick={() => openSheet(row.original)}>
+            <Button variant="outline" size="sm" onClick={() => openSheet(row.original)}>
               View
             </Button>
           </div>
@@ -143,13 +143,14 @@ export function DashboardContent() {
         {(role === "publisher" || role === "both") && (
           <Card size="sm">
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Ad Revenue
+                <CurrencyDollar className="size-4" />
               </p>
-              <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
+              <p className="mt-2 text-2xl font-medium tracking-tight tabular-nums">
                 {formatCurrency(yearlyRevenue)}
               </p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 last 30 days
               </p>
             </CardContent>
@@ -158,13 +159,14 @@ export function DashboardContent() {
         {(role === "sponsor" || role === "both") && (
           <Card size="sm">
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Total Spend
+                <CurrencyDollar className="size-4" />
               </p>
-              <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
+              <p className="mt-2 text-2xl font-medium tracking-tight tabular-nums">
                 {formatCurrency(totalSpend)}
               </p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 across {outgoing.length} promotion{outgoing.length !== 1 ? "s" : ""}
               </p>
             </CardContent>
@@ -173,13 +175,14 @@ export function DashboardContent() {
         {role === "publisher" && (
           <Card size="sm">
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Incoming Requests
+                <Tray className="size-4" />
               </p>
-              <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
+              <p className="mt-2 text-2xl font-medium tracking-tight tabular-nums">
                 {incoming.filter((r) => r.status === "inbox").length}
               </p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 from sponsors
               </p>
             </CardContent>
@@ -188,13 +191,14 @@ export function DashboardContent() {
         {role === "sponsor" && (
           <Card size="sm">
             <CardContent>
-              <p className="text-sm text-muted-foreground">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Campaigns Sent
+                <PaperPlaneTilt className="size-4" />
               </p>
-              <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
+              <p className="mt-2 text-2xl font-medium tracking-tight tabular-nums">
                 {outgoing.length}
               </p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
+              <p className="mt-2 text-xs text-muted-foreground">
                 to publishers
               </p>
             </CardContent>
@@ -202,26 +206,28 @@ export function DashboardContent() {
         )}
         <Card size="sm">
           <CardContent>
-            <p className="text-sm text-muted-foreground">
+            <p className="flex items-center justify-between text-sm text-muted-foreground">
               Active Promotions
+              <Lightning className="size-4" />
             </p>
-            <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
+            <p className="mt-2 text-2xl font-medium tracking-tight tabular-nums">
               {activePromotions.length}
             </p>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">
+            <p className="mt-2 text-xs text-muted-foreground">
               in progress
             </p>
           </CardContent>
         </Card>
         <Card size="sm">
           <CardContent>
-            <p className="text-sm text-muted-foreground">
+            <p className="flex items-center justify-between text-sm text-muted-foreground">
               Completed
+              <CheckCircle className="size-4" />
             </p>
-            <p className="mt-1 text-2xl font-medium tracking-tight tabular-nums">
+            <p className="mt-2 text-2xl font-medium tracking-tight tabular-nums">
               {completedPromotions.length}
             </p>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">
+            <p className="mt-2 text-xs text-muted-foreground">
               delivered &amp; locked
             </p>
           </CardContent>

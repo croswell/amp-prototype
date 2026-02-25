@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetBody,
   SheetTitle,
   SheetDescription,
   SheetFooter,
@@ -108,7 +108,7 @@ export function PromotionSheet({
 
   return (
     <Sheet open={open} onOpenChange={handleOpen}>
-      <SheetContent className="sm:max-w-2xl overflow-y-auto p-6">
+      <SheetContent className="sm:max-w-2xl">
         {request && effectiveStatus === "inbox" && dialogStep === "brief" && (
           <BriefStep
             request={request}
@@ -165,11 +165,11 @@ function BriefStep({
   return (
     <>
       <SheetHeader>
-        <SheetTitle>{request.adHeadline}</SheetTitle>
-        <SheetDescription>Review this sponsorship request</SheetDescription>
+        <SheetDescription>Promotion request</SheetDescription>
+        <SheetTitle className="text-lg">{request.adHeadline}</SheetTitle>
       </SheetHeader>
 
-      <div className="space-y-4">
+      <SheetBody className="space-y-4">
         {/* Sponsor info */}
         <div className="flex items-center gap-3">
           <Avatar>
@@ -191,8 +191,6 @@ function BriefStep({
             ))}
           </div>
         )}
-
-        <Separator />
 
         {/* Brief */}
         <div className="space-y-1.5">
@@ -233,7 +231,7 @@ function BriefStep({
             </Badge>
           </div>
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
         <Button variant="outline" onClick={onDismiss}>
@@ -279,7 +277,7 @@ function EditStep({
         </SheetDescription>
       </SheetHeader>
 
-      <div className="space-y-4">
+      <SheetBody className="space-y-4">
         <div className="space-y-2">
           <label className="text-xs font-medium">Headline</label>
           <Input
@@ -303,8 +301,6 @@ function EditStep({
           />
         </div>
 
-        <Separator />
-
         <div className="space-y-2">
           <label className="text-xs font-medium">Send date</label>
           <Input
@@ -313,7 +309,7 @@ function EditStep({
             onChange={(e) => onDateChange(e.target.value)}
           />
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
         <Button variant="outline" onClick={onBack}>
@@ -344,7 +340,7 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
         </div>
       </SheetHeader>
 
-      <div className="space-y-4">
+      <SheetBody className="space-y-4">
         <div className="flex items-center gap-3">
           <Avatar size="sm">
             <AvatarFallback>{initials}</AvatarFallback>
@@ -373,7 +369,7 @@ function AcceptedView({ request }: { request: PromotionRequest }) {
             </Badge>
           </div>
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
         <SheetClose asChild>
@@ -401,7 +397,7 @@ function PublishedView({ request }: { request: PromotionRequest }) {
         </div>
       </SheetHeader>
 
-      <div className="space-y-4">
+      <SheetBody className="space-y-4">
         <div className="flex items-center gap-3">
           <Avatar size="sm">
             <AvatarFallback>{initials}</AvatarFallback>
@@ -430,7 +426,7 @@ function PublishedView({ request }: { request: PromotionRequest }) {
             </Badge>
           </div>
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
         <SheetClose asChild>
@@ -458,7 +454,7 @@ function ExpiredView({ request }: { request: PromotionRequest }) {
         </div>
       </SheetHeader>
 
-      <div className="space-y-4">
+      <SheetBody className="space-y-4">
         <div className="flex items-center gap-3">
           <Avatar size="sm">
             <AvatarFallback>{initials}</AvatarFallback>
@@ -482,7 +478,7 @@ function ExpiredView({ request }: { request: PromotionRequest }) {
             </Badge>
           </div>
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
         <SheetClose asChild>

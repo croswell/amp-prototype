@@ -25,6 +25,7 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetBody,
   SheetTitle,
   SheetDescription,
   SheetFooter,
@@ -39,7 +40,17 @@ import {
   formatCurrency,
   formatNumber,
   getEngagementColor,
+  promotionRequests,
 } from "@/lib/mock-data"
+import { BADGE_COLORS } from "@/components/promotion-sheet"
+
+// Look up a sponsor's campaign title from their promotion requests
+function getCampaignTitle(heroId: string): string {
+  const req = promotionRequests.find((r) => r.sponsorId === heroId)
+  if (req) return req.adHeadline
+  const hero = getHero(heroId)
+  return hero?.tagline ?? ""
+}
 import { useState, useMemo } from "react"
 import {
   MagnifyingGlass,
@@ -154,12 +165,21 @@ export function DirectoryContent() {
         },
       },
       {
+        id: "campaign",
+        header: "Campaign",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {getCampaignTitle(row.original.id)}
+          </span>
+        ),
+      },
+      {
         id: "payout",
         header: "Payout",
         cell: ({ row }) => (
-          <span className="tabular-nums">
+          <Badge variant="outline" className={`${BADGE_COLORS.greenOutline} tabular-nums`}>
             {formatCurrency(row.original.recommendedFee)}
-          </span>
+          </Badge>
         ),
       },
       {
@@ -435,7 +455,7 @@ export function DirectoryContent() {
 
       {/* ── Hero profile Sheet ── */}
       <Sheet open={!!selectedHero} onOpenChange={(open) => !open && setSelectedHeroId(null)}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetContent className="sm:max-w-lg">
           {selectedHero && role === "publisher" && (
             <SponsorProfileSheet hero={selectedHero} />
           )}
@@ -461,18 +481,10 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
   return (
     <>
       <SheetHeader>
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <div>
-            <SheetTitle>{hero.name}</SheetTitle>
-            <SheetDescription>{hero.tagline}</SheetDescription>
-          </div>
-        </div>
+        <SheetTitle className="text-lg">{hero.name}</SheetTitle>
       </SheetHeader>
 
-      <div className="space-y-4 px-4">
+      <SheetBody className="space-y-4">
         <p className="text-sm leading-relaxed text-muted-foreground">
           {hero.bio}
         </p>
@@ -484,8 +496,6 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
             </Badge>
           ))}
         </div>
-
-        <Separator />
 
         {/* Links */}
         <div className="space-y-2">
@@ -511,8 +521,6 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
           </div>
         </div>
 
-        <Separator />
-
         {/* Promotion preview */}
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">Promotion</p>
@@ -529,7 +537,7 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
             {formatCurrency(hero.recommendedFee)}
           </p>
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
         <SheetClose asChild>
@@ -550,18 +558,10 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
   return (
     <>
       <SheetHeader>
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <div>
-            <SheetTitle>{hero.name}</SheetTitle>
-            <SheetDescription>{hero.tagline}</SheetDescription>
-          </div>
-        </div>
+        <SheetTitle className="text-lg">{hero.name}</SheetTitle>
       </SheetHeader>
 
-      <div className="space-y-4 px-4">
+      <SheetBody className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
           <div>
             <p className="text-xs text-muted-foreground">Subscribers</p>
@@ -590,16 +590,12 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
           {hero.engagementTier} engagement
         </Badge>
 
-        <Separator />
-
         <div>
           <p className="text-xs text-muted-foreground">Recommended Fee</p>
           <p className="text-lg font-medium tabular-nums">
             {formatCurrency(hero.recommendedFee)}
           </p>
         </div>
-
-        <Separator />
 
         {/* Sample promotion */}
         <div className="space-y-2">
@@ -613,7 +609,7 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
             publisherName={hero.name}
           />
         </div>
-      </div>
+      </SheetBody>
 
       <SheetFooter>
         <SheetClose asChild>

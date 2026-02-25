@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { DataTable } from "@/components/ui/data-table"
-import { PromotionSheet, BADGE_COLORS, formatDate } from "@/components/promotion-sheet"
+import { PromotionSheet, BADGE_COLORS } from "@/components/promotion-sheet"
 import { X } from "@phosphor-icons/react"
 import {
   type RequestStatus,
@@ -18,6 +18,26 @@ import {
   currentUser,
   formatCurrency,
 } from "@/lib/mock-data"
+
+// Deterministic days remaining (1–7) based on ID
+function getDaysRemaining(id: string): number {
+  const hash = id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return (hash % 7) + 1
+}
+
+// Get the Mon–Sun week range containing a given date string
+function getWeekRange(dateStr: string): string {
+  const d = new Date(dateStr)
+  const day = d.getDay()
+  const diffToMon = day === 0 ? -6 : 1 - day
+  const mon = new Date(d)
+  mon.setDate(d.getDate() + diffToMon)
+  const sun = new Date(mon)
+  sun.setDate(mon.getDate() + 6)
+  const fmt = (dt: Date) =>
+    dt.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  return `${fmt(mon)} – ${fmt(sun)}`
+}
 
 type TabKey = RequestStatus
 
@@ -95,7 +115,7 @@ export function RequestsContent() {
       },
       {
         accessorKey: "adHeadline",
-        header: "Promotion",
+        header: "Campaign",
         cell: ({ row }) => (
           <span className="text-muted-foreground">{row.original.adHeadline}</span>
         ),
@@ -110,19 +130,30 @@ export function RequestsContent() {
         ),
       },
       {
+        id: "schedule",
+        header: "Schedule",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-xs">
+            {getWeekRange(row.original.proposedDate)}
+          </span>
+        ),
+      },
+      {
+        id: "expires",
+        header: "Expires",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-xs">
+            {getDaysRemaining(row.original.id)} days
+          </span>
+        ),
+      },
+      {
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <div className="flex justify-end gap-1.5">
+          <div className="flex justify-end">
             <Button size="sm" onClick={() => openSheet(row.original)}>
               View
-            </Button>
-            <Button
-              size="icon-sm"
-              variant="outline"
-              onClick={() => handleDismissFromTable(row.original.id)}
-            >
-              <X className="size-3.5" />
             </Button>
           </div>
         ),
@@ -157,7 +188,7 @@ export function RequestsContent() {
       },
       {
         accessorKey: "adHeadline",
-        header: "Promotion",
+        header: "Campaign",
         cell: ({ row }) => (
           <span className="text-muted-foreground">{row.original.adHeadline}</span>
         ),
@@ -172,11 +203,20 @@ export function RequestsContent() {
         ),
       },
       {
-        id: "date",
-        header: "Date",
+        id: "schedule",
+        header: "Schedule",
         cell: ({ row }) => (
           <span className="text-muted-foreground text-xs">
-            {formatDate(row.original.proposedDate)}
+            {getWeekRange(row.original.proposedDate)}
+          </span>
+        ),
+      },
+      {
+        id: "expires",
+        header: "Expires",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-xs">
+            {getDaysRemaining(row.original.id)} days
           </span>
         ),
       },

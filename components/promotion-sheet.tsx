@@ -14,14 +14,17 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { PayoutBadge } from "@/components/payout-badge"
-import { CalendarBlank, Timer, X, Check, CheckCircle, Clock } from "@phosphor-icons/react"
+import { CalendarBlank, Timer, X, Check, CheckCircle, Clock, Globe } from "@phosphor-icons/react"
 import {
   type RequestStatus,
   type PromotionRequest,
   getHero,
   getStatusColor,
+  formatCurrency,
+  formatNumber,
   STATUS_LABELS,
 } from "@/lib/mock-data"
 
@@ -207,17 +210,22 @@ function PendingView({
   const sponsor = getHero(request.sponsorId)
   const publisher = getHero(request.publisherId)
   const isPublisherRole = role === "publisher" || role === "both"
+  const isSponsorRole = role === "sponsor"
 
   // Publisher sees the sponsor's campaign and can accept/decline
-  // Sponsor sees "waiting on publisher" read-only
+  // Sponsor sees publisher-initiated requests and can approve/decline
   const needsAction =
     (isPublisherRole && request.initiatedBy === "sponsor") ||
-    (!isPublisherRole && request.initiatedBy === "publisher")
+    (isSponsorRole && request.initiatedBy === "publisher")
 
-  const otherHero = needsAction
-    ? (request.initiatedBy === "sponsor" ? sponsor : publisher)
-    : (request.initiatedBy === "sponsor" ? publisher : sponsor)
-  const initials = sponsor ? sponsor.name.charAt(0) : "?"
+  // Sponsor reviewing a publisher-initiated request gets the full publisher profile
+  const isSponsorReviewing = isSponsorRole && request.initiatedBy === "publisher"
+
+  const totalCost = request.proposedFee * request.numberOfSends
+
+  // For sponsor reviewing: show the publisher. For publisher reviewing: show the sponsor.
+  const headerHero = isSponsorReviewing ? publisher : sponsor
+  const initials = headerHero ? headerHero.name.charAt(0) : "?"
 
   return (
     <>
@@ -226,11 +234,9 @@ function PendingView({
           <Avatar size="lg">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <SheetTitle className="text-lg">{sponsor?.name}</SheetTitle>
-          </div>
+          <SheetTitle className="flex-1 text-lg">{headerHero?.name}</SheetTitle>
           <Badge className={BADGE_COLORS.blue}>
-            {request.initiatedBy === "sponsor" ? "Inbound" : "Outbound"}
+            {request.initiatedBy === "sponsor" ? "Inbound" : isSponsorReviewing ? "Inbound" : "Outbound"}
           </Badge>
           <SheetClose asChild>
             <Button variant="outline" size="icon-sm">
@@ -242,77 +248,202 @@ function PendingView({
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        {/* If you're waiting (sponsor sent it, you're the sponsor viewing) */}
-        {!needsAction && (
-          <div className="rounded-lg border bg-muted/50 p-4">
-            <div className="flex items-center gap-3">
-              <div className="relative flex size-8 items-center justify-center">
-                <div className="absolute inset-0 animate-ping rounded-full bg-amber-400/30" />
-                <div className="relative size-3 rounded-full bg-amber-500" />
+        {/* ── Sponsor reviewing: tabbed layout ── */}
+        {isSponsorReviewing && publisher && (
+          <Tabs defaultValue="proposal">
+            <TabsList variant="line">
+              <TabsTrigger value="proposal">Proposal</TabsTrigger>
+              <TabsTrigger value="about">About {publisher.name.split(" ")[0]}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="proposal" className="space-y-4">
+              {/* Campaign preview */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Your campaign</p>
+                <EmailBlockPreview
+                  headline={request.adHeadline}
+                  body={request.adBody}
+                  cta={request.adCta}
+                />
               </div>
-              <div>
-                <p className="text-sm font-medium">Waiting for response</p>
-                <p className="text-xs text-muted-foreground">
-                  You&apos;ll be notified when they respond
-                </p>
+
+              {/* Their message */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Their message</p>
+                <p className="text-sm leading-relaxed">{request.brief}</p>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Verticals */}
-        {sponsor && sponsor.verticals.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {sponsor.verticals.map((v) => (
-              <Badge key={v} className={`text-xs ${BADGE_COLORS.terracotta}`}>
-                {v}
-              </Badge>
-            ))}
-          </div>
-        )}
+              {/* Deal summary */}
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Fee / send</p>
+                  <PayoutBadge amount={request.proposedFee} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Sends</p>
+                  <p className="text-sm tabular-nums">{request.numberOfSends}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Total cost</p>
+                  <p className="text-sm font-medium tabular-nums">{formatCurrency(totalCost)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Proposed date</p>
+                  <Badge className={BADGE_COLORS.blue}>
+                    <CalendarBlank className="size-3" />
+                    {formatDate(request.proposedDate)}
+                  </Badge>
+                </div>
+              </div>
 
-        {/* Brief */}
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Brief</p>
-          <p className="text-sm leading-relaxed">{request.brief}</p>
-        </div>
-
-        {/* Ad preview */}
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Ad preview</p>
-          <EmailBlockPreview
-            headline={request.adHeadline}
-            body={request.adBody}
-            cta={request.adCta}
-          />
-        </div>
-
-        {/* Deal details */}
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Payout</p>
-            <PayoutBadge amount={request.proposedFee} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Preferred date</p>
-            <Badge className={BADGE_COLORS.blue}>
-              <CalendarBlank className="size-3" />
-              {formatDate(request.proposedDate)}
-            </Badge>
-          </div>
-          {needsAction && (
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Expires</p>
+              {/* Expiry */}
               <Badge className={BADGE_COLORS.gold}>
                 <Timer className="size-3" />
-                {getDaysRemaining(request.id)} days
+                Expires in {getDaysRemaining(request.id)} days
               </Badge>
+            </TabsContent>
+
+            <TabsContent value="about" className="space-y-4">
+              {/* Audience stats */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Subscribers</p>
+                  <p className="text-lg font-medium tabular-nums">{formatNumber(publisher.subscriberCount)}</p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Open Rate</p>
+                  <p className="text-lg font-medium tabular-nums">{publisher.openRate}%</p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Click Rate</p>
+                  <p className="text-lg font-medium tabular-nums">{publisher.clickRate}%</p>
+                </div>
+              </div>
+
+              {/* Bio */}
+              <p className="text-sm leading-relaxed text-muted-foreground">{publisher.bio}</p>
+
+              {/* Niche + links row */}
+              <div className="flex flex-wrap gap-2">
+                <Badge className={`text-xs ${BADGE_COLORS.terracotta}`}>
+                  {publisher.verticals[0]}
+                </Badge>
+                {publisher.website && (
+                  <Badge variant="outline" className="text-xs">
+                    <Globe className="size-3" />
+                    {publisher.website.replace(/^https?:\/\//, "")}
+                  </Badge>
+                )}
+                {publisher.socialLinks.map((link) => (
+                  <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+                    {link.platform}
+                  </Badge>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {/* ── Publisher reviewing OR waiting (original flow) ── */}
+        {!isSponsorReviewing && (
+          <>
+            {/* If you're waiting (sponsor sent it, you're the sponsor viewing) */}
+            {!needsAction && (
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex size-8 items-center justify-center">
+                    <div className="absolute inset-0 animate-ping rounded-full bg-amber-400/30" />
+                    <div className="relative size-3 rounded-full bg-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Waiting for response</p>
+                    <p className="text-xs text-muted-foreground">
+                      You&apos;ll be notified when they respond
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Verticals */}
+            {sponsor && sponsor.verticals.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {sponsor.verticals.map((v) => (
+                  <Badge key={v} className={`text-xs ${BADGE_COLORS.terracotta}`}>
+                    {v}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Brief */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Brief</p>
+              <p className="text-sm leading-relaxed">{request.brief}</p>
             </div>
-          )}
-        </div>
+
+            {/* Ad preview */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Ad preview</p>
+              <EmailBlockPreview
+                headline={request.adHeadline}
+                body={request.adBody}
+                cta={request.adCta}
+              />
+            </div>
+
+            {/* Deal details */}
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Payout</p>
+                <PayoutBadge amount={request.proposedFee} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Preferred date</p>
+                <Badge className={BADGE_COLORS.blue}>
+                  <CalendarBlank className="size-3" />
+                  {formatDate(request.proposedDate)}
+                </Badge>
+              </div>
+              {needsAction && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Expires</p>
+                  <Badge className={BADGE_COLORS.gold}>
+                    <Timer className="size-3" />
+                    {getDaysRemaining(request.id)} days
+                  </Badge>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </SheetBody>
 
-      {needsAction && (
+      {/* Sponsor reviewing: Decline / Approve · $X */}
+      {isSponsorReviewing && (
+        <SheetFooter>
+          <Button
+            variant="outline"
+            onClick={onDecline}
+            disabled={acceptPhase !== "idle"}
+          >
+            Decline
+          </Button>
+          {acceptPhase === "success" ? (
+            <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+              <Check weight="bold" className="size-4" />
+              Approved
+            </Button>
+          ) : (
+            <Button loading={acceptPhase === "loading"} onClick={onAccept}>
+              {acceptPhase === "loading" ? "Approving..." : `Approve · ${formatCurrency(totalCost)}`}
+            </Button>
+          )}
+        </SheetFooter>
+      )}
+
+      {/* Publisher needs to act: Accept/Decline */}
+      {needsAction && !isSponsorReviewing && (
         <SheetFooter>
           <Button
             variant="outline"
@@ -334,7 +465,8 @@ function PendingView({
         </SheetFooter>
       )}
 
-      {!needsAction && (
+      {/* No action needed (read-only) */}
+      {!needsAction && !isSponsorReviewing && (
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
@@ -369,7 +501,12 @@ function AcceptedView({
   const sponsor = getHero(request.sponsorId)
   const publisher = getHero(request.publisherId)
   const isPublisherRole = role === "publisher" || role === "both"
-  const initials = sponsor ? sponsor.name.charAt(0) : "?"
+  const isSponsorRole = !isPublisherRole
+  const totalCost = request.proposedFee * request.numberOfSends
+
+  // Sponsor sees the publisher; publisher sees the sponsor
+  const headerHero = isSponsorRole ? publisher : sponsor
+  const initials = headerHero ? headerHero.name.charAt(0) : "?"
 
   return (
     <>
@@ -378,7 +515,7 @@ function AcceptedView({
           <Avatar size="lg">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
-          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
+          <SheetTitle className="flex-1 text-lg">{headerHero?.name}</SheetTitle>
           <Badge variant="secondary" className={getStatusColor("accepted")}>
             {STATUS_LABELS.accepted}
           </Badge>
@@ -392,52 +529,149 @@ function AcceptedView({
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        {/* Success banner */}
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
-          <div className="flex items-center gap-2">
-            <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
-            <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-              {isPublisherRole ? "You accepted this campaign" : `${publisher?.name ?? "Publisher"} accepted your campaign`}
-            </p>
-          </div>
-        </div>
+        {/* ── Sponsor view: tabbed layout ── */}
+        {isSponsorRole && publisher ? (
+          <Tabs defaultValue="proposal">
+            <TabsList variant="line">
+              <TabsTrigger value="proposal">Proposal</TabsTrigger>
+              <TabsTrigger value="about">About {publisher.name.split(" ")[0]}</TabsTrigger>
+            </TabsList>
 
-        {/* Ad preview */}
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Ad</p>
-          <EmailBlockPreview
-            headline={request.adHeadline}
-            body={request.adBody}
-            cta={request.adCta}
-          />
-        </div>
+            <TabsContent value="proposal" className="space-y-4">
+              {/* Success banner */}
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
+                <div className="flex items-center gap-2">
+                  <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
+                  <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                    {`${publisher.name} accepted your campaign`}
+                  </p>
+                </div>
+              </div>
 
-        {/* Publisher picks a date */}
-        {isPublisherRole && (
-          <div className="space-y-2">
-            <label className="text-xs font-medium">Pick a send date</label>
-            <Input
-              type="date"
-              value={scheduledDate}
-              onChange={(e) => onDateChange(e.target.value)}
-            />
-          </div>
+              {/* Campaign preview */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-muted-foreground">Your campaign</p>
+                <EmailBlockPreview
+                  headline={request.adHeadline}
+                  body={request.adBody}
+                  cta={request.adCta}
+                />
+              </div>
+
+              {/* Deal details */}
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Fee / send</p>
+                  <PayoutBadge amount={request.proposedFee} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Sends</p>
+                  <p className="text-sm tabular-nums">{request.numberOfSends}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Total cost</p>
+                  <p className="text-sm font-medium tabular-nums">{formatCurrency(totalCost)}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Preferred date</p>
+                  <Badge className={BADGE_COLORS.blue}>
+                    <CalendarBlank className="size-3" />
+                    {formatDate(request.proposedDate)}
+                  </Badge>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="about" className="space-y-4">
+              {/* Audience stats */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Subscribers</p>
+                  <p className="text-lg font-medium tabular-nums">{formatNumber(publisher.subscriberCount)}</p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Open Rate</p>
+                  <p className="text-lg font-medium tabular-nums">{publisher.openRate}%</p>
+                </div>
+                <div className="rounded-lg border p-3">
+                  <p className="text-xs text-muted-foreground">Click Rate</p>
+                  <p className="text-lg font-medium tabular-nums">{publisher.clickRate}%</p>
+                </div>
+              </div>
+
+              {/* Bio */}
+              <p className="text-sm leading-relaxed text-muted-foreground">{publisher.bio}</p>
+
+              {/* Niche + links row */}
+              <div className="flex flex-wrap gap-2">
+                <Badge className={`text-xs ${BADGE_COLORS.terracotta}`}>
+                  {publisher.verticals[0]}
+                </Badge>
+                {publisher.website && (
+                  <Badge variant="outline" className="text-xs">
+                    <Globe className="size-3" />
+                    {publisher.website.replace(/^https?:\/\//, "")}
+                  </Badge>
+                )}
+                {publisher.socialLinks.map((link) => (
+                  <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+                    {link.platform}
+                  </Badge>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <>
+            {/* ── Publisher view: original single-scroll layout ── */}
+            {/* Success banner */}
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
+              <div className="flex items-center gap-2">
+                <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                  You accepted this campaign
+                </p>
+              </div>
+            </div>
+
+            {/* Ad preview */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Ad</p>
+              <EmailBlockPreview
+                headline={request.adHeadline}
+                body={request.adBody}
+                cta={request.adCta}
+              />
+            </div>
+
+            {/* Publisher picks a date */}
+            {isPublisherRole && (
+              <div className="space-y-2">
+                <label className="text-xs font-medium">Pick a send date</label>
+                <Input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(e) => onDateChange(e.target.value)}
+                />
+              </div>
+            )}
+
+            {/* Deal details */}
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Payout</p>
+                <PayoutBadge amount={request.proposedFee} />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Preferred date</p>
+                <Badge className={BADGE_COLORS.blue}>
+                  <CalendarBlank className="size-3" />
+                  {formatDate(request.proposedDate)}
+                </Badge>
+              </div>
+            </div>
+          </>
         )}
-
-        {/* Deal details */}
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Payout</p>
-            <PayoutBadge amount={request.proposedFee} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Preferred date</p>
-            <Badge className={BADGE_COLORS.blue}>
-              <CalendarBlank className="size-3" />
-              {formatDate(request.proposedDate)}
-            </Badge>
-          </div>
-        </div>
       </SheetBody>
 
       {/* Publisher: schedule it */}
@@ -452,14 +686,14 @@ function AcceptedView({
         </SheetFooter>
       )}
 
-      {/* Sponsor: approve/decline the publisher's acceptance */}
-      {!isPublisherRole && (
+      {/* Sponsor: approve/decline with total cost on the button */}
+      {isSponsorRole && (
         <SheetFooter>
           <Button variant="outline" onClick={onSponsorDecline}>
             Decline
           </Button>
           <Button onClick={onSponsorApprove}>
-            Approve
+            Approve · {formatCurrency(totalCost)}
           </Button>
         </SheetFooter>
       )}

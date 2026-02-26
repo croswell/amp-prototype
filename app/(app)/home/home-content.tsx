@@ -17,6 +17,7 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { HeroCard } from "@/components/hero-card"
 import { PromotionSheet } from "@/components/promotion-sheet"
@@ -26,13 +27,13 @@ import {
   type PromotionRequest,
   type Hero,
   currentUser,
+  currentUserCampaign,
   promotionRequests,
   heroes,
   getHero,
   formatCurrency,
   formatNumber,
   getStatusColor,
-  getEngagementColor,
   getRecommendedHeroes,
 } from "@/lib/mock-data"
 import {
@@ -127,6 +128,18 @@ export function HomeContent() {
     }
 
     if (isSponsor) {
+      // Sponsor sees publisher-initiated pending requests (publisher wants to run their campaign)
+      outgoing
+        .filter((r) => r.status === "pending" && r.initiatedBy === "publisher")
+        .forEach((r) => {
+          const publisher = getHero(r.publisherId)
+          items.push({
+            request: r,
+            type: "sponsor",
+            label: `${publisher?.name ?? "Publisher"} wants to run your campaign`,
+          })
+        })
+
       // Sponsor sees accepted requests waiting for their approval (publisher accepted, sponsor needs to approve)
       outgoing
         .filter((r) => r.status === "accepted")
@@ -180,7 +193,7 @@ export function HomeContent() {
               <div className="mt-3">
                 <Badge
                   variant="secondary"
-                  className="gap-1 font-[family-name:var(--font-geist-mono)] text-xs uppercase tracking-wide bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
+                  className="gap-1 text-xs bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
                 >
                   <CaretDoubleUp className="size-3" />
                   High Engagement
@@ -320,11 +333,14 @@ export function HomeContent() {
                   <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
                     {item.request.adHeadline}
                   </p>
-                  <span className="shrink-0 text-sm tabular-nums">
-                    {formatCurrency(item.request.proposedFee)}
-                  </span>
                   <span className="shrink-0 text-sm text-muted-foreground w-32">
                     {fmt(date)} – {fmt(endDate)}
+                  </span>
+                  <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
+                    {item.request.numberOfSends} {item.request.numberOfSends === 1 ? "send" : "sends"}
+                  </span>
+                  <span className="shrink-0 text-sm text-foreground tabular-nums">
+                    {formatCurrency(item.request.proposedFee * item.request.numberOfSends)}
                   </span>
                   <Button
                     size="sm"
@@ -514,6 +530,7 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
 
 function PublisherProfileSheet({ hero }: { hero: Hero }) {
   const [phase, setPhase] = useState<"idle" | "loading" | "success">("idle")
+  const totalCost = hero.recommendedFee * 3 // Default 3 sends for the preview
 
   const handleSendRequest = useCallback(() => {
     setPhase("loading")
@@ -524,6 +541,9 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
+          <Avatar size="lg">
+            <AvatarFallback>{hero.name.charAt(0)}</AvatarFallback>
+          </Avatar>
           <SheetTitle className="flex-1 text-lg">{hero.name}</SheetTitle>
           <SheetClose asChild>
             <Button variant="outline" size="icon-sm">
@@ -546,39 +566,75 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <p className="text-xs text-muted-foreground">Subscribers</p>
-            <p className="text-lg font-medium tabular-nums">{formatNumber(hero.subscriberCount)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Open Rate</p>
-            <p className="text-lg font-medium tabular-nums">{hero.openRate}%</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Click Rate</p>
-            <p className="text-lg font-medium tabular-nums">{hero.clickRate}%</p>
-          </div>
-        </div>
+        <Tabs defaultValue="proposal">
+          <TabsList variant="line">
+            <TabsTrigger value="proposal">Proposal</TabsTrigger>
+            <TabsTrigger value="about">About {hero.name.split(" ")[0]}</TabsTrigger>
+          </TabsList>
 
-        <Badge variant="secondary" className={getEngagementColor(hero.engagementTier)}>
-          {hero.engagementTier} engagement
-        </Badge>
+          <TabsContent value="proposal" className="space-y-4">
+            {/* Campaign preview */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Your campaign</p>
+              <EmailBlockPreview
+                headline={currentUserCampaign.adHeadline}
+                body={currentUserCampaign.adBody}
+                cta={currentUserCampaign.adCta}
+              />
+            </div>
 
-        <div>
-          <p className="text-xs text-muted-foreground">Recommended Fee</p>
-          <p className="text-lg font-medium tabular-nums">{formatCurrency(hero.recommendedFee)}</p>
-        </div>
+            {/* Fee info */}
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Fee / send</p>
+                <p className="text-sm tabular-nums">{formatCurrency(hero.recommendedFee)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Est. total (3 sends)</p>
+                <p className="text-sm font-medium tabular-nums">{formatCurrency(totalCost)}</p>
+              </div>
+            </div>
+          </TabsContent>
 
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">Sample Promotion</p>
-          <EmailBlockPreview
-            headline={`Recommended by ${hero.name.split(" ")[0]}`}
-            body={`${hero.name} hand-picks every promotion they share. Their audience trusts their recommendations because they only endorse products they believe in.`}
-            cta="Learn More"
-            publisherName={hero.name}
-          />
-        </div>
+          <TabsContent value="about" className="space-y-4">
+            {/* Audience stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Subscribers</p>
+                <p className="text-lg font-medium tabular-nums">{formatNumber(hero.subscriberCount)}</p>
+              </div>
+              <div className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Open Rate</p>
+                <p className="text-lg font-medium tabular-nums">{hero.openRate}%</p>
+              </div>
+              <div className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">Click Rate</p>
+                <p className="text-lg font-medium tabular-nums">{hero.clickRate}%</p>
+              </div>
+            </div>
+
+            {/* Bio */}
+            <p className="text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
+
+            {/* Niche + links row */}
+            <div className="flex flex-wrap gap-2">
+              <Badge className={`text-xs ${BADGE_COLORS.terracotta}`}>
+                {hero.verticals[0]}
+              </Badge>
+              {hero.website && (
+                <Badge variant="outline" className="text-xs">
+                  <Globe className="size-3" />
+                  {hero.website.replace(/^https?:\/\//, "")}
+                </Badge>
+              )}
+              {hero.socialLinks.map((link) => (
+                <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+                  {link.platform}
+                </Badge>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </SheetBody>
 
       <SheetFooter>

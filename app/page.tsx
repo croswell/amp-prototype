@@ -12,6 +12,7 @@ import {
   CaretRight,
   Megaphone,
   Rocket,
+  UserSwitch,
 } from "@phosphor-icons/react/dist/ssr"
 
 const experiences = [
@@ -33,16 +34,22 @@ const experiences = [
     href: "/home?role=sponsor",
     icon: Megaphone,
   },
+  {
+    title: "Both Roles",
+    description: "Publisher + sponsor combined, with role switcher in the nav",
+    href: "/home?role=both",
+    icon: UserSwitch,
+  },
 ]
 
 export default function PrototypeIndex() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center px-4 py-16">
       <div className="w-full max-w-2xl space-y-8">
-        <div className="flex flex-col items-center gap-4 text-center">
+        <div className="flex items-center justify-center gap-3">
           <img src="/logo-black.svg" alt="Amplify" className="h-8 dark:hidden" />
           <img src="/logo-white.svg" alt="Amplify" className="hidden h-8 dark:block" />
-          <span className="inline-block rounded-sm border border-dashed border-amber-300 bg-amber-50 px-2.5 py-1 font-mono text-xs font-medium uppercase tracking-widest text-amber-600">
+          <span className="inline-block rounded-sm border border-dashed border-amber-300 bg-amber-50 px-2.5 py-1 font-mono text-xs font-medium uppercase tracking-widest text-amber-600 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400">
             Prototype
           </span>
         </div>

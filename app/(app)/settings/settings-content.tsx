@@ -121,20 +121,20 @@ export function SettingsContent() {
         </p>
       </div>
 
-      <Tabs defaultValue={defaultTab}>
-        <TabsList variant="line">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
+      <Tabs defaultValue={defaultTab} orientation="vertical" className="gap-8">
+        <TabsList className="w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-0">
+          <TabsTrigger value="profile" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Profile</TabsTrigger>
           {isPublisher && (
-            <TabsTrigger value="publisher">Pricing & Availability</TabsTrigger>
+            <TabsTrigger value="publisher" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Pricing & Availability</TabsTrigger>
           )}
           {isSponsor && (
-            <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+            <TabsTrigger value="campaigns" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Campaigns</TabsTrigger>
           )}
-          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="account" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Account</TabsTrigger>
         </TabsList>
 
         {/* ── Profile Tab ────────────────────────────────────── */}
-        <TabsContent value="profile" className="mt-6 space-y-8">
+        <TabsContent value="profile" className="space-y-8">
           {/* Details + Verticals */}
           <Card>
             <CardHeader>
@@ -258,7 +258,7 @@ export function SettingsContent() {
 
         {/* ── Publisher Settings Tab ──────────────────────────── */}
         {isPublisher && (
-          <TabsContent value="publisher" className="mt-6 space-y-8">
+          <TabsContent value="publisher" className="space-y-8">
             {/* Engagement tier */}
             <Card>
               <CardHeader>
@@ -364,7 +364,7 @@ export function SettingsContent() {
 
         {/* ── Campaigns Tab ──────────────────────────────────── */}
         {isSponsor && (
-          <TabsContent value="campaigns" className="mt-6 space-y-8">
+          <TabsContent value="campaigns" className="space-y-8">
             {/* Spend limit */}
             <Card>
               <CardHeader>
@@ -489,7 +489,7 @@ export function SettingsContent() {
         )}
 
         {/* ── Account Tab ────────────────────────────────────── */}
-        <TabsContent value="account" className="mt-6 space-y-8">
+        <TabsContent value="account" className="space-y-8">
           <Card>
             <CardHeader>
               <CardTitle>Account</CardTitle>

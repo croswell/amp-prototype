@@ -37,7 +37,7 @@ import {
   formatNumber,
   getEngagementColor,
 } from "@/lib/mock-data"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import {
   MagnifyingGlass,
   SlidersHorizontal,
@@ -46,6 +46,7 @@ import {
   CaretLeft,
   CaretRight,
   Globe,
+  CheckCircle,
   X as XIcon,
 } from "@phosphor-icons/react"
 
@@ -355,7 +356,14 @@ export function DirectoryContent() {
 // ─────────────────────────────────────────────────────────────
 
 function SponsorProfileSheet({ hero }: { hero: Hero }) {
-  const initials = hero.name.charAt(0)
+  const [phase, setPhase] = useState<"idle" | "loading" | "success">("idle")
+
+  const handleAccept = useCallback(() => {
+    setPhase("loading")
+    setTimeout(() => {
+      setPhase("success")
+    }, 1200)
+  }, [])
 
   return (
     <>
@@ -372,6 +380,21 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
       </SheetHeader>
 
       <SheetBody className="space-y-4">
+        {/* Confirmation message */}
+        {phase === "success" && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
+            <div className="flex items-center gap-2">
+              <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
+              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                Request sent to {hero.name}
+              </p>
+            </div>
+            <p className="mt-1 ml-7 text-xs text-emerald-700 dark:text-emerald-400">
+              Switch to <span className="font-medium">?role=sponsor</span> to see the request in their inbox.
+            </p>
+          </div>
+        )}
+
         <p className="text-sm leading-relaxed text-muted-foreground">
           {hero.bio}
         </p>
@@ -430,14 +453,30 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
         <SheetClose asChild>
           <Button variant="outline">Decline</Button>
         </SheetClose>
-        <Button>Accept</Button>
+        {phase === "success" ? (
+          <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+            <Check weight="bold" className="size-4" />
+            Sent
+          </Button>
+        ) : (
+          <Button loading={phase === "loading"} onClick={handleAccept}>
+            {phase === "loading" ? "Sending..." : "Accept"}
+          </Button>
+        )}
       </SheetFooter>
     </>
   )
 }
 
 function PublisherProfileSheet({ hero }: { hero: Hero }) {
-  const initials = hero.name.charAt(0)
+  const [phase, setPhase] = useState<"idle" | "loading" | "success">("idle")
+
+  const handleSendRequest = useCallback(() => {
+    setPhase("loading")
+    setTimeout(() => {
+      setPhase("success")
+    }, 1200)
+  }, [])
 
   return (
     <>
@@ -454,6 +493,21 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
       </SheetHeader>
 
       <SheetBody className="space-y-4">
+        {/* Confirmation message */}
+        {phase === "success" && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
+            <div className="flex items-center gap-2">
+              <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
+              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                Request sent to {hero.name}
+              </p>
+            </div>
+            <p className="mt-1 ml-7 text-xs text-emerald-700 dark:text-emerald-400">
+              Switch to <span className="font-medium">?role=publisher</span> to see the request in their inbox.
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-3 gap-4">
           <div>
             <p className="text-xs text-muted-foreground">Subscribers</p>
@@ -507,7 +561,16 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
         <SheetClose asChild>
           <Button variant="outline">Close</Button>
         </SheetClose>
-        <Button>Send Request</Button>
+        {phase === "success" ? (
+          <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+            <Check weight="bold" className="size-4" />
+            Sent
+          </Button>
+        ) : (
+          <Button loading={phase === "loading"} onClick={handleSendRequest}>
+            {phase === "loading" ? "Sending..." : "Send Request"}
+          </Button>
+        )}
       </SheetFooter>
     </>
   )

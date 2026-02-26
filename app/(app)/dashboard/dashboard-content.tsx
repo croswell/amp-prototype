@@ -12,6 +12,8 @@ import { DataTable } from "@/components/ui/data-table"
 import { PromotionSheet } from "@/components/promotion-sheet"
 import { PayoutBadge } from "@/components/payout-badge"
 import {
+  type RequestStatus,
+  type WorkspaceStep,
   type PromotionRequest,
   currentUser,
   promotionRequests,
@@ -19,7 +21,27 @@ import {
   formatCurrency,
   getStatusColor,
 } from "@/lib/mock-data"
-import { ArrowRight, CurrencyDollar, Tray, Lightning, PaperPlaneTilt, CheckCircle } from "@phosphor-icons/react"
+import {
+  ArrowRight,
+  CurrencyDollar,
+  Tray,
+  Lightning,
+  PaperPlaneTilt,
+  CheckCircle,
+  PencilLine,
+  CalendarBlank,
+  X,
+} from "@phosphor-icons/react"
+
+// ── Action banner type ──
+interface ActionBanner {
+  id: string
+  icon: React.ReactNode
+  text: string
+  ctaLabel: string
+  request?: PromotionRequest
+  href?: string
+}
 
 export function DashboardContent() {
   const searchParams = useSearchParams()
@@ -29,18 +51,39 @@ export function DashboardContent() {
   const [selectedRequest, setSelectedRequest] = useState<PromotionRequest | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
+  // Status + workspace step overrides
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, RequestStatus>>({})
+  const [workspaceStepOverrides, setWorkspaceStepOverrides] = useState<Record<string, WorkspaceStep>>({})
+
+  // Dismissed banners (session only)
+  const [dismissedBanners, setDismissedBanners] = useState<Set<string>>(new Set())
+
   function openSheet(request: PromotionRequest) {
     setSelectedRequest(request)
     setSheetOpen(true)
   }
 
-  const incoming = promotionRequests.filter(
-    (r) => r.publisherId === currentUser.id
+  function handleStatusChange(requestId: string, newStatus: RequestStatus) {
+    setStatusOverrides((prev) => ({ ...prev, [requestId]: newStatus }))
+  }
+
+  function handleWorkspaceStepChange(requestId: string, newStep: WorkspaceStep) {
+    setWorkspaceStepOverrides((prev) => ({ ...prev, [requestId]: newStep }))
+  }
+
+  // Apply overrides to requests
+  const allRequests = useMemo(
+    () =>
+      promotionRequests.map((r) => ({
+        ...r,
+        status: statusOverrides[r.id] || r.status,
+        workspaceStep: workspaceStepOverrides[r.id] || r.workspaceStep,
+      })),
+    [statusOverrides, workspaceStepOverrides]
   )
-  const outgoing = promotionRequests.filter(
-    (r) => r.sponsorId === currentUser.id
-  )
-  // Show only the requests relevant to the current role
+
+  const incoming = allRequests.filter((r) => r.publisherId === currentUser.id)
+  const outgoing = allRequests.filter((r) => r.sponsorId === currentUser.id)
   const relevantRequests =
     role === "publisher"
       ? incoming
@@ -51,13 +94,77 @@ export function DashboardContent() {
   const monthlyRevenue = currentUser.recommendedFee * 2
   const yearlyRevenue = monthlyRevenue * 12
 
-  const activePromotions = relevantRequests.filter(
-    (r) => r.status === "accepted"
-  )
-  const completedPromotions = relevantRequests.filter(
-    (r) => r.status === "published"
-  )
+  const activePromotions = relevantRequests.filter((r) => r.status === "accepted")
+  const completedPromotions = relevantRequests.filter((r) => r.status === "published")
   const totalSpend = outgoing.reduce((sum, r) => sum + r.proposedFee, 0)
+
+  // ── Compute action banners ──
+  const banners = useMemo<ActionBanner[]>(() => {
+    const result: ActionBanner[] = []
+
+    if (role === "publisher" || role === "both") {
+      // Inbox requests waiting
+      const inboxCount = incoming.filter((r) => r.status === "inbox").length
+      if (inboxCount > 0) {
+        result.push({
+          id: "publisher-inbox",
+          icon: <Tray className="size-5" />,
+          text: `You have ${inboxCount} new promotion request${inboxCount !== 1 ? "s" : ""}`,
+          ctaLabel: "Review requests",
+          href: `/requests?role=publisher`,
+        })
+      }
+
+      // Copy approved, ready to schedule
+      const approved = incoming.filter(
+        (r) => r.status === "accepted" && r.workspaceStep === "approved"
+      )
+      for (const req of approved) {
+        const sponsor = getHero(req.sponsorId)
+        result.push({
+          id: `publisher-approved-${req.id}`,
+          icon: <CheckCircle className="size-5" />,
+          text: `${sponsor?.name ?? "Sponsor"} approved your copy for "${req.adHeadline}"`,
+          ctaLabel: "Schedule now",
+          request: req,
+        })
+      }
+    }
+
+    if (role === "sponsor" || role === "both") {
+      // Copy submitted for review
+      const inReview = outgoing.filter(
+        (r) => r.status === "accepted" && r.workspaceStep === "in-review"
+      )
+      for (const req of inReview) {
+        const publisher = getHero(req.publisherId)
+        result.push({
+          id: `sponsor-review-${req.id}`,
+          icon: <PencilLine className="size-5" />,
+          text: `${publisher?.name ?? "Publisher"} submitted copy for your review`,
+          ctaLabel: "Review copy",
+          request: req,
+        })
+      }
+
+      // Publisher-initiated requests in sponsor's inbox
+      const publisherRequests = outgoing.filter(
+        (r) => r.status === "inbox" && r.initiatedBy === "publisher"
+      )
+      for (const req of publisherRequests) {
+        const publisher = getHero(req.publisherId)
+        result.push({
+          id: `sponsor-request-${req.id}`,
+          icon: <Tray className="size-5" />,
+          text: `${publisher?.name ?? "Publisher"} wants to promote with you`,
+          ctaLabel: "Review request",
+          request: req,
+        })
+      }
+    }
+
+    return result.filter((b) => !dismissedBanners.has(b.id))
+  }, [role, incoming, outgoing, dismissedBanners])
 
   // Activity table columns
   const activityColumns = useMemo<ColumnDef<PromotionRequest>[]>(
@@ -130,6 +237,14 @@ export function DashboardContent() {
   const hour = new Date().getHours()
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
+
+  const effectiveStatus = selectedRequest
+    ? (statusOverrides[selectedRequest.id] || selectedRequest.status)
+    : null
+
+  const effectiveWorkspaceStep = selectedRequest
+    ? (workspaceStepOverrides[selectedRequest.id] || selectedRequest.workspaceStep)
+    : null
 
   return (
     <div className="space-y-8">
@@ -233,6 +348,46 @@ export function DashboardContent() {
         </Card>
       </div>
 
+      {/* Action banners */}
+      {banners.length > 0 && (
+        <div className="space-y-3">
+          {banners.slice(0, 3).map((banner) => (
+            <div
+              key={banner.id}
+              className="flex items-center gap-3 rounded-lg border border-l-4 border-l-primary bg-card p-3"
+            >
+              <div className="text-primary">{banner.icon}</div>
+              <p className="flex-1 text-sm">{banner.text}</p>
+              {banner.request ? (
+                <Button size="sm" onClick={() => openSheet(banner.request!)}>
+                  {banner.ctaLabel}
+                </Button>
+              ) : banner.href ? (
+                <Button size="sm" asChild>
+                  <Link href={banner.href}>{banner.ctaLabel}</Link>
+                </Button>
+              ) : null}
+              <button
+                onClick={() =>
+                  setDismissedBanners((prev) => new Set([...prev, banner.id]))
+                }
+                className="rounded-sm p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+          ))}
+          {banners.length > 3 && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={`/requests?role=${role}`}>
+                View all {banners.length} notifications
+                <ArrowRight data-icon="inline-end" className="size-4" />
+              </Link>
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Recent activity */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -255,8 +410,13 @@ export function DashboardContent() {
 
       <PromotionSheet
         request={selectedRequest}
+        status={effectiveStatus}
+        role={role}
+        workspaceStep={effectiveWorkspaceStep}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
+        onStatusChange={handleStatusChange}
+        onWorkspaceStepChange={handleWorkspaceStepChange}
       />
     </div>
   )

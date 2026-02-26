@@ -13,11 +13,13 @@ import { PayoutBadge } from "@/components/payout-badge"
 import { X } from "@phosphor-icons/react"
 import {
   type RequestStatus,
+  type WorkspaceStep,
   type PromotionRequest,
   promotionRequests,
   getHero,
   currentUser,
   formatCurrency,
+  WORKSPACE_STEP_LABELS,
 } from "@/lib/mock-data"
 
 // Deterministic days remaining (1–7) based on ID
@@ -49,6 +51,20 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "expired", label: "Expired" },
 ]
 
+// Badge color for workspace steps
+function getWorkspaceStepColor(step: WorkspaceStep): string {
+  switch (step) {
+    case "edit":
+    case "changes-requested":
+      return "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300"
+    case "in-review":
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
+    case "approved":
+    case "scheduled":
+      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300"
+  }
+}
+
 export function RequestsContent() {
   const searchParams = useSearchParams()
   const role = searchParams.get("role") || "publisher"
@@ -59,6 +75,8 @@ export function RequestsContent() {
 
   // Status overrides for demo (simulating state changes within the session)
   const [statusOverrides, setStatusOverrides] = useState<Record<string, RequestStatus>>({})
+  // Workspace step overrides (parallel to status overrides)
+  const [workspaceStepOverrides, setWorkspaceStepOverrides] = useState<Record<string, WorkspaceStep>>({})
 
   // Filter requests by role, then apply any local status overrides
   const requests = useMemo(() => {
@@ -69,11 +87,16 @@ export function RequestsContent() {
     return filtered.map((r) => ({
       ...r,
       status: statusOverrides[r.id] || r.status,
+      workspaceStep: workspaceStepOverrides[r.id] || r.workspaceStep,
     }))
-  }, [role, statusOverrides])
+  }, [role, statusOverrides, workspaceStepOverrides])
 
   function getEffectiveStatus(req: PromotionRequest): RequestStatus {
     return statusOverrides[req.id] || req.status
+  }
+
+  function getEffectiveWorkspaceStep(req: PromotionRequest): WorkspaceStep | undefined {
+    return workspaceStepOverrides[req.id] || req.workspaceStep
   }
 
   function openSheet(request: PromotionRequest) {
@@ -81,12 +104,12 @@ export function RequestsContent() {
     setSheetOpen(true)
   }
 
-  function handleDismissFromTable(requestId: string) {
-    setStatusOverrides((prev) => ({ ...prev, [requestId]: "expired" }))
-  }
-
   function handleStatusChange(requestId: string, newStatus: RequestStatus) {
     setStatusOverrides((prev) => ({ ...prev, [requestId]: newStatus }))
+  }
+
+  function handleWorkspaceStepChange(requestId: string, newStep: WorkspaceStep) {
+    setWorkspaceStepOverrides((prev) => ({ ...prev, [requestId]: newStep }))
   }
 
   // ── Table columns ──
@@ -153,6 +176,84 @@ export function RequestsContent() {
           <div className="flex justify-end">
             <Button size="sm" onClick={() => openSheet(row.original)}>
               Review
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+
+  const acceptedColumns = useMemo<ColumnDef<PromotionRequest>[]>(
+    () => [
+      {
+        accessorKey: "sponsorId",
+        header: "Sponsor",
+        cell: ({ row }) => {
+          const req = row.original
+          const isIncoming = req.publisherId === currentUser.id
+          const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
+          const initials = otherHero ? otherHero.name.charAt(0) : "?"
+          return (
+            <button
+              onClick={() => openSheet(req)}
+              className="flex items-center gap-3 cursor-pointer text-left"
+            >
+              <Avatar className="size-8">
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <span className="font-medium">{otherHero?.name}</span>
+            </button>
+          )
+        },
+      },
+      {
+        accessorKey: "adHeadline",
+        header: "Campaign",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.adHeadline}</span>
+        ),
+      },
+      {
+        id: "fee",
+        header: "Payout",
+        cell: ({ row }) => (
+          <PayoutBadge amount={row.original.proposedFee} />
+        ),
+      },
+      {
+        id: "step",
+        header: "Step",
+        cell: ({ row }) => {
+          const step = row.original.workspaceStep
+          if (!step) return null
+          return (
+            <Badge
+              variant="secondary"
+              className={`text-[10px] ${getWorkspaceStepColor(step)}`}
+            >
+              {WORKSPACE_STEP_LABELS[step]}
+            </Badge>
+          )
+        },
+      },
+      {
+        id: "schedule",
+        header: "Schedule",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-xs">
+            {getWeekRange(row.original.proposedDate)}
+          </span>
+        ),
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={() => openSheet(row.original)}>
+              View
             </Button>
           </div>
         ),
@@ -237,6 +338,16 @@ export function RequestsContent() {
     ? getEffectiveStatus(selectedRequest)
     : null
 
+  const effectiveWorkspaceStep = selectedRequest
+    ? getEffectiveWorkspaceStep(selectedRequest)
+    : null
+
+  function getColumnsForTab(tabKey: TabKey) {
+    if (tabKey === "inbox") return inboxColumns
+    if (tabKey === "accepted") return acceptedColumns
+    return defaultColumns
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-1.5">
@@ -268,7 +379,7 @@ export function RequestsContent() {
         {TABS.map((tab) => (
           <TabsContent key={tab.key} value={tab.key} className="mt-6">
             <DataTable
-              columns={tab.key === "inbox" ? inboxColumns : defaultColumns}
+              columns={getColumnsForTab(tab.key)}
               data={requests.filter((r) => r.status === tab.key)}
             />
           </TabsContent>
@@ -278,9 +389,12 @@ export function RequestsContent() {
       <PromotionSheet
         request={selectedRequest}
         status={effectiveStatus}
+        role={role}
+        workspaceStep={effectiveWorkspaceStep}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onStatusChange={handleStatusChange}
+        onWorkspaceStepChange={handleWorkspaceStepChange}
       />
     </div>
   )

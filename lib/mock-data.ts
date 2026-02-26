@@ -12,6 +12,13 @@ export type RequestStatus =
   | "published"
   | "expired"
 
+export type WorkspaceStep =
+  | "edit"
+  | "in-review"
+  | "changes-requested"
+  | "approved"
+  | "scheduled"
+
 export type Vertical =
   | "Health & Fitness"
   | "Business & Marketing"
@@ -48,6 +55,8 @@ export interface PromotionRequest {
   sponsorId: string
   publisherId: string
   status: RequestStatus
+  initiatedBy: "sponsor" | "publisher"
+  workspaceStep?: WorkspaceStep
   brief: string
   adHeadline: string
   adBody: string
@@ -70,6 +79,14 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
   accepted: "Accepted",
   published: "Published",
   expired: "Expired",
+}
+
+export const WORKSPACE_STEP_LABELS: Record<WorkspaceStep, string> = {
+  edit: "Edit Copy",
+  "in-review": "In Review",
+  "changes-requested": "Changes Requested",
+  approved: "Approved",
+  scheduled: "Scheduled",
 }
 
 // ============================================================
@@ -336,6 +353,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-4",
     publisherId: "current-user",
     status: "accepted",
+    initiatedBy: "sponsor",
+    workspaceStep: "edit",
     brief: "I teach creators how to package their knowledge into profitable online courses. I'm looking to promote my free Course Launch Blueprint — a step-by-step framework that's helped 500+ creators launch their first course. I think your audience of knowledge entrepreneurs would be a perfect fit.",
     adHeadline: "Create Your First Online Course in 30 Days",
     adBody: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
@@ -352,6 +371,7 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-6",
     publisherId: "current-user",
     status: "inbox",
+    initiatedBy: "sponsor",
     brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience using AI-powered growth strategies. We've helped 2,000+ podcasters double their downloads. I'd love to reach your audience since many of your subscribers are also launching podcasts.",
     adHeadline: "Grow Your Podcast to 10K Downloads",
     adBody: "PodGrowth helps podcasters double their audience in 90 days with AI-powered growth tools. Join 2,000+ podcasters already using the platform.",
@@ -368,6 +388,7 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-9",
     publisherId: "current-user",
     status: "inbox",
+    initiatedBy: "sponsor",
     brief: "I built a 7-figure membership site and now teach others to do the same. I'm promoting my free training on creating recurring revenue through memberships. Your audience of knowledge entrepreneurs would love this — memberships are the natural next step after courses.",
     adHeadline: "Build a Membership Site That Runs Itself",
     adBody: "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
@@ -385,6 +406,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-6",
     publisherId: "hero-1",
     status: "accepted",
+    initiatedBy: "sponsor",
+    workspaceStep: "edit",
     brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience. Your coaching audience includes a lot of creators launching podcasts, so I think this would be a natural fit.",
     adHeadline: "Grow Your Podcast to 10K Downloads",
     adBody: "PodGrowth helps podcasters double their audience in 90 days with AI-powered growth tools. Join 2,000+ podcasters already using the platform.",
@@ -401,6 +424,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-3",
     publisherId: "current-user",
     status: "accepted",
+    initiatedBy: "sponsor",
+    workspaceStep: "in-review",
     brief: "I'm launching a new leadership coaching program for women and want to reach Alex's audience of knowledge entrepreneurs. Many of them are women building businesses who'd benefit from leadership skills.",
     adHeadline: "Lead With Confidence",
     adBody: "Priya Patel's new leadership program helps ambitious women step into their power. Join 5,000+ women already in the community.",
@@ -417,6 +442,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-7",
     publisherId: "current-user",
     status: "accepted",
+    initiatedBy: "sponsor",
+    workspaceStep: "approved",
     brief: "I'm promoting my Connected Parenting digital workshop. Many knowledge entrepreneurs are also parents looking for better work-life balance strategies.",
     adHeadline: "The Connected Parenting Workshop",
     adBody: "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
@@ -434,6 +461,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "current-user",
     publisherId: "hero-3",
     status: "accepted",
+    initiatedBy: "sponsor",
+    workspaceStep: "in-review",
     brief: "I'm promoting the spring cohort of my Course Creator Accelerator — a 12-week program that helps entrepreneurs package their expertise into profitable online courses. The program has generated over $2M in student revenue. Priya's community of ambitious women would be a perfect audience.",
     adHeadline: "The Course Creator Accelerator",
     adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
@@ -450,6 +479,7 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-5",
     publisherId: "current-user",
     status: "published",
+    initiatedBy: "sponsor",
     brief: "I'm promoting my Wealth Mindset Masterclass to Alex's audience. Entrepreneurs need strong money mindsets to scale, and this masterclass delivers exactly that.",
     adHeadline: "Unlock Your Wealth Mindset",
     adBody: "Aisha Thompson's Wealth Mindset Masterclass has helped 1,200+ entrepreneurs transform their relationship with money. Free 90-minute session.",
@@ -466,6 +496,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-10",
     publisherId: "current-user",
     status: "accepted",
+    initiatedBy: "publisher",
+    workspaceStep: "edit",
     brief: "I'm launching a Marketing Fundamentals bootcamp and want to reach Alex's audience of knowledge entrepreneurs who need marketing skills to grow.",
     adHeadline: "Marketing Bootcamp for Solopreneurs",
     adBody: "Ryan Brooks distills 15 years of marketing into a 5-day bootcamp. Learn the exact strategies that have generated $10M+ for his clients.",
@@ -483,6 +515,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-9",
     publisherId: "hero-10",
     status: "accepted",
+    initiatedBy: "sponsor",
+    workspaceStep: "scheduled",
     brief: "I built a 7-figure membership site and now teach my system to others. I'm promoting a free training on creating recurring revenue through memberships. Ryan's solopreneur audience would be a perfect fit.",
     adHeadline: "Build a Membership Site That Runs Itself",
     adBody: "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
@@ -499,6 +533,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "current-user",
     publisherId: "hero-7",
     status: "accepted",
+    initiatedBy: "sponsor",
+    workspaceStep: "scheduled",
     brief: "I'm promoting the Course Creator Accelerator to Emma's parenting community. Many parents are looking for flexible ways to earn income, and an online course is a natural fit for their expertise.",
     adHeadline: "Scale Your Knowledge Business",
     adBody: "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Join the next cohort and build your course with expert guidance.",
@@ -515,6 +551,8 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-2",
     publisherId: "current-user",
     status: "accepted",
+    initiatedBy: "publisher",
+    workspaceStep: "changes-requested",
     brief: "I'm promoting my Fit Founder Challenge — a 30-day fitness program designed specifically for busy entrepreneurs. Alex's audience of knowledge entrepreneurs would benefit from this.",
     adHeadline: "The Fit Founder Challenge",
     adBody: "Marcus Rivera's 30-day program helps busy entrepreneurs build sustainable fitness habits. No gym required. Join 800+ founders who've already transformed their health.",
@@ -522,7 +560,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCtaUrl: "https://marcusrivera.fit/challenge",
     proposedFee: 275,
     proposedDate: "2025-03-18",
-    notes: "",
+    notes: "The tone feels a bit too salesy for my brand. Can you make it more personal and less 'join X founders'? Also, emphasize the 'no gym required' angle more — that's what resonates with busy people.",
     createdAt: "2025-02-08",
     updatedAt: "2025-02-24",
   },
@@ -531,6 +569,7 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-8",
     publisherId: "current-user",
     status: "expired",
+    initiatedBy: "sponsor",
     brief: "I'm promoting my Brand Builder Workshop for creative professionals. Alex's audience includes creators who need to build their personal brand to grow.",
     adHeadline: "Build Your Brand in a Weekend",
     adBody: "Carlos Mendez's Brand Builder Workshop helps creative entrepreneurs craft a professional brand in just 2 days. Templates, tools, and live feedback included.",
@@ -548,6 +587,7 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-4",
     publisherId: "current-user",
     status: "published",
+    initiatedBy: "sponsor",
     brief: "I promoted my Weekend Course Sprint — a 48-hour intensive that helps creators go from idea to live course. No tech skills required. This was aimed at Alex's audience of knowledge entrepreneurs.",
     adHeadline: "Launch Your Course in a Weekend",
     adBody: "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
@@ -565,6 +605,7 @@ export const promotionRequests: PromotionRequest[] = [
     sponsorId: "hero-8",
     publisherId: "current-user",
     status: "expired",
+    initiatedBy: "sponsor",
     brief: "I teach creative entrepreneurs how to build a professional brand without hiring a designer. I'm promoting my Design Toolkit, which would be useful for education-focused creators building their personal brand.",
     adHeadline: "Design Systems for Non-Designers",
     adBody: "Carlos Mendez teaches creative entrepreneurs how to build a professional brand without hiring a designer.",

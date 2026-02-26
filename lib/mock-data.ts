@@ -6,18 +6,15 @@ import { generatedHeroes } from "./generated-heroes"
 
 export type Role = "publisher" | "sponsor" | "both"
 export type EngagementTier = "high" | "medium" | "low"
+export type SendSchedule = "3x/week" | "2x/week" | "1x/week" | "2x/month" | "1x/month"
 export type RequestStatus =
-  | "inbox"
+  | "pending"
   | "accepted"
-  | "published"
-  | "expired"
-
-export type WorkspaceStep =
-  | "edit"
-  | "in-review"
-  | "changes-requested"
-  | "approved"
   | "scheduled"
+  | "published"
+  | "paid"
+  | "declined"
+  | "expired"
 
 export type Vertical =
   | "Health & Fitness"
@@ -48,6 +45,8 @@ export interface Hero {
   promotionsCompleted: number
   rating: number
   joinedDate: string
+  sendSchedule: SendSchedule
+  spendLimit?: number
 }
 
 export interface PromotionRequest {
@@ -56,7 +55,6 @@ export interface PromotionRequest {
   publisherId: string
   status: RequestStatus
   initiatedBy: "sponsor" | "publisher"
-  workspaceStep?: WorkspaceStep
   brief: string
   adHeadline: string
   adBody: string
@@ -75,18 +73,13 @@ export interface PromotionRequest {
 // ============================================================
 
 export const STATUS_LABELS: Record<RequestStatus, string> = {
-  inbox: "Inbox",
+  pending: "Pending",
   accepted: "Accepted",
-  published: "Published",
-  expired: "Expired",
-}
-
-export const WORKSPACE_STEP_LABELS: Record<WorkspaceStep, string> = {
-  edit: "Edit Copy",
-  "in-review": "In Review",
-  "changes-requested": "Changes Requested",
-  approved: "Approved",
   scheduled: "Scheduled",
+  published: "Published",
+  paid: "Paid",
+  declined: "Declined",
+  expired: "Expired",
 }
 
 // ============================================================
@@ -115,6 +108,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 24,
     rating: 4.9,
     joinedDate: "2024-03-15",
+    sendSchedule: "2x/week",
   },
   {
     id: "hero-2",
@@ -137,6 +131,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 18,
     rating: 4.8,
     joinedDate: "2024-05-20",
+    sendSchedule: "1x/week",
   },
   {
     id: "hero-3",
@@ -159,6 +154,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 31,
     rating: 5.0,
     joinedDate: "2024-01-10",
+    sendSchedule: "2x/week",
   },
   {
     id: "hero-4",
@@ -180,6 +176,8 @@ export const heroes: Hero[] = [
     promotionsCompleted: 8,
     rating: 4.7,
     joinedDate: "2024-08-01",
+    sendSchedule: "1x/week",
+    spendLimit: 2000,
   },
   {
     id: "hero-5",
@@ -202,6 +200,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 15,
     rating: 4.6,
     joinedDate: "2024-06-12",
+    sendSchedule: "1x/week",
   },
   {
     id: "hero-6",
@@ -224,6 +223,8 @@ export const heroes: Hero[] = [
     promotionsCompleted: 5,
     rating: 4.5,
     joinedDate: "2024-09-01",
+    sendSchedule: "2x/month",
+    spendLimit: 1500,
   },
   {
     id: "hero-7",
@@ -246,6 +247,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 22,
     rating: 4.9,
     joinedDate: "2024-02-28",
+    sendSchedule: "2x/week",
   },
   {
     id: "hero-8",
@@ -268,6 +270,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 12,
     rating: 4.7,
     joinedDate: "2024-04-15",
+    sendSchedule: "1x/week",
   },
   {
     id: "hero-9",
@@ -289,6 +292,8 @@ export const heroes: Hero[] = [
     promotionsCompleted: 10,
     rating: 4.8,
     joinedDate: "2024-07-10",
+    sendSchedule: "2x/month",
+    spendLimit: 2500,
   },
   {
     id: "hero-10",
@@ -311,6 +316,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 28,
     rating: 4.9,
     joinedDate: "2024-01-05",
+    sendSchedule: "3x/week",
   },
   ...generatedHeroes,
 ]
@@ -340,6 +346,8 @@ export const currentUser: Hero = {
   promotionsCompleted: 20,
   rating: 4.8,
   joinedDate: "2024-02-01",
+  sendSchedule: "2x/week",
+  spendLimit: 3000,
 }
 
 // ============================================================
@@ -347,30 +355,12 @@ export const currentUser: Hero = {
 // ============================================================
 
 export const promotionRequests: PromotionRequest[] = [
-  // ── Inbox: new inbound requests to the current user ──
-  {
-    id: "req-1",
-    sponsorId: "hero-4",
-    publisherId: "current-user",
-    status: "accepted",
-    initiatedBy: "sponsor",
-    workspaceStep: "edit",
-    brief: "I teach creators how to package their knowledge into profitable online courses. I'm looking to promote my free Course Launch Blueprint — a step-by-step framework that's helped 500+ creators launch their first course. I think your audience of knowledge entrepreneurs would be a perfect fit.",
-    adHeadline: "Create Your First Online Course in 30 Days",
-    adBody: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
-    adCta: "Get the Free Blueprint",
-    adCtaUrl: "https://jakemorrison.io/blueprint",
-    proposedFee: 300,
-    proposedDate: "2025-03-15",
-    notes: "",
-    createdAt: "2025-02-20",
-    updatedAt: "2025-02-20",
-  },
+  // ── Pending: waiting on the other party ──
   {
     id: "req-6",
     sponsorId: "hero-6",
     publisherId: "current-user",
-    status: "inbox",
+    status: "pending",
     initiatedBy: "sponsor",
     brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience using AI-powered growth strategies. We've helped 2,000+ podcasters double their downloads. I'd love to reach your audience since many of your subscribers are also launching podcasts.",
     adHeadline: "Grow Your Podcast to 10K Downloads",
@@ -387,7 +377,7 @@ export const promotionRequests: PromotionRequest[] = [
     id: "req-7",
     sponsorId: "hero-9",
     publisherId: "current-user",
-    status: "inbox",
+    status: "pending",
     initiatedBy: "sponsor",
     brief: "I built a 7-figure membership site and now teach others to do the same. I'm promoting my free training on creating recurring revenue through memberships. Your audience of knowledge entrepreneurs would love this — memberships are the natural next step after courses.",
     adHeadline: "Build a Membership Site That Runs Itself",
@@ -400,14 +390,64 @@ export const promotionRequests: PromotionRequest[] = [
     createdAt: "2025-02-23",
     updatedAt: "2025-02-23",
   },
-  // ── Accepted: publisher said yes, not yet reviewed ──
+  // ── Accepted: other party said yes ──
+  {
+    id: "req-16",
+    sponsorId: "current-user",
+    publisherId: "hero-1",
+    status: "accepted",
+    initiatedBy: "sponsor",
+    brief: "I'm promoting the spring cohort of my Course Creator Accelerator to Sarah's mindset coaching audience. Many mindset coaches want to package their expertise into courses.",
+    adHeadline: "The Course Creator Accelerator",
+    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
+    adCta: "Apply Now",
+    adCtaUrl: "https://alexjohnson.co/accelerator",
+    proposedFee: 350,
+    proposedDate: "2025-04-12",
+    notes: "",
+    createdAt: "2025-02-24",
+    updatedAt: "2025-02-25",
+  },
+  {
+    id: "req-17",
+    sponsorId: "current-user",
+    publisherId: "hero-5",
+    status: "accepted",
+    initiatedBy: "sponsor",
+    brief: "I'm promoting the Course Creator Accelerator to Aisha's finance audience. Financial educators are increasingly packaging their expertise into online courses.",
+    adHeadline: "Scale Your Knowledge Business",
+    adBody: "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Join the next cohort.",
+    adCta: "Learn More",
+    adCtaUrl: "https://alexjohnson.co/accelerator",
+    proposedFee: 275,
+    proposedDate: "2025-04-18",
+    notes: "",
+    createdAt: "2025-02-23",
+    updatedAt: "2025-02-25",
+  },
+  {
+    id: "req-1",
+    sponsorId: "hero-4",
+    publisherId: "current-user",
+    status: "accepted",
+    initiatedBy: "sponsor",
+    brief: "I teach creators how to package their knowledge into profitable online courses. I'm looking to promote my free Course Launch Blueprint — a step-by-step framework that's helped 500+ creators launch their first course. I think your audience of knowledge entrepreneurs would be a perfect fit.",
+    adHeadline: "Create Your First Online Course in 30 Days",
+    adBody: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+    adCta: "Get the Free Blueprint",
+    adCtaUrl: "https://jakemorrison.io/blueprint",
+    proposedFee: 300,
+    proposedDate: "2025-03-15",
+    notes: "",
+    createdAt: "2025-02-20",
+    updatedAt: "2025-02-20",
+  },
   {
     id: "req-2",
     sponsorId: "hero-6",
     publisherId: "hero-1",
     status: "accepted",
     initiatedBy: "sponsor",
-    workspaceStep: "edit",
     brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience. Your coaching audience includes a lot of creators launching podcasts, so I think this would be a natural fit.",
     adHeadline: "Grow Your Podcast to 10K Downloads",
     adBody: "PodGrowth helps podcasters double their audience in 90 days with AI-powered growth tools. Join 2,000+ podcasters already using the platform.",
@@ -419,13 +459,13 @@ export const promotionRequests: PromotionRequest[] = [
     createdAt: "2025-02-18",
     updatedAt: "2025-02-21",
   },
+  // ── Scheduled: date is set, waiting to go live ──
   {
     id: "req-10",
     sponsorId: "hero-3",
     publisherId: "current-user",
-    status: "accepted",
+    status: "scheduled",
     initiatedBy: "sponsor",
-    workspaceStep: "in-review",
     brief: "I'm launching a new leadership coaching program for women and want to reach Alex's audience of knowledge entrepreneurs. Many of them are women building businesses who'd benefit from leadership skills.",
     adHeadline: "Lead With Confidence",
     adBody: "Priya Patel's new leadership program helps ambitious women step into their power. Join 5,000+ women already in the community.",
@@ -441,9 +481,8 @@ export const promotionRequests: PromotionRequest[] = [
     id: "req-11",
     sponsorId: "hero-7",
     publisherId: "current-user",
-    status: "accepted",
+    status: "scheduled",
     initiatedBy: "sponsor",
-    workspaceStep: "approved",
     brief: "I'm promoting my Connected Parenting digital workshop. Many knowledge entrepreneurs are also parents looking for better work-life balance strategies.",
     adHeadline: "The Connected Parenting Workshop",
     adBody: "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
@@ -455,14 +494,12 @@ export const promotionRequests: PromotionRequest[] = [
     createdAt: "2025-02-20",
     updatedAt: "2025-02-23",
   },
-  // ── In Review: copy is being reviewed ──
   {
     id: "req-3",
     sponsorId: "current-user",
     publisherId: "hero-3",
-    status: "accepted",
+    status: "scheduled",
     initiatedBy: "sponsor",
-    workspaceStep: "in-review",
     brief: "I'm promoting the spring cohort of my Course Creator Accelerator — a 12-week program that helps entrepreneurs package their expertise into profitable online courses. The program has generated over $2M in student revenue. Priya's community of ambitious women would be a perfect audience.",
     adHeadline: "The Course Creator Accelerator",
     adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
@@ -474,6 +511,75 @@ export const promotionRequests: PromotionRequest[] = [
     createdAt: "2025-02-15",
     updatedAt: "2025-02-22",
   },
+  {
+    id: "req-4",
+    sponsorId: "hero-9",
+    publisherId: "hero-10",
+    status: "scheduled",
+    initiatedBy: "sponsor",
+    brief: "I built a 7-figure membership site and now teach my system to others. I'm promoting a free training on creating recurring revenue through memberships. Ryan's solopreneur audience would be a perfect fit.",
+    adHeadline: "Build a Membership Site That Runs Itself",
+    adBody: "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
+    adCta: "Watch the Free Training",
+    adCtaUrl: "https://lisapark.co/training",
+    proposedFee: 425,
+    proposedDate: "2025-03-28",
+    notes: "",
+    createdAt: "2025-02-10",
+    updatedAt: "2025-02-23",
+  },
+  {
+    id: "req-5",
+    sponsorId: "current-user",
+    publisherId: "hero-7",
+    status: "scheduled",
+    initiatedBy: "sponsor",
+    brief: "I'm promoting the Course Creator Accelerator to Emma's parenting community. Many parents are looking for flexible ways to earn income, and an online course is a natural fit for their expertise.",
+    adHeadline: "Scale Your Knowledge Business",
+    adBody: "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Join the next cohort and build your course with expert guidance.",
+    adCta: "Learn More",
+    adCtaUrl: "https://alexjohnson.co/accelerator",
+    proposedFee: 325,
+    proposedDate: "2025-03-05",
+    notes: "",
+    createdAt: "2025-02-01",
+    updatedAt: "2025-02-24",
+  },
+  {
+    id: "req-13",
+    sponsorId: "hero-10",
+    publisherId: "current-user",
+    status: "scheduled",
+    initiatedBy: "publisher",
+    brief: "I'm launching a Marketing Fundamentals bootcamp and want to reach Alex's audience of knowledge entrepreneurs who need marketing skills to grow.",
+    adHeadline: "Marketing Bootcamp for Solopreneurs",
+    adBody: "Ryan Brooks distills 15 years of marketing into a 5-day bootcamp. Learn the exact strategies that have generated $10M+ for his clients.",
+    adCta: "Enroll Now",
+    adCtaUrl: "https://ryanbrooks.com/bootcamp",
+    proposedFee: 375,
+    proposedDate: "2025-04-08",
+    notes: "",
+    createdAt: "2025-02-16",
+    updatedAt: "2025-02-24",
+  },
+  {
+    id: "req-14",
+    sponsorId: "hero-2",
+    publisherId: "current-user",
+    status: "scheduled",
+    initiatedBy: "publisher",
+    brief: "I'm promoting my Fit Founder Challenge — a 30-day fitness program designed specifically for busy entrepreneurs. Alex's audience of knowledge entrepreneurs would benefit from this.",
+    adHeadline: "The Fit Founder Challenge",
+    adBody: "Marcus Rivera's 30-day program helps busy entrepreneurs build sustainable fitness habits. No gym required. Join 800+ founders who've already transformed their health.",
+    adCta: "Start the Challenge",
+    adCtaUrl: "https://marcusrivera.fit/challenge",
+    proposedFee: 275,
+    proposedDate: "2025-03-18",
+    notes: "",
+    createdAt: "2025-02-08",
+    updatedAt: "2025-02-24",
+  },
+  // ── Published: broadcast sent ──
   {
     id: "req-12",
     sponsorId: "hero-5",
@@ -492,97 +598,6 @@ export const promotionRequests: PromotionRequest[] = [
     updatedAt: "2025-02-23",
   },
   {
-    id: "req-13",
-    sponsorId: "hero-10",
-    publisherId: "current-user",
-    status: "accepted",
-    initiatedBy: "publisher",
-    workspaceStep: "edit",
-    brief: "I'm launching a Marketing Fundamentals bootcamp and want to reach Alex's audience of knowledge entrepreneurs who need marketing skills to grow.",
-    adHeadline: "Marketing Bootcamp for Solopreneurs",
-    adBody: "Ryan Brooks distills 15 years of marketing into a 5-day bootcamp. Learn the exact strategies that have generated $10M+ for his clients.",
-    adCta: "Enroll Now",
-    adCtaUrl: "https://ryanbrooks.com/bootcamp",
-    proposedFee: 375,
-    proposedDate: "2025-04-08",
-    notes: "",
-    createdAt: "2025-02-16",
-    updatedAt: "2025-02-24",
-  },
-  // ── Scheduled: date is locked in ──
-  {
-    id: "req-4",
-    sponsorId: "hero-9",
-    publisherId: "hero-10",
-    status: "accepted",
-    initiatedBy: "sponsor",
-    workspaceStep: "scheduled",
-    brief: "I built a 7-figure membership site and now teach my system to others. I'm promoting a free training on creating recurring revenue through memberships. Ryan's solopreneur audience would be a perfect fit.",
-    adHeadline: "Build a Membership Site That Runs Itself",
-    adBody: "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
-    adCta: "Watch the Free Training",
-    adCtaUrl: "https://lisapark.co/training",
-    proposedFee: 425,
-    proposedDate: "2025-03-28",
-    notes: "",
-    createdAt: "2025-02-10",
-    updatedAt: "2025-02-23",
-  },
-  {
-    id: "req-5",
-    sponsorId: "current-user",
-    publisherId: "hero-7",
-    status: "accepted",
-    initiatedBy: "sponsor",
-    workspaceStep: "scheduled",
-    brief: "I'm promoting the Course Creator Accelerator to Emma's parenting community. Many parents are looking for flexible ways to earn income, and an online course is a natural fit for their expertise.",
-    adHeadline: "Scale Your Knowledge Business",
-    adBody: "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Join the next cohort and build your course with expert guidance.",
-    adCta: "Learn More",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedFee: 325,
-    proposedDate: "2025-03-05",
-    notes: "",
-    createdAt: "2025-02-01",
-    updatedAt: "2025-02-24",
-  },
-  {
-    id: "req-14",
-    sponsorId: "hero-2",
-    publisherId: "current-user",
-    status: "accepted",
-    initiatedBy: "publisher",
-    workspaceStep: "changes-requested",
-    brief: "I'm promoting my Fit Founder Challenge — a 30-day fitness program designed specifically for busy entrepreneurs. Alex's audience of knowledge entrepreneurs would benefit from this.",
-    adHeadline: "The Fit Founder Challenge",
-    adBody: "Marcus Rivera's 30-day program helps busy entrepreneurs build sustainable fitness habits. No gym required. Join 800+ founders who've already transformed their health.",
-    adCta: "Start the Challenge",
-    adCtaUrl: "https://marcusrivera.fit/challenge",
-    proposedFee: 275,
-    proposedDate: "2025-03-18",
-    notes: "The tone feels a bit too salesy for my brand. Can you make it more personal and less 'join X founders'? Also, emphasize the 'no gym required' angle more — that's what resonates with busy people.",
-    createdAt: "2025-02-08",
-    updatedAt: "2025-02-24",
-  },
-  {
-    id: "req-15",
-    sponsorId: "hero-8",
-    publisherId: "current-user",
-    status: "expired",
-    initiatedBy: "sponsor",
-    brief: "I'm promoting my Brand Builder Workshop for creative professionals. Alex's audience includes creators who need to build their personal brand to grow.",
-    adHeadline: "Build Your Brand in a Weekend",
-    adBody: "Carlos Mendez's Brand Builder Workshop helps creative entrepreneurs craft a professional brand in just 2 days. Templates, tools, and live feedback included.",
-    adCta: "Register Now",
-    adCtaUrl: "https://carlosmendez.design/brand",
-    proposedFee: 200,
-    proposedDate: "2025-03-22",
-    notes: "",
-    createdAt: "2025-02-12",
-    updatedAt: "2025-02-25",
-  },
-  // ── Published: went live ──
-  {
     id: "req-8",
     sponsorId: "hero-4",
     publisherId: "current-user",
@@ -599,7 +614,27 @@ export const promotionRequests: PromotionRequest[] = [
     createdAt: "2025-01-10",
     updatedAt: "2025-02-01",
   },
-  // ── Archived: dismissed/expired ──
+  // ── Paid: payment cleared ──
+  // (none yet for the current user)
+  // ── Declined ──
+  {
+    id: "req-15",
+    sponsorId: "hero-8",
+    publisherId: "current-user",
+    status: "declined",
+    initiatedBy: "sponsor",
+    brief: "I'm promoting my Brand Builder Workshop for creative professionals. Alex's audience includes creators who need to build their personal brand to grow.",
+    adHeadline: "Build Your Brand in a Weekend",
+    adBody: "Carlos Mendez's Brand Builder Workshop helps creative entrepreneurs craft a professional brand in just 2 days. Templates, tools, and live feedback included.",
+    adCta: "Register Now",
+    adCtaUrl: "https://carlosmendez.design/brand",
+    proposedFee: 200,
+    proposedDate: "2025-03-22",
+    notes: "",
+    createdAt: "2025-02-12",
+    updatedAt: "2025-02-25",
+  },
+  // ── Expired ──
   {
     id: "req-9",
     sponsorId: "hero-8",
@@ -690,12 +725,18 @@ export function getEngagementColor(tier: EngagementTier): string {
 
 export function getStatusColor(status: RequestStatus): string {
   switch (status) {
-    case "inbox":
+    case "pending":
       return "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]"
     case "accepted":
       return "bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
+    case "scheduled":
+      return "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]"
     case "published":
       return "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]"
+    case "paid":
+      return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+    case "declined":
+      return "bg-[#D7CBD5]/50 text-[#352938] dark:bg-[#52405B]/40 dark:text-[#D7CBD5]"
     case "expired":
       return "bg-[#D7CBD5]/50 text-[#352938] dark:bg-[#52405B]/40 dark:text-[#D7CBD5]"
   }

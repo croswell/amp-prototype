@@ -23,14 +23,14 @@ const experiences = [
   },
   {
     title: "Publisher Experience",
-    description: "Incoming promotion requests, revenue dashboard, and directory of sponsors",
-    href: "/dashboard?role=publisher",
+    description: "Home with stats, inbox, and recommended sponsors",
+    href: "/home?role=publisher",
     icon: Broadcast,
   },
   {
     title: "Sponsor Experience",
-    description: "Outgoing promotion requests, curated publisher directory, and campaign tracking",
-    href: "/dashboard?role=sponsor",
+    description: "Home with spend tracking, approvals, and recommended publishers",
+    href: "/home?role=sponsor",
     icon: Megaphone,
   },
 ]

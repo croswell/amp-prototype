@@ -10,7 +10,6 @@ import {
 import { CaretDoubleUp } from "@phosphor-icons/react"
 import {
   type Hero,
-  formatCurrency,
   formatNumber,
 } from "@/lib/mock-data"
 
@@ -40,26 +39,29 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
               View
             </Button>
           </div>
-          <p className="line-clamp-2 text-sm leading-relaxed text-foreground/80">
-            {hero.bio}
+          {showPublisherStats && (
+            <p className="text-sm text-foreground">
+              {formatNumber(hero.subscriberCount)} subscribers · {hero.openRate}% open rate · {hero.sendSchedule}
+            </p>
+          )}
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {hero.bio.length > 160 ? hero.bio.slice(0, 160).trimEnd() + "…" : hero.bio}
           </p>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center gap-2">
-            <PayoutBadge amount={hero.recommendedFee} label={showPublisherStats ? "Cost: " : "Payout: "} variant="filled" />
-            {showPublisherStats && hero.engagementTier === "high" && (
-              <Badge variant="secondary" className="gap-1 bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]">
-                <CaretDoubleUp className="size-3" />
-                High Engagement
-              </Badge>
-            )}
-            {showPublisherStats && (
-              <>
-                <Badge variant="secondary">{formatNumber(hero.subscriberCount)} Subscribers</Badge>
-                <Badge variant="secondary">{hero.openRate}% Open Rate</Badge>
-              </>
-            )}
-          </div>
+          {showPublisherStats ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {hero.engagementTier === "high" && (
+                <Badge variant="secondary" className="gap-1 bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]">
+                  <CaretDoubleUp className="size-3" />
+                  High Engagement
+                </Badge>
+              )}
+              <PayoutBadge amount={hero.recommendedFee} label="Cost: " variant="filled" />
+            </div>
+          ) : (
+            <PayoutBadge amount={hero.recommendedFee} label="Payout: " variant="filled" />
+          )}
         </CardContent>
       </Card>
     </div>

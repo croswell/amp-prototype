@@ -1,10 +1,5 @@
-import { Suspense } from "react"
-import { DirectoryContent } from "./directory-content"
+import { redirect } from "next/navigation"
 
 export default function DirectoryPage() {
-  return (
-    <Suspense>
-      <DirectoryContent />
-    </Suspense>
-  )
+  redirect("/home")
 }

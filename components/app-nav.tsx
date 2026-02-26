@@ -37,7 +37,7 @@ export function AppNav() {
           </Link>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="sm" asChild>
-              <Link href={`/directory?role=${role}`}>
+              <Link href={`/home?role=${role}`}>
                 <Compass data-icon="inline-start" className="size-4" />
                 Directory
               </Link>

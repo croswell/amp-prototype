@@ -19,16 +19,14 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   House,
-  Compass,
   Megaphone,
-  CreditCard,
   Gear,
 } from "@phosphor-icons/react"
 
 export function AppSidebar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const role = searchParams.get("role") || "both"
+  const role = searchParams.get("role") || "publisher"
   const { setOpenMobile } = useSidebar()
 
   // Close mobile sidebar when navigating to a new page
@@ -38,28 +36,16 @@ export function AppSidebar() {
 
   const mainLinks = [
     {
-      label: "Dashboard",
-      href: `/dashboard?role=${role}`,
+      label: "Home",
+      href: `/home?role=${role}`,
       icon: House,
-      active: pathname === "/dashboard",
-    },
-    {
-      label: "Discover",
-      href: `/directory?role=${role}`,
-      icon: Compass,
-      active: pathname === "/directory",
+      active: pathname === "/home",
     },
     {
       label: "Promotions",
       href: `/requests?role=${role}`,
       icon: Megaphone,
       active: pathname.startsWith("/requests"),
-    },
-    {
-      label: "Payments",
-      href: `/payments?role=${role}`,
-      icon: CreditCard,
-      active: pathname === "/payments",
     },
   ]
 

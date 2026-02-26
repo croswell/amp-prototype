@@ -1,10 +1,5 @@
-import { Suspense } from "react"
-import { DashboardContent } from "./dashboard-content"
+import { redirect } from "next/navigation"
 
 export default function DashboardPage() {
-  return (
-    <Suspense>
-      <DashboardContent />
-    </Suspense>
-  )
+  redirect("/home")
 }

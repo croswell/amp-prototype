@@ -42,7 +42,7 @@ function getMockAdCopy(hero: Hero) {
 export function ProfileContent() {
   const params = useParams()
   const searchParams = useSearchParams()
-  const role = (searchParams.get("role") || "both") as Role
+  const role = (searchParams.get("role") || "publisher") as Role
   const hero = getHero(params.id as string)
 
   if (!hero) {
@@ -61,7 +61,7 @@ export function ProfileContent() {
     return (
       <div className="space-y-6">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/directory?role=${role}`}>
+          <Link href={`/home?role=${role}`}>
             <ArrowLeft data-icon="inline-start" className="size-4" />
             Back to Directory
           </Link>
@@ -177,7 +177,7 @@ export function ProfileContent() {
   return (
     <div className="space-y-6">
       <Button variant="ghost" size="sm" asChild>
-        <Link href={`/directory?role=${role}`}>
+        <Link href={`/home?role=${role}`}>
           <ArrowLeft data-icon="inline-start" className="size-4" />
           Back to Directory
         </Link>

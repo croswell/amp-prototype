@@ -604,9 +604,9 @@ export default function OnboardingPage() {
 
             <Button
               className="w-full"
-              onClick={() => router.push("/dashboard?role=publisher")}
+              onClick={() => router.push("/home?role=publisher")}
             >
-              Continue to Dashboard
+              Continue to Home
               <ArrowRight data-icon="inline-end" className="size-4" />
             </Button>
           </div>
@@ -807,9 +807,9 @@ export default function OnboardingPage() {
             <Button
               className="w-full"
               disabled={!canContinueCampaign}
-              onClick={() => router.push("/dashboard?role=sponsor")}
+              onClick={() => router.push("/home?role=sponsor")}
             >
-              Continue to Dashboard
+              Continue to Home
               <ArrowRight data-icon="inline-end" className="size-4" />
             </Button>
           </div>

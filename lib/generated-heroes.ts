@@ -1,4 +1,4 @@
-import type { Hero, Vertical, EngagementTier, Role } from "./mock-data"
+import type { Hero, Vertical, EngagementTier, Role, SendSchedule } from "./mock-data"
 
 // Deterministic PRNG (Park-Miller) — same output every time
 function createRng(seed: number) {
@@ -191,6 +191,7 @@ const TAGLINES: Record<Vertical, string[]> = {
 }
 
 const SOCIAL_PLATFORMS = ["twitter", "instagram", "linkedin", "youtube", "tiktok"] as const
+const SEND_SCHEDULES: SendSchedule[] = ["3x/week", "2x/week", "1x/week", "2x/month", "1x/month"]
 
 // ============================================================
 // Generator
@@ -285,6 +286,7 @@ function generateHero(index: number, role: Role): Hero {
     promotionsCompleted: Math.floor(rng() * 35),
     rating: Math.round((3.8 + rng() * 1.2) * 10) / 10,
     joinedDate: `2024-${String(Math.floor(rng() * 12) + 1).padStart(2, "0")}-${String(Math.floor(rng() * 28) + 1).padStart(2, "0")}`,
+    sendSchedule: pick(SEND_SCHEDULES, rng),
   }
 }
 

@@ -171,63 +171,63 @@ export function HomeContent() {
       {/* ── Stat cards ── */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {isPublisher && (
-          <Card className="py-4">
-            <CardContent>
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
               <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Audience
                 <Users className="size-4" />
               </p>
-              <div className="mt-5">
+              <div className="mt-3">
                 <Badge
                   variant="secondary"
-                  className="gap-1 text-sm font-medium bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
+                  className="gap-1 font-[family-name:var(--font-geist-mono)] text-xs uppercase tracking-wide bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
                 >
                   <CaretDoubleUp className="size-3" />
                   High Engagement
                 </Badge>
               </div>
-              <p className="mt-5 text-xs text-muted-foreground">
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
                 {formatNumber(currentUser.subscriberCount)} subscribers · {currentUser.openRate}% open rate
               </p>
             </CardContent>
           </Card>
         )}
         {isPublisher && (
-          <Card className="py-4">
-            <CardContent>
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
               <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Ad Revenue
                 <CurrencyDollar className="size-4" />
               </p>
-              <p className="mt-5 text-2xl font-medium tracking-tight tabular-nums">
+              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
                 {formatCurrency(publisherRevenue)}
               </p>
-              <p className="mt-5 text-xs text-muted-foreground">
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
                 Last 30 days
               </p>
             </CardContent>
           </Card>
         )}
         {isSponsor && (
-          <Card className="py-4">
-            <CardContent>
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
               <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Ad Spend
                 <CurrencyDollar className="size-4" />
               </p>
-              <p className="mt-5 text-2xl font-medium tracking-tight tabular-nums">
+              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
                 {formatCurrency(sponsorSpend)}
               </p>
               {currentUser.spendLimit && (
-                <p className="mt-5 text-xs text-muted-foreground">
+                <p className="mt-auto pt-3 text-xs text-muted-foreground">
                   / {formatCurrency(currentUser.spendLimit)} monthly budget
                 </p>
               )}
             </CardContent>
           </Card>
         )}
-        <Card className="py-4">
-          <CardContent>
+        <Card className="py-5">
+          <CardContent className="flex h-full flex-col">
             <p className="flex items-center justify-between text-sm text-muted-foreground">
               Active Promotions
               <Lightning className="size-4" />
@@ -235,13 +235,13 @@ export function HomeContent() {
             <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
               {activeCount}
             </p>
-            <p className="mt-3 text-xs text-muted-foreground">
+            <p className="mt-auto pt-3 text-xs text-muted-foreground">
               Last 30 days
             </p>
           </CardContent>
         </Card>
-        <Card className="py-4">
-          <CardContent>
+        <Card className="py-5">
+          <CardContent className="flex h-full flex-col">
             <p className="flex items-center justify-between text-sm text-muted-foreground">
               Completed
               <CheckCircle className="size-4" />
@@ -249,22 +249,22 @@ export function HomeContent() {
             <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
               {completedCount}
             </p>
-            <p className="mt-3 text-xs text-muted-foreground">
+            <p className="mt-auto pt-3 text-xs text-muted-foreground">
               Last 30 days
             </p>
           </CardContent>
         </Card>
         {isSponsor && !isPublisher && (
-          <Card className="py-4">
-            <CardContent>
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
               <p className="flex items-center justify-between text-sm text-muted-foreground">
                 Pending Approvals
                 <Clock className="size-4" />
               </p>
-              <p className="mt-5 text-2xl font-medium tracking-tight tabular-nums">
+              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
                 {pendingApprovals}
               </p>
-              <p className="mt-5 text-xs text-muted-foreground">
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
                 Last 30 days
               </p>
             </CardContent>
@@ -278,12 +278,11 @@ export function HomeContent() {
       {/* ── Inbox section ── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium">
+          <h2 className="flex items-center gap-2 text-lg font-medium">
             Inbox
             {inboxItems.length > 0 && (
               <Badge
-                variant="secondary"
-                className="ml-2 h-5 px-1.5 py-0 text-[10px] tabular-nums text-foreground"
+                className="h-5 bg-muted-foreground/20 px-1.5 py-0 text-xs tabular-nums text-foreground"
               >
                 {inboxItems.length}
               </Badge>
@@ -309,13 +308,14 @@ export function HomeContent() {
               return (
                 <div
                   key={item.request.id}
-                  className={`flex items-center gap-4 px-4 py-3${index < inboxItems.slice(0, 5).length - 1 ? " border-b" : ""}`}
+                  className={`flex cursor-pointer items-center gap-4 p-4${index < inboxItems.slice(0, 5).length - 1 ? " border-b" : ""}`}
+                  onClick={() => openPromotionSheet(item.request)}
                 >
                   <div className="flex min-w-0 items-center gap-3 w-48 shrink-0">
                     <Avatar className="size-8">
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                     </Avatar>
-                    <span className="truncate text-sm font-medium">{otherHero?.name}</span>
+                    <span className="cursor-pointer truncate text-sm font-medium hover:underline">{otherHero?.name}</span>
                   </div>
                   <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
                     {item.request.adHeadline}

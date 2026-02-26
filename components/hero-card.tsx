@@ -25,7 +25,7 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
 
   return (
     <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.() }} className="h-full w-full cursor-pointer text-left">
-      <Card className="h-full transition-colors hover:border-foreground/50">
+      <Card className="h-full transition-colors hover:border-foreground/15">
         <CardHeader className="space-y-3">
           <div className="flex items-center gap-3.5">
             <Avatar className="size-13">
@@ -52,7 +52,7 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
           {showPublisherStats ? (
             <div className="flex flex-wrap items-center gap-2">
               {hero.engagementTier === "high" && (
-                <Badge variant="secondary" className="gap-1 bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]">
+                <Badge variant="secondary" className="gap-1 font-[family-name:var(--font-geist-mono)] text-xs uppercase tracking-wide bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]">
                   <CaretDoubleUp className="size-3" />
                   High Engagement
                 </Badge>

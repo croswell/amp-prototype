@@ -27,7 +27,7 @@ export function PayoutBadge({ amount, label, variant = "outline", className }: P
     <Badge
       variant="outline"
       className={cn(
-        "tabular-nums",
+        "font-[family-name:var(--font-geist-mono)] text-xs uppercase tracking-wide tabular-nums",
         VARIANT_STYLES[variant],
         className
       )}

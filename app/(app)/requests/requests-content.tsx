@@ -188,7 +188,7 @@ export function RequestsContent() {
                 {count > 0 && (
                   <Badge
                     variant="secondary"
-                    className="ml-1 h-4.5 px-1.5 py-0 text-[10px] tabular-nums text-foreground"
+                    className="ml-1 h-5 bg-muted-foreground/20 px-1.5 py-0 text-xs tabular-nums text-foreground"
                   >
                     {count}
                   </Badge>

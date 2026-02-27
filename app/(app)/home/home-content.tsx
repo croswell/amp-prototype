@@ -29,7 +29,6 @@ import { Separator } from "@/components/ui/separator"
 import { HeroCard, HeroIdentity } from "@/components/hero-card"
 import { SocialIcon } from "@/components/social-icon"
 import { PromotionSheet } from "@/components/promotion-sheet"
-import { PayoutBadge } from "@/components/payout-badge"
 import {
   type RequestStatus,
   type PromotionRequest,
@@ -60,7 +59,7 @@ import {
   CaretDoubleUp,
   Users,
 } from "@phosphor-icons/react"
-import { formatDate, BADGE_COLORS } from "@/components/promotion-sheet"
+import { formatDate, BADGE_COLORS, SectionTitle } from "@/components/promotion-sheet"
 
 export function HomeContent() {
   const searchParams = useSearchParams()
@@ -451,7 +450,7 @@ export function HomeContent() {
 function SponsorProfileSheet({ hero }: { hero: Hero }) {
   const [phase, setPhase] = useState<"idle" | "loading" | "success">("idle")
 
-  const handleAccept = useCallback(() => {
+  const handleSendProposal = useCallback(() => {
     setPhase("loading")
     setTimeout(() => setPhase("success"), 1200)
   }, [])
@@ -460,7 +459,7 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <SheetTitle className="flex-1 text-lg">{hero.name}</SheetTitle>
+          <SheetTitle className="flex-1 text-lg">Recommended sponsor</SheetTitle>
           <SheetClose asChild>
             <Button variant="outline" size="icon-sm">
               <XIcon />
@@ -470,28 +469,47 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
         </div>
       </SheetHeader>
 
-      <SheetBody className="space-y-4">
+      <SheetBody className="space-y-6">
         {phase === "success" && (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
             <div className="flex items-center gap-2">
               <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
               <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                Request sent to {hero.name}
+                Proposal sent to {hero.name}
               </p>
             </div>
           </div>
         )}
 
+        <HeroIdentity hero={hero} />
+
+        {/* Bio */}
         <p className="text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
 
-        <div className="flex flex-wrap gap-1.5">
-          {hero.verticals.map((v) => (
-            <Badge key={v} variant="outline">{v}</Badge>
+        {/* Niche + Links — single inline row */}
+        <div className="flex flex-wrap items-center gap-2">
+          {hero.verticals[0] && (
+            <Badge variant="outline" className="text-xs">{hero.verticals[0]}</Badge>
+          )}
+          {hero.website && (
+            <Badge variant="outline" className="text-xs">
+              <Globe className="size-3" />
+              {hero.website.replace(/^https?:\/\//, "")}
+            </Badge>
+          )}
+          {hero.socialLinks.map((link) => (
+            <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+              <SocialIcon platform={link.platform} className="size-3" />
+              {link.platform}
+            </Badge>
           ))}
         </div>
 
+        <Separator />
+
+        {/* Campaign preview */}
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">Promotion</p>
+          <SectionTitle>Ad preview</SectionTitle>
           <EmailBlockPreview
             headline={hero.tagline}
             body={hero.bio}
@@ -499,15 +517,41 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
           />
         </div>
 
-        <div>
-          <p className="text-xs text-muted-foreground">Payout per send</p>
-          <p className="text-lg font-medium tabular-nums">{formatCurrency(hero.recommendedFee)}</p>
+        <Separator />
+
+        {/* Budget breakdown */}
+        <div className="space-y-2">
+          <SectionTitle>Budget</SectionTitle>
+          <div className="rounded-lg border">
+            <Table>
+              <TableBody>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell className="text-muted-foreground">Rate per send</TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.recommendedFee)}</TableCell>
+                </TableRow>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell className="text-muted-foreground">Frequency</TableCell>
+                  <TableCell className="text-right">{hero.sendSchedule}</TableCell>
+                </TableRow>
+                {hero.spendLimit && (
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="text-muted-foreground">Monthly budget</TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.spendLimit)}</TableCell>
+                  </TableRow>
+                )}
+                <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
+                  <TableCell className="text-muted-foreground">Est. total (3 sends)</TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.recommendedFee * 3)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </SheetBody>
 
       <SheetFooter>
         <SheetClose asChild>
-          <Button variant="outline">Decline</Button>
+          <Button variant="outline">Close</Button>
         </SheetClose>
         {phase === "success" ? (
           <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
@@ -515,8 +559,8 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
             Sent
           </Button>
         ) : (
-          <Button loading={phase === "loading"} onClick={handleAccept}>
-            {phase === "loading" ? "Accepting..." : "Accept"}
+          <Button loading={phase === "loading"} onClick={handleSendProposal}>
+            {phase === "loading" ? "Sending..." : "Send Proposal"}
           </Button>
         )}
       </SheetFooter>
@@ -581,7 +625,7 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
 
         {/* Bio */}
         <div className="space-y-2">
-          <p className="text-base font-medium">Bio</p>
+          <SectionTitle>Bio</SectionTitle>
           <p className="text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
         </div>
 
@@ -605,7 +649,7 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
 
         {/* Pricing breakdown */}
         <div className="space-y-2">
-          <p className="text-base font-medium">Price estimate</p>
+          <SectionTitle>Price estimate</SectionTitle>
           <div className="rounded-lg border">
             <Table>
               <TableBody>

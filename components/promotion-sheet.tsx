@@ -63,6 +63,11 @@ export function formatDate(dateStr: string): string {
   })
 }
 
+// Section title for sheet content blocks
+export function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <p className="text-base font-medium">{children}</p>
+}
+
 // Accept animation phases
 type AcceptPhase = "idle" | "loading" | "success"
 
@@ -229,6 +234,8 @@ function PendingView({
 
   // Sponsor reviewing a publisher-initiated request gets the full publisher profile
   const isSponsorReviewing = isSponsorRole && request.initiatedBy === "publisher"
+  // Publisher reviewing a sponsor-initiated request gets the full sponsor profile
+  const isPublisherReviewing = isPublisherRole && request.initiatedBy === "sponsor"
 
   const totalCost = request.proposedFee * request.numberOfSends
 
@@ -245,14 +252,14 @@ function PendingView({
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          {!isSponsorReviewing && (
+          {!isSponsorReviewing && !isPublisherReviewing && (
             <Avatar size="lg">
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           )}
           <div className="flex-1">
             <SheetTitle className="text-lg">
-              {isSponsorReviewing ? "Promotion request" : headerHero?.name}
+              {isPublisherReviewing ? "Sponsorship request" : isSponsorReviewing ? "Promotion request" : headerHero?.name}
             </SheetTitle>
             {isSponsorReviewing && (
               <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -261,7 +268,7 @@ function PendingView({
               </p>
             )}
           </div>
-          {!isSponsorReviewing && (
+          {!isSponsorReviewing && !isPublisherReviewing && (
             <Badge className={BADGE_COLORS.blue}>
               {request.initiatedBy === "sponsor" ? "Inbound" : "Outbound"}
             </Badge>
@@ -343,7 +350,7 @@ function PendingView({
 
               {/* Bio */}
               <div className="space-y-2">
-                <p className="text-base font-medium">Bio</p>
+                <SectionTitle>Bio</SectionTitle>
                 <p className="text-sm leading-relaxed">{publisher.bio}</p>
               </div>
 
@@ -367,10 +374,104 @@ function PendingView({
           </>
         )}
 
-        {/* ── Publisher reviewing OR waiting (original flow) ── */}
-        {!isSponsorReviewing && (
+        {/* ── Publisher reviewing: tabbed layout ── */}
+        {isPublisherReviewing && sponsor && (
           <>
-            {/* If you're waiting (sponsor sent it, you're the sponsor viewing) */}
+            <HeroIdentity hero={sponsor} />
+
+            <Tabs defaultValue="proposal">
+              <TabsList variant="line">
+                <TabsTrigger value="proposal">Proposal</TabsTrigger>
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="proposal" className="space-y-6 pt-2">
+                {/* Message from sponsor */}
+                <div className="rounded-lg border p-4 space-y-2">
+                  <div className="flex items-center">
+                    <p className="text-xs text-muted-foreground">From {sponsor.name.split(" ")[0]}</p>
+                    <p className="ml-auto text-xs text-muted-foreground">{formatDate(request.proposedDate)}</p>
+                  </div>
+                  <p className="text-sm leading-relaxed">{request.brief}</p>
+                </div>
+
+                <Separator />
+
+                {/* Ad preview */}
+                <div className="space-y-2">
+                  <SectionTitle>Ad preview</SectionTitle>
+                  <EmailBlockPreview
+                    headline={request.adHeadline}
+                    body={request.adBody}
+                    cta={request.adCta}
+                  />
+                </div>
+
+                <Separator />
+
+                {/* Budget */}
+                <div className="space-y-2">
+                  <SectionTitle>Budget</SectionTitle>
+                  <div className="rounded-lg border">
+                    <Table>
+                      <TableBody>
+                        <TableRow className="hover:bg-transparent">
+                          <TableCell className="text-muted-foreground">Payout per send</TableCell>
+                          <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
+                        </TableRow>
+                        <TableRow className="hover:bg-transparent">
+                          <TableCell className="text-muted-foreground">Number of sends</TableCell>
+                          <TableCell className="text-right">{request.numberOfSends}</TableCell>
+                        </TableRow>
+                        <TableRow className="hover:bg-transparent">
+                          <TableCell className="text-muted-foreground">Schedule</TableCell>
+                          <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
+                        </TableRow>
+                        <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
+                          <TableCell className="text-muted-foreground">Total payout</TableCell>
+                          <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="profile" className="space-y-6 pt-2">
+                {/* Bio */}
+                <div className="space-y-2">
+                  <SectionTitle>Bio</SectionTitle>
+                  <p className="text-sm leading-relaxed">{sponsor.bio}</p>
+                </div>
+
+                {/* Niche + Links — single inline row */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {sponsor.verticals[0] && (
+                    <Badge variant="outline" className="text-xs">
+                      {sponsor.verticals[0]}
+                    </Badge>
+                  )}
+                  {sponsor.website && (
+                    <Badge variant="outline" className="text-xs">
+                      <Globe className="size-3" />
+                      {sponsor.website.replace(/^https?:\/\//, "")}
+                    </Badge>
+                  )}
+                  {sponsor.socialLinks.map((link) => (
+                    <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+                      <SocialIcon platform={link.platform} className="size-3" />
+                      {link.platform}
+                    </Badge>
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
+
+        {/* ── Waiting view (no action needed) ── */}
+        {!isSponsorReviewing && !isPublisherReviewing && (
+          <>
             {!needsAction && (
               <div className="rounded-lg border bg-muted/50 p-4">
                 <div className="flex items-center gap-3">
@@ -626,7 +727,7 @@ function AcceptedView({
 
               {/* Bio */}
               <div className="space-y-2">
-                <p className="text-base font-medium">Bio</p>
+                <SectionTitle>Bio</SectionTitle>
                 <p className="text-sm leading-relaxed">{publisher.bio}</p>
               </div>
 

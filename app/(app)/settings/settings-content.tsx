@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
+import { PageHeader } from "@/components/page-header"
 import {
   Select,
   SelectContent,
@@ -113,16 +114,14 @@ export function SettingsContent() {
   const defaultTab = "profile"
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-medium tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage your profile, campaigns, and account.
-        </p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader
+        title="Settings"
+        description="Manage your profile, campaigns, and account."
+      />
 
       <Tabs defaultValue={defaultTab} orientation="vertical" className="gap-8">
-        <TabsList className="w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-0">
+        <TabsList className="w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-1.5">
           <TabsTrigger value="profile" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Profile</TabsTrigger>
           {isPublisher && (
             <TabsTrigger value="publisher" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Pricing & Availability</TabsTrigger>

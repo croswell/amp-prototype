@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { DataTable } from "@/components/ui/data-table"
 import { PromotionSheet } from "@/components/promotion-sheet"
+import { PageHeader } from "@/components/page-header"
 import { PayoutBadge } from "@/components/payout-badge"
 import {
   type RequestStatus,
@@ -194,24 +195,22 @@ export function RequestsContent() {
     : null
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1.5">
-        <h1 className="text-2xl font-medium tracking-tight">Promotions</h1>
-        <p className="text-sm text-muted-foreground">
-          Track and manage your promotion partnerships.
-        </p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader
+        title="Promotions"
+        description="Track and manage your promotion partnerships."
+      />
 
       <Tabs defaultValue={defaultTab}>
         <TabsList variant="line">
           {tabs.map((tab) => (
-              <TabsTrigger key={tab.key} value={tab.key}>
-                {tab.label}
-              </TabsTrigger>
+            <TabsTrigger key={tab.key} value={tab.key}>
+              {tab.label}
+            </TabsTrigger>
           ))}
         </TabsList>
         {tabs.map((tab) => (
-          <TabsContent key={tab.key} value={tab.key} className="mt-6">
+          <TabsContent key={tab.key} value={tab.key} className="mt-8">
             <DataTable
               columns={columns}
               data={requests.filter((r) => filterByTab(r, tab.key))}

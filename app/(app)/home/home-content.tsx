@@ -173,7 +173,8 @@ export function HomeContent() {
     : null
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
+      <div className="relative space-y-8 pb-10 after:absolute after:bottom-0 after:left-1/2 after:w-screen after:-translate-x-1/2 after:border-b after:border-border">
       <h1 className="text-2xl font-medium tracking-tight">
         {greeting}, {currentUser.name.split(" ")[0]}
       </h1>
@@ -281,9 +282,7 @@ export function HomeContent() {
           </Card>
         )}
       </div>
-
-      {/* ── No campaign banner (sponsor without campaign) ── */}
-      {/* For prototype purposes, we don't track this state — could add a toggle later */}
+      </div>
 
       {/* ── Inbox section ── */}
       <div className="space-y-3">

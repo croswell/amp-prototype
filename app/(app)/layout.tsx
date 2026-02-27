@@ -7,7 +7,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Suspense>
         <AppNav />
       </Suspense>
-      <main className="mx-auto w-full max-w-6xl px-6 pt-6 pb-8">
+      <main className="mx-auto w-full max-w-6xl px-6 pt-10 pb-12">
         {children}
       </main>
     </>

@@ -52,7 +52,7 @@ export function HeroCard({ hero, onClick, showPublisherStats, children }: HeroCa
           </div>
           {showPublisherStats && (
             <p className="text-sm text-foreground">
-              {formatNumber(hero.subscriberCount)} subscribers · {hero.openRate}% open rate
+              {formatNumber(hero.subscriberCount)} subscribers · {hero.openRate}% open · {hero.clickRate}% click
             </p>
           )}
           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
@@ -67,7 +67,10 @@ export function HeroCard({ hero, onClick, showPublisherStats, children }: HeroCa
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-2">
-              <PayoutBadge amount={hero.recommendedFee} label="" variant="filled" suffix="/Send" />
+              <PayoutBadge amount={hero.budgetPerThousand ?? hero.recommendedFee} label="" variant="filled" suffix="/1k" />
+              {hero.maxBudget && (
+                <PayoutBadge amount={hero.maxBudget} label="" variant="outline" suffix=" max" />
+              )}
             </div>
           )}
           {children}

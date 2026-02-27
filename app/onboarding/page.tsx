@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import {
   InputGroup,
@@ -15,19 +14,24 @@ import {
 } from "@/components/ui/input-group"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { EngagementBadge } from "@/components/engagement-badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { HeroCard } from "@/components/hero-card"
 import { currentUser, formatNumber } from "@/lib/mock-data"
-import type { Role } from "@/lib/mock-data"
+import type { Role, Vertical } from "@/lib/mock-data"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { SocialIcon } from "@/components/social-icon"
 import {
   ArrowRight,
   CircleNotch,
-  Globe,
-  LinkSimple,
   Broadcast,
   Megaphone,
+  PencilSimple,
 } from "@phosphor-icons/react"
 
 // ── Step definitions ─────────────────────────────────────────
@@ -35,21 +39,18 @@ import {
 type Step =
   | "kajabi-signin"
   | "connecting"
+  | "edit-profile"
   | "role-select"
   // Publisher path
-  | "profile-confirm"
   | "publisher-setup"
-  | "links"
-  | "generating"
   | "profile"
   // Sponsor path
-  | "sponsor-links"
-  | "sponsor-profile"
   | "sponsor-campaign"
+  | "sponsor-profile"
 
 // Progress segments per path
-const publisherSteps: Step[] = ["role-select", "publisher-setup", "links", "profile"]
-const sponsorSteps: Step[] = ["role-select", "sponsor-links", "sponsor-campaign", "sponsor-profile"]
+const publisherSteps: Step[] = ["role-select", "publisher-setup", "profile"]
+const sponsorSteps: Step[] = ["role-select", "sponsor-campaign", "sponsor-profile"]
 
 function getFilledSegments(step: Step, role: Role): number {
   const steps = role === "sponsor" ? sponsorSteps : publisherSteps
@@ -63,11 +64,6 @@ function getSegmentCount(role: Role): number {
 }
 
 // ── Revenue calculation ──────────────────────────────────────
-
-function calculateRecommendedFee(subscribers: number): number {
-  const fee = subscribers * 0.025
-  return Math.round(fee / 25) * 25
-}
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -87,26 +83,16 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<Step>("kajabi-signin")
   const [role, setRole] = useState<Role>("publisher")
   const [selectedRole, setSelectedRole] = useState<Role>("publisher")
-  const [website, setWebsite] = useState("")
-  const [socialLinks, setSocialLinks] = useState({
-    twitter: "",
-    instagram: "",
-    linkedin: "",
-  })
+
+  // Publisher profile state (pre-filled from Kajabi)
+  const [profileName, setProfileName] = useState(currentUser.name)
+  const [profileBio, setProfileBio] = useState(currentUser.bio)
+  const [profileNiche, setProfileNiche] = useState<Vertical>(currentUser.verticals[0])
 
   // Publisher-specific state
-  const [audienceSize, setAudienceSize] = useState("")
+  const [sendAudience, setSendAudience] = useState("")
   const [sendFee, setSendFee] = useState("")
   const [promotionsPerMonth, setPromotionsPerMonth] = useState(2)
-
-  const audienceNum = parseInt(audienceSize.replace(/,/g, "")) || 0
-  const recommendedFee = calculateRecommendedFee(audienceNum)
-
-  useEffect(() => {
-    if (audienceNum > 0 && sendFee === "") {
-      setSendFee(recommendedFee.toString())
-    }
-  }, [audienceNum, recommendedFee, sendFee])
 
   const feeNum = parseInt(sendFee) || 0
   const annualRevenue = feeNum * promotionsPerMonth * 12
@@ -116,26 +102,17 @@ export default function OnboardingPage() {
   const [campaignHeadline, setCampaignHeadline] = useState("")
   const [campaignBody, setCampaignBody] = useState("")
   const [campaignCta, setCampaignCta] = useState("Learn More")
-  const [campaignBudget, setCampaignBudget] = useState("")
+  const [campaignBudgetPerK, setCampaignBudgetPerK] = useState("")
+  const [campaignMaxBudget, setCampaignMaxBudget] = useState("")
 
   // "Connecting to Kajabi…" spinner
   useEffect(() => {
     if (step !== "connecting") return
     const timer = setTimeout(() => {
-      setAudienceSize(currentUser.subscriberCount.toLocaleString("en-US"))
-      setSendFee(currentUser.recommendedFee.toString())
-      setStep("profile-confirm")
+      setStep("edit-profile")
     }, 2000)
     return () => clearTimeout(timer)
   }, [step])
-
-  // Publisher "generating" spinner
-  useEffect(() => {
-    if (step !== "generating") return
-    const timer = setTimeout(() => setStep("profile"), 2500)
-    return () => clearTimeout(timer)
-  }, [step])
-
 
   // ── Helpers ──────────────────────────────────────────────
 
@@ -145,16 +122,14 @@ export default function OnboardingPage() {
   const showProgress =
     step === "role-select" ||
     step === "publisher-setup" ||
-    step === "links" ||
     step === "profile" ||
-    step === "sponsor-links" ||
-    step === "sponsor-profile" ||
-    step === "sponsor-campaign"
+    step === "sponsor-campaign" ||
+    step === "sponsor-profile"
 
   // ── Render ─────────────────────────────────────────────────
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center px-4 py-16">
+    <div className="flex min-h-svh flex-col items-center justify-center bg-card px-4 py-16">
       <div className="w-full max-w-lg space-y-8">
         {showProgress && (
           <div className="mx-auto flex w-full max-w-[120px] gap-1.5">
@@ -210,7 +185,84 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* ── Step 3: Role Selection ───────────────────────── */}
+        {/* ── Step 3: Edit Profile ────────────────────────── */}
+        {step === "edit-profile" && (
+          <div className="space-y-6">
+            <div className="space-y-2 text-center">
+              <h1 className="text-2xl font-medium tracking-tight">
+                Set up your profile
+              </h1>
+              <p className="text-pretty text-sm text-muted-foreground">
+                We&apos;ve filled this in from your Kajabi account. Edit anything that needs updating.
+              </p>
+            </div>
+
+            <div className="rounded-lg border p-6 space-y-4">
+              <div className="flex justify-center">
+                <button type="button" className="group relative cursor-pointer">
+                  <Avatar className="size-16">
+                    <AvatarFallback className="text-lg">
+                      {profileName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                    <PencilSimple className="size-5 text-white" />
+                  </div>
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="profile-name">Name</Label>
+                <Input
+                  id="profile-name"
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="profile-bio">Bio</Label>
+                <Textarea
+                  id="profile-bio"
+                  value={profileBio}
+                  onChange={(e) => setProfileBio(e.target.value)}
+                  className="min-h-24"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Niche</Label>
+                <Select value={profileNiche} onValueChange={(v) => setProfileNiche(v as Vertical)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose your niche" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Health & Fitness">Health & Fitness</SelectItem>
+                    <SelectItem value="Business & Marketing">Business & Marketing</SelectItem>
+                    <SelectItem value="Personal Development">Personal Development</SelectItem>
+                    <SelectItem value="Creative Arts">Creative Arts</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Parenting">Parenting</SelectItem>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                    <SelectItem value="Lifestyle">Lifestyle</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              disabled={profileName.trim() === ""}
+              onClick={() => setStep("role-select")}
+            >
+              Continue
+              <ArrowRight data-icon="inline-end" className="size-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* ── Step 4: Role Selection ───────────────────────── */}
         {step === "role-select" && (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
@@ -273,67 +325,10 @@ export default function OnboardingPage() {
                   setStep("publisher-setup")
                 } else {
                   setRole("sponsor")
-                  setStep("sponsor-links")
+                  setStep("sponsor-campaign")
                 }
               }}
             >
-              Continue
-              <ArrowRight data-icon="inline-end" className="size-4" />
-            </Button>
-          </div>
-        )}
-
-        {/* ── Account Confirmation ──────────────────────── */}
-        {step === "profile-confirm" && (
-          <div className="space-y-6">
-            <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
-                We found your account
-              </h1>
-              <p className="text-pretty text-sm text-muted-foreground">
-                Here&apos;s your profile and email stats from Kajabi.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center gap-4 rounded-sm border p-8">
-              <Avatar className="size-16">
-                <AvatarFallback className="text-lg">
-                  {currentUser.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="space-y-1 text-center">
-                <p className="text-lg font-medium">{currentUser.name}</p>
-                <p className="text-pretty text-sm text-muted-foreground">
-                  {currentUser.tagline}
-                </p>
-              </div>
-
-              <div className="grid w-full grid-cols-3 gap-3">
-                <div className="rounded-lg border p-4 space-y-1">
-                  <p className="text-xs text-muted-foreground">Subscribers</p>
-                  <p className="text-lg font-medium tabular-nums">{formatNumber(currentUser.subscriberCount)}</p>
-                </div>
-                <div className="rounded-lg border p-4 space-y-1">
-                  <p className="text-xs text-muted-foreground">Open Rate</p>
-                  <p className="text-lg font-medium tabular-nums">{currentUser.openRate}%</p>
-                </div>
-                <div className="rounded-lg border p-4 space-y-1">
-                  <p className="text-xs text-muted-foreground">Click Rate</p>
-                  <p className="text-lg font-medium tabular-nums">{currentUser.clickRate}%</p>
-                </div>
-              </div>
-
-              <div className="flex w-full flex-wrap gap-1.5 border-t pt-3">
-                {currentUser.verticals.map((v) => (
-                  <Badge key={v} variant="secondary">
-                    {v}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <Button className="w-full" onClick={() => setStep("role-select")}>
               Continue
               <ArrowRight data-icon="inline-end" className="size-4" />
             </Button>
@@ -372,6 +367,24 @@ export default function OnboardingPage() {
 
             <div className="space-y-4">
               <div className="space-y-2">
+                <Label htmlFor="send-audience">How many subscribers will you send ads to?</Label>
+                <InputGroup>
+                  <InputGroupInput
+                    id="send-audience"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={sendAudience}
+                    onChange={(e) =>
+                      setSendAudience(e.target.value.replace(/[^\d,]/g, ""))
+                    }
+                  />
+                </InputGroup>
+                <p className="text-xs text-muted-foreground">
+                  You can send to all or a portion of your subscribers
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="send-fee">Your send fee</Label>
                 <InputGroup>
                   <InputGroupAddon align="inline-start">
@@ -390,19 +403,6 @@ export default function OnboardingPage() {
                     <InputGroupText>per send</InputGroupText>
                   </InputGroupAddon>
                 </InputGroup>
-                <p className="text-xs text-muted-foreground">
-                  Recommended:{" "}
-                  <button
-                    type="button"
-                    className="font-medium text-foreground underline underline-offset-2"
-                    onClick={() =>
-                      setSendFee(currentUser.recommendedFee.toString())
-                    }
-                  >
-                    {formatCurrency(currentUser.recommendedFee)}
-                  </button>{" "}
-                  based on your audience size and engagement
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -434,73 +434,20 @@ export default function OnboardingPage() {
                 {formatCurrency(annualRevenue)}
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                {formatCurrency(feeNum)}/send &times;{" "}
-                {promotionsPerMonth}/month &times; 12 months
+                {formatCurrency(feeNum)}/send
+                {sendAudience && ` to ${parseInt(sendAudience.replace(/,/g, "")).toLocaleString("en-US")} subscribers`}
+                {" "}&times; {promotionsPerMonth}/month &times; 12 months
               </p>
             </div>
 
             <Button
               className="w-full"
               disabled={feeNum <= 0}
-              onClick={() => setStep("links")}
+              onClick={() => setStep("profile")}
             >
               Continue
               <ArrowRight data-icon="inline-end" className="size-4" />
             </Button>
-          </div>
-        )}
-
-        {/* ── Publisher: Add Links ─────────────────────────── */}
-        {step === "links" && (
-          <div className="space-y-6">
-            <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
-                Add your links
-              </h1>
-              <p className="text-pretty text-sm text-muted-foreground">
-                Help others vet you before partnering. All fields are
-                optional.
-              </p>
-            </div>
-
-            <LinksForm
-              website={website}
-              setWebsite={setWebsite}
-              socialLinks={socialLinks}
-              setSocialLinks={setSocialLinks}
-            />
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setStep("generating")}
-              >
-                Skip
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={() => setStep("generating")}
-              >
-                Continue
-                <ArrowRight data-icon="inline-end" className="size-4" />
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Publisher: Generating ────────────────────────── */}
-        {step === "generating" && (
-          <div className="flex flex-col items-center gap-4 py-12 text-center">
-            <CircleNotch className="size-8 animate-spin text-muted-foreground" />
-            <div className="space-y-2">
-              <h1 className="text-2xl font-medium tracking-tight">
-                Setting up your publisher profile
-              </h1>
-              <p className="text-pretty text-sm text-muted-foreground">
-                Hang tight — we&apos;re getting everything ready.
-              </p>
-            </div>
           </div>
         )}
 
@@ -516,44 +463,7 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            <HeroCard hero={{ ...currentUser, recommendedFee: parseInt(sendFee) || 0 }} showPublisherStats>
-              {(website || socialLinks.twitter || socialLinks.instagram || socialLinks.linkedin) && (
-                <div className="flex flex-wrap items-center gap-2 pt-2">
-                  {website && (
-                    <Badge variant="outline" className="gap-1.5" asChild>
-                      <a href={website}>
-                        <Globe className="size-3.5" />
-                        {website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                      </a>
-                    </Badge>
-                  )}
-                  {socialLinks.twitter && (
-                    <Badge variant="outline" className="gap-1.5 capitalize" asChild>
-                      <a href={socialLinks.twitter}>
-                        <SocialIcon platform="twitter" className="size-3.5" />
-                        Twitter
-                      </a>
-                    </Badge>
-                  )}
-                  {socialLinks.instagram && (
-                    <Badge variant="outline" className="gap-1.5 capitalize" asChild>
-                      <a href={socialLinks.instagram}>
-                        <SocialIcon platform="instagram" className="size-3.5" />
-                        Instagram
-                      </a>
-                    </Badge>
-                  )}
-                  {socialLinks.linkedin && (
-                    <Badge variant="outline" className="gap-1.5 capitalize" asChild>
-                      <a href={socialLinks.linkedin}>
-                        <SocialIcon platform="linkedin" className="size-3.5" />
-                        Linkedin
-                      </a>
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </HeroCard>
+            <HeroCard hero={{ ...currentUser, name: profileName, bio: profileBio, verticals: [profileNiche, ...currentUser.verticals.filter(v => v !== profileNiche)], recommendedFee: parseInt(sendFee) || 0 }} showPublisherStats />
 
             <Button
               className="w-full"
@@ -562,45 +472,6 @@ export default function OnboardingPage() {
               Continue to Home
               <ArrowRight data-icon="inline-end" className="size-4" />
             </Button>
-          </div>
-        )}
-
-        {/* ── Sponsor: Add Links ──────────────────────────── */}
-        {step === "sponsor-links" && (
-          <div className="space-y-6">
-            <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
-                Add your links
-              </h1>
-              <p className="text-pretty text-sm text-muted-foreground">
-                Publishers will check these before accepting your promotions.
-                All fields are optional.
-              </p>
-            </div>
-
-            <LinksForm
-              website={website}
-              setWebsite={setWebsite}
-              socialLinks={socialLinks}
-              setSocialLinks={setSocialLinks}
-            />
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setStep("sponsor-campaign")}
-              >
-                Skip
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={() => setStep("sponsor-campaign")}
-              >
-                Continue
-                <ArrowRight data-icon="inline-end" className="size-4" />
-              </Button>
-            </div>
           </div>
         )}
 
@@ -616,44 +487,7 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            <HeroCard hero={{ ...currentUser, recommendedFee: parseInt(campaignBudget) || 0 }}>
-              {(website || socialLinks.twitter || socialLinks.instagram || socialLinks.linkedin) && (
-                <div className="flex flex-wrap items-center gap-2 pt-2">
-                  {website && (
-                    <Badge variant="outline" className="gap-1.5" asChild>
-                      <a href={website}>
-                        <Globe className="size-3.5" />
-                        {website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                      </a>
-                    </Badge>
-                  )}
-                  {socialLinks.twitter && (
-                    <Badge variant="outline" className="gap-1.5 capitalize" asChild>
-                      <a href={socialLinks.twitter}>
-                        <SocialIcon platform="twitter" className="size-3.5" />
-                        Twitter
-                      </a>
-                    </Badge>
-                  )}
-                  {socialLinks.instagram && (
-                    <Badge variant="outline" className="gap-1.5 capitalize" asChild>
-                      <a href={socialLinks.instagram}>
-                        <SocialIcon platform="instagram" className="size-3.5" />
-                        Instagram
-                      </a>
-                    </Badge>
-                  )}
-                  {socialLinks.linkedin && (
-                    <Badge variant="outline" className="gap-1.5 capitalize" asChild>
-                      <a href={socialLinks.linkedin}>
-                        <SocialIcon platform="linkedin" className="size-3.5" />
-                        Linkedin
-                      </a>
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </HeroCard>
+            <HeroCard hero={{ ...currentUser, name: profileName, bio: profileBio, verticals: [profileNiche, ...currentUser.verticals.filter(v => v !== profileNiche)] }} />
 
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">Ad preview</p>
@@ -731,25 +565,47 @@ export default function OnboardingPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="campaign-budget">Budget per send</Label>
-                <InputGroup>
-                  <InputGroupAddon align="inline-start">
-                    <InputGroupText>$</InputGroupText>
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="campaign-budget"
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={campaignBudget}
-                    onChange={(e) =>
-                      setCampaignBudget(e.target.value.replace(/\D/g, ""))
-                    }
-                  />
-                  <InputGroupAddon align="inline-end">
-                    <InputGroupText>per send</InputGroupText>
-                  </InputGroupAddon>
-                </InputGroup>
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="campaign-budget-per-k">Budget per 1,000 emails</Label>
+                  <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                      <InputGroupText>$</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="campaign-budget-per-k"
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={campaignBudgetPerK}
+                      onChange={(e) =>
+                        setCampaignBudgetPerK(e.target.value.replace(/\D/g, ""))
+                      }
+                    />
+                  </InputGroup>
+                  <p className="text-xs text-muted-foreground">
+                    How much you&apos;ll pay for every 1,000 subscribers reached
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="campaign-max-budget">Max budget</Label>
+                  <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                      <InputGroupText>$</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="campaign-max-budget"
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={campaignMaxBudget}
+                      onChange={(e) =>
+                        setCampaignMaxBudget(e.target.value.replace(/\D/g, ""))
+                      }
+                    />
+                  </InputGroup>
+                  <p className="text-xs text-muted-foreground">
+                    The most you&apos;ll spend on a single send
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -778,82 +634,3 @@ export default function OnboardingPage() {
   )
 }
 
-// ── Shared Links Form ────────────────────────────────────────
-
-function LinksForm({
-  website,
-  setWebsite,
-  socialLinks,
-  setSocialLinks,
-}: {
-  website: string
-  setWebsite: (v: string) => void
-  socialLinks: { twitter: string; instagram: string; linkedin: string }
-  setSocialLinks: (v: { twitter: string; instagram: string; linkedin: string }) => void
-}) {
-  return (
-    <div className="space-y-4 rounded-sm border p-6">
-      <div className="space-y-2">
-        <Label htmlFor="website">Website</Label>
-        <div className="relative">
-          <Globe className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="website"
-            placeholder="https://yoursite.com"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="twitter">X / Twitter</Label>
-        <div className="relative">
-          <LinkSimple className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="twitter"
-            placeholder="https://x.com/username"
-            value={socialLinks.twitter}
-            onChange={(e) =>
-              setSocialLinks({ ...socialLinks, twitter: e.target.value })
-            }
-            className="pl-9"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="instagram">Instagram</Label>
-        <div className="relative">
-          <LinkSimple className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="instagram"
-            placeholder="https://instagram.com/username"
-            value={socialLinks.instagram}
-            onChange={(e) =>
-              setSocialLinks({ ...socialLinks, instagram: e.target.value })
-            }
-            className="pl-9"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="linkedin">LinkedIn</Label>
-        <div className="relative">
-          <LinkSimple className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id="linkedin"
-            placeholder="https://linkedin.com/in/username"
-            value={socialLinks.linkedin}
-            onChange={(e) =>
-              setSocialLinks({ ...socialLinks, linkedin: e.target.value })
-            }
-            className="pl-9"
-          />
-        </div>
-      </div>
-    </div>
-  )
-}

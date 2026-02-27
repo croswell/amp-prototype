@@ -44,7 +44,8 @@ const INITIAL_CAMPAIGN = {
   body: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
   cta: "Apply Now",
   ctaUrl: "https://alexjohnson.co/accelerator",
-  budgetPerSend: "500",
+  budgetPerThousand: "25",
+  maxBudget: "1500",
 }
 
 // ── Main component ───────────────────────────────────────────
@@ -78,13 +79,17 @@ export function SettingsContent() {
   const [sendFee, setSendFee] = useState(
     activeUser.recommendedFee.toString()
   )
+  const [audienceSize, setAudienceSize] = useState(
+    activeUser.subscriberCount.toLocaleString("en-US")
+  )
 
   // ── Campaign state ─────────────────────────────────────────
   const [campHeadline, setCampHeadline] = useState(INITIAL_CAMPAIGN.headline)
   const [campBody, setCampBody] = useState(INITIAL_CAMPAIGN.body)
   const [campCta, setCampCta] = useState(INITIAL_CAMPAIGN.cta)
   const [campCtaUrl, setCampCtaUrl] = useState(INITIAL_CAMPAIGN.ctaUrl)
-  const [campBudget, setCampBudget] = useState(INITIAL_CAMPAIGN.budgetPerSend)
+  const [campBudgetPerK, setCampBudgetPerK] = useState(INITIAL_CAMPAIGN.budgetPerThousand)
+  const [campMaxBudget, setCampMaxBudget] = useState(INITIAL_CAMPAIGN.maxBudget)
 
   // ── Account data ───────────────────────────────────────────
   const joinedDate = new Date(activeUser.joinedDate)
@@ -111,14 +116,16 @@ export function SettingsContent() {
     linkedin !== initialLinkedin
 
   const pricingChanged =
-    sendFee !== activeUser.recommendedFee.toString()
+    sendFee !== activeUser.recommendedFee.toString() ||
+    audienceSize !== activeUser.subscriberCount.toLocaleString("en-US")
 
   const campaignChanged =
     campHeadline !== INITIAL_CAMPAIGN.headline ||
     campBody !== INITIAL_CAMPAIGN.body ||
     campCta !== INITIAL_CAMPAIGN.cta ||
     campCtaUrl !== INITIAL_CAMPAIGN.ctaUrl ||
-    campBudget !== INITIAL_CAMPAIGN.budgetPerSend
+    campBudgetPerK !== INITIAL_CAMPAIGN.budgetPerThousand ||
+    campMaxBudget !== INITIAL_CAMPAIGN.maxBudget
 
   // ── Which tab is default ───────────────────────────────────
   const defaultTab = "profile"
@@ -302,6 +309,23 @@ export function SettingsContent() {
 
                 <Separator />
 
+                {/* Audience size */}
+                <div className="space-y-2">
+                  <Label htmlFor="audience-size">Audience size</Label>
+                  <Input
+                    id="audience-size"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={audienceSize}
+                    onChange={(e) =>
+                      setAudienceSize(e.target.value.replace(/[^\d,]/g, ""))
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Set the audience size you&apos;ll send promotions to.
+                  </p>
+                </div>
+
                 {/* Send fee */}
                 <div className="space-y-2">
                   <Label htmlFor="send-fee">Send fee</Label>
@@ -367,35 +391,56 @@ export function SettingsContent() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="camp-cta">Call to action</Label>
+                  <Input
+                    id="camp-cta"
+                    value={campCta}
+                    onChange={(e) => setCampCta(e.target.value)}
+                    placeholder="e.g. Learn More"
+                  />
+                </div>
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="camp-cta">Call to action</Label>
-                    <Input
-                      id="camp-cta"
-                      value={campCta}
-                      onChange={(e) => setCampCta(e.target.value)}
-                      placeholder="e.g. Learn More"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="camp-budget">Budget per send</Label>
+                    <Label htmlFor="camp-budget-per-k">Budget per 1,000 emails</Label>
                     <InputGroup>
                       <InputGroupAddon align="inline-start">
                         <InputGroupText>$</InputGroupText>
                       </InputGroupAddon>
                       <InputGroupInput
-                        id="camp-budget"
+                        id="camp-budget-per-k"
                         inputMode="numeric"
                         placeholder="0"
-                        value={campBudget}
+                        value={campBudgetPerK}
                         onChange={(e) =>
-                          setCampBudget(e.target.value.replace(/\D/g, ""))
+                          setCampBudgetPerK(e.target.value.replace(/\D/g, ""))
                         }
                       />
-                      <InputGroupAddon align="inline-end">
-                        <InputGroupText>per send</InputGroupText>
-                      </InputGroupAddon>
                     </InputGroup>
+                    <p className="text-xs text-muted-foreground">
+                      How much you&apos;ll pay for every 1,000 subscribers reached
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="camp-max-budget">Max budget</Label>
+                    <InputGroup>
+                      <InputGroupAddon align="inline-start">
+                        <InputGroupText>$</InputGroupText>
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="camp-max-budget"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={campMaxBudget}
+                        onChange={(e) =>
+                          setCampMaxBudget(e.target.value.replace(/\D/g, ""))
+                        }
+                      />
+                    </InputGroup>
+                    <p className="text-xs text-muted-foreground">
+                      The most you&apos;ll spend on a single send
+                    </p>
                   </div>
                 </div>
 

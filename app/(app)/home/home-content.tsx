@@ -29,13 +29,11 @@ import { EmailBlockPreview } from "@/components/email-block-preview"
 import { Separator } from "@/components/ui/separator"
 import { HeroCard, HeroIdentity } from "@/components/hero-card"
 import { SocialIcon } from "@/components/social-icon"
-import { PromotionSheet } from "@/components/promotion-sheet"
+import { PromotionSheet, type ReviewAction } from "@/components/promotion-sheet"
 import {
   type RequestStatus,
   type PromotionRequest,
   type Hero,
-  currentUser,
-  currentUserCampaign,
   promotionRequests,
   heroes,
   getHero,
@@ -43,6 +41,8 @@ import {
   formatNumber,
   getStatusColor,
   getRecommendedHeroes,
+  getActiveUser,
+  getRoleForPersona,
 } from "@/lib/mock-data"
 import {
   CurrencyDollar,
@@ -63,15 +63,22 @@ import { SectionTitle } from "@/components/promotion-sheet"
 
 export function HomeContent() {
   const searchParams = useSearchParams()
-  const role = searchParams.get("role") || "publisher"
+  const persona = searchParams.get("persona") || "sarah"
+  const activeUser = getActiveUser(persona)
+  const role = getRoleForPersona(persona)
 
-  const isPublisher = role === "publisher" || role === "both"
-  const isSponsor = role === "sponsor" || role === "both"
+  const isPublisher = role === "publisher"
+  const isSponsor = role === "sponsor"
 
   // Promotion sheet state
   const [selectedRequest, setSelectedRequest] = useState<PromotionRequest | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [statusOverrides, setStatusOverrides] = useState<Record<string, RequestStatus>>({})
+  const [reviewOverrides, setReviewOverrides] = useState<Record<string, {
+    reviewTurn?: "sponsor" | "publisher"
+    proposedEdits?: { adHeadline: string; adBody: string; adCta: string; adCtaUrl: string }
+    revisionNotes?: string
+  }>>({})
 
   // Profile sheet state
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
@@ -86,18 +93,56 @@ export function HomeContent() {
     setStatusOverrides((prev) => ({ ...prev, [requestId]: newStatus }))
   }
 
+  function handleReviewAction(requestId: string, action: ReviewAction) {
+    switch (action.type) {
+      case "suggest_changes":
+        setStatusOverrides((prev) => ({ ...prev, [requestId]: "in_review" }))
+        setReviewOverrides((prev) => ({
+          ...prev,
+          [requestId]: {
+            ...prev[requestId],
+            reviewTurn: "sponsor",
+            proposedEdits: action.proposedEdits,
+          },
+        }))
+        break
+      case "approve_edits":
+        setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
+        setReviewOverrides((prev) => ({
+          ...prev,
+          [requestId]: { ...prev[requestId], reviewTurn: undefined },
+        }))
+        break
+      case "request_revision":
+        setReviewOverrides((prev) => ({
+          ...prev,
+          [requestId]: {
+            ...prev[requestId],
+            reviewTurn: "publisher",
+            revisionNotes: action.revisionNotes,
+          },
+        }))
+        break
+    }
+  }
+
   // Apply overrides
   const allRequests = useMemo(
     () =>
       promotionRequests.map((r) => ({
         ...r,
         status: statusOverrides[r.id] || r.status,
+        ...(reviewOverrides[r.id] ? {
+          reviewTurn: reviewOverrides[r.id].reviewTurn ?? r.reviewTurn,
+          proposedEdits: reviewOverrides[r.id].proposedEdits ?? r.proposedEdits,
+          revisionNotes: reviewOverrides[r.id].revisionNotes ?? r.revisionNotes,
+        } : {}),
       })),
-    [statusOverrides]
+    [statusOverrides, reviewOverrides]
   )
 
-  const incoming = allRequests.filter((r) => r.publisherId === currentUser.id)
-  const outgoing = allRequests.filter((r) => r.sponsorId === currentUser.id)
+  const incoming = allRequests.filter((r) => r.publisherId === activeUser.id)
+  const outgoing = allRequests.filter((r) => r.sponsorId === activeUser.id)
 
   // ── Stats ──
   const publisherRevenue = incoming
@@ -132,6 +177,18 @@ export function HomeContent() {
             label: `${sponsor?.name ?? "Sponsor"} wants you to run their ad`,
           })
         })
+
+      // Publisher sees in_review items where it's their turn
+      incoming
+        .filter((r) => r.status === "in_review" && r.reviewTurn === "publisher")
+        .forEach((r) => {
+          const sponsor = getHero(r.sponsorId)
+          items.push({
+            request: r,
+            type: "publisher",
+            label: `${sponsor?.name.split(" ")[0] ?? "Sponsor"} requested a revision`,
+          })
+        })
     }
 
     if (isSponsor) {
@@ -147,6 +204,17 @@ export function HomeContent() {
           })
         })
 
+      // Sponsor sees in_review items where it's their turn
+      outgoing
+        .filter((r) => r.status === "in_review" && r.reviewTurn === "sponsor")
+        .forEach((r) => {
+          const publisher = getHero(r.publisherId)
+          items.push({
+            request: r,
+            type: "sponsor",
+            label: `Review ${publisher?.name.split(" ")[0] ?? "Publisher"}'s copy edits`,
+          })
+        })
     }
 
     return items
@@ -154,12 +222,12 @@ export function HomeContent() {
 
   // ── Recommended heroes ──
   const recommendedSponsors = useMemo(
-    () => getRecommendedHeroes("publisher").slice(0, 10),
-    []
+    () => getRecommendedHeroes("publisher", activeUser).slice(0, 10),
+    [activeUser]
   )
   const recommendedPublishers = useMemo(
-    () => getRecommendedHeroes("sponsor").slice(0, 10),
-    []
+    () => getRecommendedHeroes("sponsor", activeUser).slice(0, 10),
+    [activeUser]
   )
 
   // Greeting
@@ -167,15 +235,25 @@ export function HomeContent() {
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
 
-  const effectiveStatus = selectedRequest
-    ? (statusOverrides[selectedRequest.id] || selectedRequest.status)
-    : null
+  const effectiveRequest = useMemo(() => {
+    if (!selectedRequest) return null
+    const id = selectedRequest.id
+    return {
+      ...selectedRequest,
+      status: statusOverrides[id] || selectedRequest.status,
+      ...(reviewOverrides[id] ? {
+        reviewTurn: reviewOverrides[id].reviewTurn ?? selectedRequest.reviewTurn,
+        proposedEdits: reviewOverrides[id].proposedEdits ?? selectedRequest.proposedEdits,
+        revisionNotes: reviewOverrides[id].revisionNotes ?? selectedRequest.revisionNotes,
+      } : {}),
+    }
+  }, [selectedRequest, statusOverrides, reviewOverrides])
 
   return (
     <div className="space-y-10">
       <div className="relative space-y-8 pb-10 after:absolute after:bottom-0 after:left-1/2 after:w-screen after:-translate-x-1/2 after:border-b after:border-border">
       <h1 className="text-2xl font-medium tracking-tight">
-        {greeting}, {currentUser.name.split(" ")[0]}
+        {greeting}, {activeUser.name.split(" ")[0]}
       </h1>
 
       {/* ── Stat cards ── */}
@@ -197,7 +275,7 @@ export function HomeContent() {
                 </Badge>
               </div>
               <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                {formatNumber(currentUser.subscriberCount)} subscribers · {currentUser.openRate}% open rate
+                {formatNumber(activeUser.subscriberCount)} subscribers · {activeUser.openRate}% open rate
               </p>
             </CardContent>
           </Card>
@@ -347,7 +425,7 @@ export function HomeContent() {
 
         {inboxItems.length > 5 && (
           <Button variant="ghost" size="sm" asChild>
-            <Link href={`/requests?role=${role}`}>
+            <Link href={`/requests${persona === "sarah" ? "" : `?persona=${persona}`}`}>
               View all {inboxItems.length} items
               <ArrowRight data-icon="inline-end" className="size-4" />
             </Link>
@@ -356,63 +434,32 @@ export function HomeContent() {
       </div>
 
       {/* ── Recommended sections ── */}
-      {role === "both" ? (
-        // Both role: side by side grids
-        <div className="grid gap-8 lg:grid-cols-2">
-          <div className="space-y-4">
-            <h2 className="text-lg font-medium">Recommended Sponsors</h2>
-            <div className="grid gap-4">
-              {recommendedSponsors.map((hero) => (
-                <HeroCard
-                  key={hero.id}
-                  hero={hero}
-                  onClick={() => setSelectedHeroId(hero.id)}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <h2 className="text-lg font-medium">Recommended Publishers</h2>
-            <div className="grid gap-4">
-              {recommendedPublishers.map((hero) => (
-                <HeroCard
-                  key={hero.id}
-                  hero={hero}
-                  showPublisherStats
-                  onClick={() => setSelectedHeroId(hero.id)}
-                />
-              ))}
-            </div>
-          </div>
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium">
+          {isPublisher ? "Recommended Sponsors" : "Recommended Publishers"}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {(isPublisher ? recommendedSponsors : recommendedPublishers).map(
+            (hero) => (
+              <HeroCard
+                key={hero.id}
+                hero={hero}
+                showPublisherStats={isSponsor}
+                onClick={() => setSelectedHeroId(hero.id)}
+              />
+            )
+          )}
         </div>
-      ) : (
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium">
-            {isPublisher ? "Recommended Sponsors" : "Recommended Publishers"}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {(isPublisher ? recommendedSponsors : recommendedPublishers).map(
-              (hero) => (
-                <HeroCard
-                  key={hero.id}
-                  hero={hero}
-                  showPublisherStats={isSponsor}
-                  onClick={() => setSelectedHeroId(hero.id)}
-                />
-              )
-            )}
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* ── Promotion Sheet ── */}
       <PromotionSheet
-        request={selectedRequest}
-        status={effectiveStatus}
+        request={effectiveRequest}
         role={role}
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         onStatusChange={handleStatusChange}
+        onReviewAction={handleReviewAction}
       />
 
       {/* ── Hero profile Sheet ── */}

@@ -1,13 +1,12 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PayoutBadge } from "@/components/payout-badge"
+import { EngagementBadge } from "@/components/engagement-badge"
 import {
   Card,
   CardContent,
   CardHeader,
 } from "@/components/ui/card"
-import { CaretDoubleUp } from "@phosphor-icons/react"
 import {
   type Hero,
   formatNumber,
@@ -26,11 +25,8 @@ export function HeroIdentity({ hero, showEngagement }: { hero: Hero; showEngagem
           <p className="mt-1.5 text-xs text-muted-foreground">{hero.verticals[0]}</p>
         )}
       </div>
-      {showEngagement && hero.engagementTier === "high" && (
-        <Badge variant="secondary" className="shrink-0 gap-1 text-xs bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]">
-          <CaretDoubleUp className="size-3" />
-          High Engagement
-        </Badge>
+      {showEngagement && (
+        <EngagementBadge tier={hero.engagementTier} className="shrink-0" />
       )}
     </div>
   )
@@ -40,9 +36,10 @@ interface HeroCardProps {
   hero: Hero
   onClick?: () => void
   showPublisherStats?: boolean
+  children?: React.ReactNode
 }
 
-export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
+export function HeroCard({ hero, onClick, showPublisherStats, children }: HeroCardProps) {
   return (
     <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.() }} className="h-full w-full cursor-pointer text-left">
       <Card className="h-full transition-colors hover:border-foreground/15">
@@ -65,12 +62,7 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
         <CardContent>
           {showPublisherStats ? (
             <div className="flex flex-wrap items-center gap-2">
-              {hero.engagementTier === "high" && (
-                <Badge variant="secondary" className="gap-1 text-xs bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]">
-                  <CaretDoubleUp className="size-3" />
-                  High Engagement
-                </Badge>
-              )}
+              <EngagementBadge tier={hero.engagementTier} />
               <PayoutBadge amount={hero.recommendedFee} label="" variant="filled" suffix="/Send" />
             </div>
           ) : (
@@ -78,6 +70,7 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
               <PayoutBadge amount={hero.recommendedFee} label="" variant="filled" suffix="/Send" />
             </div>
           )}
+          {children}
         </CardContent>
       </Card>
     </div>

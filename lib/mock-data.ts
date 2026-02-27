@@ -9,6 +9,7 @@ export type EngagementTier = "high" | "medium" | "low"
 export type RequestStatus =
   | "pending"
   | "accepted"
+  | "in_review"
   | "scheduled"
   | "published"
   | "paid"
@@ -60,6 +61,14 @@ export interface PromotionRequest {
   adImage?: string
   proposedFee: number
   notes: string
+  reviewTurn?: "sponsor" | "publisher"
+  proposedEdits?: {
+    adHeadline: string
+    adBody: string
+    adCta: string
+    adCtaUrl: string
+  }
+  revisionNotes?: string
   createdAt: string
   updatedAt: string
 }
@@ -71,6 +80,7 @@ export interface PromotionRequest {
 export const STATUS_LABELS: Record<RequestStatus, string> = {
   pending: "Pending",
   accepted: "Approved",
+  in_review: "In Review",
   scheduled: "Scheduled",
   published: "Published",
   paid: "Paid",
@@ -657,6 +667,39 @@ export const currentUserCampaign = {
 // ============================================================
 
 export const promotionRequests: PromotionRequest[] = [
+  // ── Demo requests between Sarah (publisher) & Jake (sponsor) ──
+  {
+    id: "req-demo-1",
+    sponsorId: "hero-4",
+    publisherId: "hero-1",
+    status: "pending",
+    initiatedBy: "sponsor",
+    brief: "I teach creators how to package their knowledge into profitable online courses. My Course Launch Blueprint has helped 500+ creators launch their first course. I think your audience of coaches building online businesses would be a perfect fit — many of them are sitting on expertise they haven't monetized yet.",
+    adHeadline: "Create Your First Online Course in 30 Days",
+    adBody: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+    adCta: "Get the Free Blueprint",
+    adCtaUrl: "https://jakemorrison.io/blueprint",
+    proposedFee: 350,
+    notes: "",
+    createdAt: "2025-02-26",
+    updatedAt: "2025-02-26",
+  },
+  {
+    id: "req-demo-2",
+    sponsorId: "hero-4",
+    publisherId: "hero-1",
+    status: "accepted",
+    initiatedBy: "sponsor",
+    brief: "Promoting the Weekend Course Sprint to Sarah's coaching audience. Many coaches want a quick way to create their first course without spending months on it.",
+    adHeadline: "Launch Your Course in a Weekend",
+    adBody: "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+    adCta: "Join the Sprint",
+    adCtaUrl: "https://jakemorrison.io/sprint",
+    proposedFee: 300,
+    notes: "",
+    createdAt: "2025-02-20",
+    updatedAt: "2025-02-24",
+  },
   // ── Pending: waiting on the other party ──
   {
     id: "req-6",
@@ -819,6 +862,77 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-18",
     updatedAt: "2025-02-21",
+  },
+  // ── In Review: revision loop in progress ──
+  {
+    id: "req-22",
+    sponsorId: "hero-4",
+    publisherId: "current-user",
+    status: "in_review",
+    initiatedBy: "sponsor",
+    reviewTurn: "sponsor",
+    brief: "I'm promoting my Advanced Course Launch System — a premium program for experienced creators. I think this would resonate well with your audience of knowledge entrepreneurs.",
+    adHeadline: "Create Your First Online Course in 30 Days",
+    adBody: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+    adCta: "Get the Free Blueprint",
+    adCtaUrl: "https://jakemorrison.io/blueprint",
+    proposedEdits: {
+      adHeadline: "Launch a Profitable Online Course This Month",
+      adBody: "Jake Morrison's proven framework has helped 500+ creators build and launch courses that sell. Get his free Course Launch Blueprint — designed for busy knowledge entrepreneurs.",
+      adCta: "Download the Blueprint",
+      adCtaUrl: "https://jakemorrison.io/blueprint",
+    },
+    proposedFee: 300,
+    notes: "",
+    createdAt: "2025-02-21",
+    updatedAt: "2025-02-26",
+  },
+  {
+    id: "req-23",
+    sponsorId: "hero-9",
+    publisherId: "current-user",
+    status: "in_review",
+    initiatedBy: "sponsor",
+    reviewTurn: "publisher",
+    revisionNotes: "Love the direction! Could you make the CTA more action-oriented? Something like 'Start Building' instead of 'Watch the Training'. Also, the body copy could mention the recurring revenue angle more prominently.",
+    brief: "I'm promoting my membership site masterclass. Your audience of knowledge entrepreneurs would benefit from learning how to build recurring revenue through memberships.",
+    adHeadline: "Build a Membership Site That Runs Itself",
+    adBody: "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
+    adCta: "Watch the Free Training",
+    adCtaUrl: "https://lisapark.co/training",
+    proposedEdits: {
+      adHeadline: "Turn Your Expertise Into Recurring Revenue",
+      adBody: "Lisa Park's membership model generates 7 figures on autopilot. In this free training, she reveals the exact system — so you can build a membership site your audience will love.",
+      adCta: "Watch the Training",
+      adCtaUrl: "https://lisapark.co/training",
+    },
+    proposedFee: 350,
+    notes: "",
+    createdAt: "2025-02-22",
+    updatedAt: "2025-02-26",
+  },
+  {
+    id: "req-24",
+    sponsorId: "current-user",
+    publisherId: "hero-2",
+    status: "in_review",
+    initiatedBy: "sponsor",
+    reviewTurn: "sponsor",
+    brief: "I'm promoting the Course Creator Accelerator to Marcus's fitness coaching audience. Many fitness coaches want to create online courses but don't know where to start.",
+    adHeadline: "The Course Creator Accelerator",
+    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
+    adCta: "Apply Now",
+    adCtaUrl: "https://alexjohnson.co/accelerator",
+    proposedEdits: {
+      adHeadline: "Turn Your Coaching Into a Course",
+      adBody: "Alex Johnson's 12-week accelerator helps fitness coaches package their expertise into online courses that sell. Over $2M in student revenue generated. Spring cohort spots are limited.",
+      adCta: "Apply for Spring Cohort",
+      adCtaUrl: "https://alexjohnson.co/accelerator",
+    },
+    proposedFee: 275,
+    notes: "",
+    createdAt: "2025-02-20",
+    updatedAt: "2025-02-26",
   },
   // ── Scheduled: date is set, waiting to go live ──
   {
@@ -1021,6 +1135,27 @@ export function getHero(id: string): Hero | undefined {
   return heroes.find((h) => h.id === id)
 }
 
+// ── Persona helpers (for demo switching) ──
+
+export type Persona = "sarah" | "jake"
+
+const personaMap: Record<Persona, string> = {
+  sarah: "hero-1",
+  jake: "hero-4",
+}
+
+/** Get the Hero for a persona key. Defaults to Sarah. */
+export function getActiveUser(persona?: string | null): Hero {
+  const heroId = personaMap[(persona as Persona)] ?? "hero-1"
+  return heroes.find((h) => h.id === heroId) ?? currentUser
+}
+
+/** Get the role for a persona. Defaults to publisher. */
+export function getRoleForPersona(persona?: string | null): Role {
+  if (persona === "jake") return "sponsor"
+  return "publisher"
+}
+
 export function getRecommendedFee(subscriberCount: number, openRate: number): number {
   const baseFee = subscriberCount * 0.005
   const engagementMultiplier = openRate > 35 ? 1.5 : openRate > 25 ? 1.2 : 1.0
@@ -1079,6 +1214,8 @@ export function getStatusColor(status: RequestStatus): string {
       return "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]"
     case "accepted":
       return "bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
+    case "in_review":
+      return "bg-[#AD715C]/30 text-[#4A2318] dark:bg-[#733725]/40 dark:text-[#AD715C]"
     case "scheduled":
       return "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]"
     case "published":
@@ -1092,11 +1229,13 @@ export function getStatusColor(status: RequestStatus): string {
   }
 }
 
-/** Get heroes that would be good matches for the current user based on shared verticals */
-export function getRecommendedHeroes(forRole: Role): Hero[] {
-  const userVerticals = new Set(currentUser.verticals)
+/** Get heroes that would be good matches for the active user based on shared verticals */
+export function getRecommendedHeroes(forRole: Role, activeUser: Hero = currentUser): Hero[] {
+  const userVerticals = new Set(activeUser.verticals)
   return heroes
     .filter((h) => {
+      // Exclude the active user from their own recommendations
+      if (h.id === activeUser.id) return false
       // Publishers see sponsors and vice versa
       if (forRole === "publisher") return h.role === "sponsor" || h.role === "both"
       if (forRole === "sponsor") return h.role === "publisher" || h.role === "both"

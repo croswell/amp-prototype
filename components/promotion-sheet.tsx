@@ -33,7 +33,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Timer, X, Check, CheckCircle, Clock, Globe, FileText, ArrowSquareOut, Broadcast } from "@phosphor-icons/react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Timer, X, Check, CheckCircle, Clock, Globe, FileText, ArrowSquareOut, Broadcast, PencilSimple, ArrowsClockwise, Eye } from "@phosphor-icons/react"
 import {
   type RequestStatus,
   type PromotionRequest,
@@ -181,6 +183,17 @@ function DealTermsTable({ request, role }: { request: PromotionRequest; role: st
 // Accept animation phases
 type AcceptPhase = "idle" | "loading" | "success"
 
+export interface ReviewAction {
+  type: "suggest_changes" | "approve_edits" | "request_revision"
+  proposedEdits?: {
+    adHeadline: string
+    adBody: string
+    adCta: string
+    adCtaUrl: string
+  }
+  revisionNotes?: string
+}
+
 interface PromotionSheetProps {
   request: PromotionRequest | null
   /** The effective status to display (allows parent to override the request's own status) */
@@ -191,6 +204,8 @@ interface PromotionSheetProps {
   onOpenChange: (open: boolean) => void
   /** Called when the user accepts, declines, approves, etc. */
   onStatusChange?: (requestId: string, newStatus: RequestStatus) => void
+  /** Called for review loop actions (suggest changes, approve edits, request revision) */
+  onReviewAction?: (requestId: string, action: ReviewAction) => void
 }
 
 export function PromotionSheet({
@@ -200,6 +215,7 @@ export function PromotionSheet({
   open,
   onOpenChange,
   onStatusChange,
+  onReviewAction,
 }: PromotionSheetProps) {
   // Accept animation
   const [acceptPhase, setAcceptPhase] = useState<AcceptPhase>("idle")
@@ -227,9 +243,6 @@ export function PromotionSheet({
     setTimeout(() => {
       setAcceptPhase("success")
       onStatusChange?.(request.id, "accepted")
-      setTimeout(() => {
-        onOpenChange(false)
-      }, 1000)
     }, 1200)
   }, [request, onStatusChange, onOpenChange])
 
@@ -257,6 +270,43 @@ export function PromotionSheet({
               if (request) {
                 onStatusChange?.(request.id, "scheduled")
                 onOpenChange(false)
+              }
+            }}
+            onSuggestChanges={(edits) => {
+              if (request) {
+                onReviewAction?.(request.id, {
+                  type: "suggest_changes",
+                  proposedEdits: edits,
+                })
+              }
+            }}
+          />
+        )}
+
+        {/* ── In Review: revision loop ── */}
+        {request && effectiveStatus === "in_review" && (
+          <InReviewView
+            request={request}
+            role={role}
+            onApproveEdits={() => {
+              if (request) {
+                onReviewAction?.(request.id, { type: "approve_edits" })
+              }
+            }}
+            onRequestRevision={(notes) => {
+              if (request) {
+                onReviewAction?.(request.id, {
+                  type: "request_revision",
+                  revisionNotes: notes,
+                })
+              }
+            }}
+            onSuggestChanges={(edits) => {
+              if (request) {
+                onReviewAction?.(request.id, {
+                  type: "suggest_changes",
+                  proposedEdits: edits,
+                })
               }
             }}
           />
@@ -643,12 +693,20 @@ function AcceptedView({
   request,
   role,
   onCreateBroadcast,
+  onSuggestChanges,
 }: {
   request: PromotionRequest
   role: string
   onCreateBroadcast: () => void
+  onSuggestChanges: (edits: { adHeadline: string; adBody: string; adCta: string; adCtaUrl: string }) => void
 }) {
   const [showBroadcastDialog, setShowBroadcastDialog] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editHeadline, setEditHeadline] = useState(request.adHeadline)
+  const [editBody, setEditBody] = useState(request.adBody)
+  const [editCta, setEditCta] = useState(request.adCta)
+  const [editCtaUrl, setEditCtaUrl] = useState(request.adCtaUrl)
+
   const sponsor = getHero(request.sponsorId)
   const publisher = getHero(request.publisherId)
   const isPublisherRole = role === "publisher" || role === "both"
@@ -664,13 +722,35 @@ function AcceptedView({
       ? `${publisher?.name} accepted your request`
       : `You approved ${publisher?.name}'s proposal`
 
+  function startEditing() {
+    setEditHeadline(request.adHeadline)
+    setEditBody(request.adBody)
+    setEditCta(request.adCta)
+    setEditCtaUrl(request.adCtaUrl)
+    setIsEditing(true)
+  }
+
+  function cancelEditing() {
+    setIsEditing(false)
+  }
+
+  function handleSuggestChanges() {
+    onSuggestChanges({
+      adHeadline: editHeadline,
+      adBody: editBody,
+      adCta: editCta,
+      adCtaUrl: editCtaUrl,
+    })
+    setIsEditing(false)
+  }
+
   return (
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <SheetTitle className="text-lg">
-              {isPublisherRole ? "Create broadcast" : "Deal accepted"}
+              {isPublisherRole ? (isEditing ? "Edit ad copy" : "Create broadcast") : "Deal accepted"}
             </SheetTitle>
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <FileText className="size-3.5 shrink-0" />
@@ -743,7 +823,7 @@ function AcceptedView({
           </Tabs>
         ) : (
           <>
-            {/* ── Publisher view: Create Broadcast flow ── */}
+            {/* ── Publisher view ── */}
             {/* Success banner */}
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
               <div className="flex items-center gap-2">
@@ -756,18 +836,90 @@ function AcceptedView({
 
             <DealTermsTable request={request} role={role} />
 
-            {/* Ad preview */}
-            <EmailBlockPreview
-              headline={request.adHeadline}
-              body={request.adBody}
-              cta={request.adCta}
-            />
+            {/* Ad copy — display or edit mode */}
+            {isEditing ? (
+              <div className="space-y-3">
+                <SectionTitle>Edit ad copy</SectionTitle>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Headline</label>
+                  <Input
+                    value={editHeadline}
+                    onChange={(e) => setEditHeadline(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">Body</label>
+                  <Textarea
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    rows={4}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">CTA label</label>
+                    <Input
+                      value={editCta}
+                      onChange={(e) => setEditCta(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground">CTA URL</label>
+                    <Input
+                      value={editCtaUrl}
+                      onChange={(e) => setEditCtaUrl(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Live preview */}
+                <div className="space-y-2 pt-2">
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Eye className="size-3" />
+                    Preview
+                  </p>
+                  <EmailBlockPreview
+                    headline={editHeadline}
+                    body={editBody}
+                    cta={editCta}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <SectionTitle>Ad copy</SectionTitle>
+                  <Button variant="outline" size="sm" onClick={startEditing}>
+                    <PencilSimple className="size-3.5" />
+                    Edit Ad Copy
+                  </Button>
+                </div>
+                <EmailBlockPreview
+                  headline={request.adHeadline}
+                  body={request.adBody}
+                  cta={request.adCta}
+                />
+              </div>
+            )}
           </>
         )}
       </SheetBody>
 
-      {/* Publisher: Create Broadcast CTA */}
-      {isPublisherRole && (
+      {/* Publisher editing: Cancel / Suggest Changes */}
+      {isPublisherRole && isEditing && (
+        <SheetFooter>
+          <Button variant="outline" onClick={cancelEditing}>
+            Cancel
+          </Button>
+          <Button onClick={handleSuggestChanges}>
+            <ArrowsClockwise className="size-4" />
+            Suggest Changes
+          </Button>
+        </SheetFooter>
+      )}
+
+      {/* Publisher not editing: Close / Create Broadcast */}
+      {isPublisherRole && !isEditing && (
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
@@ -811,6 +963,350 @@ function AcceptedView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// In Review View — revision loop between publisher and sponsor
+// ─────────────────────────────────────────────────────────────
+
+function InReviewView({
+  request,
+  role,
+  onApproveEdits,
+  onRequestRevision,
+  onSuggestChanges,
+}: {
+  request: PromotionRequest
+  role: string
+  onApproveEdits: () => void
+  onRequestRevision: (notes: string) => void
+  onSuggestChanges: (edits: { adHeadline: string; adBody: string; adCta: string; adCtaUrl: string }) => void
+}) {
+  const sponsor = getHero(request.sponsorId)
+  const publisher = getHero(request.publisherId)
+  const isPublisherRole = role === "publisher" || role === "both"
+  const isSponsorRole = !isPublisherRole
+  const otherHero = isPublisherRole ? sponsor : publisher
+
+  const isMyTurn =
+    (isPublisherRole && request.reviewTurn === "publisher") ||
+    (isSponsorRole && request.reviewTurn === "sponsor")
+
+  // Publisher edit state (when it's their turn to revise)
+  const [editHeadline, setEditHeadline] = useState(request.proposedEdits?.adHeadline ?? request.adHeadline)
+  const [editBody, setEditBody] = useState(request.proposedEdits?.adBody ?? request.adBody)
+  const [editCta, setEditCta] = useState(request.proposedEdits?.adCta ?? request.adCta)
+  const [editCtaUrl, setEditCtaUrl] = useState(request.proposedEdits?.adCtaUrl ?? request.adCtaUrl)
+
+  // Sponsor revision notes state
+  const [revisionNotes, setRevisionNotes] = useState("")
+  const [showRevisionInput, setShowRevisionInput] = useState(false)
+
+  // Approve animation
+  const [approvePhase, setApprovePhase] = useState<"idle" | "loading" | "success">("idle")
+
+  function handleApprove() {
+    setApprovePhase("loading")
+    setTimeout(() => {
+      setApprovePhase("success")
+      onApproveEdits()
+    }, 1200)
+  }
+
+  function handleRequestRevision() {
+    onRequestRevision(revisionNotes)
+    setShowRevisionInput(false)
+  }
+
+  function handlePublisherSubmit() {
+    onSuggestChanges({
+      adHeadline: editHeadline,
+      adBody: editBody,
+      adCta: editCta,
+      adCtaUrl: editCtaUrl,
+    })
+  }
+
+  // The copy to display (proposed edits if they exist, otherwise original)
+  const displayCopy = request.proposedEdits ?? {
+    adHeadline: request.adHeadline,
+    adBody: request.adBody,
+    adCta: request.adCta,
+    adCtaUrl: request.adCtaUrl,
+  }
+
+  // Header title
+  const headerTitle = isPublisherRole
+    ? (isMyTurn ? "Revision requested" : "Awaiting approval")
+    : (isMyTurn ? "Review copy edits" : "Waiting for revision")
+
+  return (
+    <>
+      <SheetHeader>
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <SheetTitle className="text-lg">{headerTitle}</SheetTitle>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <FileText className="size-3.5 shrink-0" />
+              {request.adHeadline}
+            </p>
+          </div>
+          <Badge variant="secondary" className={getStatusColor("in_review")}>
+            {STATUS_LABELS.in_review}
+          </Badge>
+          <SheetClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <X />
+              <span className="sr-only">Close</span>
+            </Button>
+          </SheetClose>
+        </div>
+      </SheetHeader>
+
+      <SheetBody className="space-y-4">
+        {otherHero && <HeroIdentity hero={otherHero} showEngagement={isSponsorRole} />}
+
+        {/* ── Publisher: Waiting for sponsor to review (read-only) ── */}
+        {isPublisherRole && !isMyTurn && (
+          <>
+            <div className="rounded-lg border bg-muted/50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="relative flex size-8 items-center justify-center">
+                  <div className="absolute inset-0 animate-ping rounded-full bg-amber-400/30" />
+                  <div className="relative size-3 rounded-full bg-amber-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Awaiting sponsor approval</p>
+                  <p className="text-xs text-muted-foreground">
+                    You&apos;ll be notified when {sponsor?.name.split(" ")[0]} responds
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <SectionTitle>Your suggested copy</SectionTitle>
+              <EmailBlockPreview
+                headline={displayCopy.adHeadline}
+                body={displayCopy.adBody}
+                cta={displayCopy.adCta}
+              />
+            </div>
+          </>
+        )}
+
+        {/* ── Publisher: Their turn to revise (sponsor sent notes) ── */}
+        {isPublisherRole && isMyTurn && (
+          <>
+            {/* Sponsor's revision notes */}
+            {request.revisionNotes && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/50">
+                <p className="mb-1 text-xs font-medium text-amber-800 dark:text-amber-300">
+                  Feedback from {sponsor?.name.split(" ")[0]}
+                </p>
+                <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+                  {request.revisionNotes}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <SectionTitle>Edit ad copy</SectionTitle>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Headline</label>
+                <Input
+                  value={editHeadline}
+                  onChange={(e) => setEditHeadline(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Body</label>
+                <Textarea
+                  value={editBody}
+                  onChange={(e) => setEditBody(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">CTA label</label>
+                  <Input
+                    value={editCta}
+                    onChange={(e) => setEditCta(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground">CTA URL</label>
+                  <Input
+                    value={editCtaUrl}
+                    onChange={(e) => setEditCtaUrl(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Live preview */}
+              <div className="space-y-2 pt-2">
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Eye className="size-3" />
+                  Preview
+                </p>
+                <EmailBlockPreview
+                  headline={editHeadline}
+                  body={editBody}
+                  cta={editCta}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Sponsor: Reviewing publisher's edits (their turn to approve/request revision) ── */}
+        {isSponsorRole && isMyTurn && (
+          <>
+            <div className="space-y-2">
+              <SectionTitle>Proposed copy</SectionTitle>
+              <EmailBlockPreview
+                headline={displayCopy.adHeadline}
+                body={displayCopy.adBody}
+                cta={displayCopy.adCta}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Original copy for comparison */}
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Original copy</p>
+              <EmailBlockPreview
+                headline={request.adHeadline}
+                body={request.adBody}
+                cta={request.adCta}
+                className="opacity-60"
+              />
+            </div>
+
+            <DealTermsTable request={request} role={role} />
+
+            {/* Revision notes input (shown when "Request Revision" is clicked) */}
+            {showRevisionInput && (
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Revision notes</label>
+                <Textarea
+                  placeholder="Tell the publisher what you'd like changed..."
+                  value={revisionNotes}
+                  onChange={(e) => setRevisionNotes(e.target.value)}
+                  rows={3}
+                  autoFocus
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Sponsor: Waiting for publisher to revise (read-only) ── */}
+        {isSponsorRole && !isMyTurn && (
+          <>
+            <div className="rounded-lg border bg-muted/50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="relative flex size-8 items-center justify-center">
+                  <div className="absolute inset-0 animate-ping rounded-full bg-amber-400/30" />
+                  <div className="relative size-3 rounded-full bg-amber-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Waiting for {publisher?.name.split(" ")[0]} to revise</p>
+                  <p className="text-xs text-muted-foreground">
+                    You&apos;ll be notified when they resubmit
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes you sent */}
+            {request.revisionNotes && (
+              <div className="rounded-lg border p-4 space-y-1">
+                <p className="text-xs text-muted-foreground">Your feedback</p>
+                <p className="text-sm leading-relaxed">{request.revisionNotes}</p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <SectionTitle>Current copy</SectionTitle>
+              <EmailBlockPreview
+                headline={displayCopy.adHeadline}
+                body={displayCopy.adBody}
+                cta={displayCopy.adCta}
+              />
+            </div>
+          </>
+        )}
+      </SheetBody>
+
+      {/* ── Footers ── */}
+
+      {/* Publisher waiting: Close only */}
+      {isPublisherRole && !isMyTurn && (
+        <SheetFooter>
+          <SheetClose asChild>
+            <Button variant="outline">Close</Button>
+          </SheetClose>
+        </SheetFooter>
+      )}
+
+      {/* Publisher revising: Suggest Changes */}
+      {isPublisherRole && isMyTurn && (
+        <SheetFooter>
+          <SheetClose asChild>
+            <Button variant="outline">Close</Button>
+          </SheetClose>
+          <Button onClick={handlePublisherSubmit}>
+            <ArrowsClockwise className="size-4" />
+            Suggest Changes
+          </Button>
+        </SheetFooter>
+      )}
+
+      {/* Sponsor reviewing: Request Revision / Approve */}
+      {isSponsorRole && isMyTurn && (
+        <SheetFooter>
+          {showRevisionInput ? (
+            <>
+              <Button variant="outline" onClick={() => setShowRevisionInput(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleRequestRevision} disabled={!revisionNotes.trim()}>
+                Send Revision Notes
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => setShowRevisionInput(true)}>
+                Request Revision
+              </Button>
+              {approvePhase === "success" ? (
+                <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+                  <Check weight="bold" className="size-4" />
+                  Approved
+                </Button>
+              ) : (
+                <Button loading={approvePhase === "loading"} onClick={handleApprove}>
+                  {approvePhase === "loading" ? "Approving..." : "Approve"}
+                </Button>
+              )}
+            </>
+          )}
+        </SheetFooter>
+      )}
+
+      {/* Sponsor waiting: Close only */}
+      {isSponsorRole && !isMyTurn && (
+        <SheetFooter>
+          <SheetClose asChild>
+            <Button variant="outline">Close</Button>
+          </SheetClose>
+        </SheetFooter>
+      )}
     </>
   )
 }

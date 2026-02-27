@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,6 +17,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -32,7 +32,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { EmailBlockPreview } from "@/components/email-block-preview"
-import { currentUser, formatCurrency, formatNumber, getEngagementColor } from "@/lib/mock-data"
+import { EngagementBadge } from "@/components/engagement-badge"
+import { currentUser, formatCurrency, formatNumber } from "@/lib/mock-data"
 import type { Vertical } from "@/lib/mock-data"
 import { Globe, LinkSimple, SignOut } from "@phosphor-icons/react"
 
@@ -72,22 +73,9 @@ export function SettingsContent() {
   const [vertical, setVertical] = useState<Vertical>(currentUser.verticals[0])
 
   // ── Publisher state ────────────────────────────────────────
-  const [audienceSize, setAudienceSize] = useState(
-    currentUser.subscriberCount.toLocaleString("en-US")
-  )
   const [sendFee, setSendFee] = useState(
     currentUser.recommendedFee.toString()
   )
-  const audienceNum = parseInt(audienceSize.replace(/,/g, "")) || 0
-
-  function handleAudienceChange(value: string) {
-    const raw = value.replace(/,/g, "").replace(/\D/g, "")
-    if (raw === "") {
-      setAudienceSize("")
-      return
-    }
-    setAudienceSize(parseInt(raw).toLocaleString("en-US"))
-  }
 
   // ── Campaign state ─────────────────────────────────────────
   const [campHeadline, setCampHeadline] = useState(INITIAL_CAMPAIGN.headline)
@@ -103,6 +91,33 @@ export function SettingsContent() {
     year: "numeric",
   })
 
+  // ── Change detection ─────────────────────────────────────
+  const initialTwitter = currentUser.socialLinks.find((l) => l.platform === "twitter")?.url || ""
+  const initialInstagram = currentUser.socialLinks.find((l) => l.platform === "instagram")?.url || ""
+  const initialLinkedin = currentUser.socialLinks.find((l) => l.platform === "linkedin")?.url || ""
+
+  const detailsChanged =
+    name !== currentUser.name ||
+    tagline !== currentUser.tagline ||
+    bio !== currentUser.bio ||
+    vertical !== currentUser.verticals[0]
+
+  const linksChanged =
+    website !== currentUser.website ||
+    twitter !== initialTwitter ||
+    instagram !== initialInstagram ||
+    linkedin !== initialLinkedin
+
+  const pricingChanged =
+    sendFee !== currentUser.recommendedFee.toString()
+
+  const campaignChanged =
+    campHeadline !== INITIAL_CAMPAIGN.headline ||
+    campBody !== INITIAL_CAMPAIGN.body ||
+    campCta !== INITIAL_CAMPAIGN.cta ||
+    campCtaUrl !== INITIAL_CAMPAIGN.ctaUrl ||
+    campBudget !== INITIAL_CAMPAIGN.budgetPerSend
+
   // ── Which tab is default ───────────────────────────────────
   const defaultTab = "profile"
 
@@ -117,10 +132,10 @@ export function SettingsContent() {
         <TabsList className="w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-1.5">
           <TabsTrigger value="profile" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Profile</TabsTrigger>
           {isPublisher && (
-            <TabsTrigger value="publisher" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Pricing & Availability</TabsTrigger>
+            <TabsTrigger value="publisher" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Pricing</TabsTrigger>
           )}
           {isSponsor && (
-            <TabsTrigger value="campaigns" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Campaigns</TabsTrigger>
+            <TabsTrigger value="campaigns" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Ad Campaign</TabsTrigger>
           )}
           <TabsTrigger value="account" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Account</TabsTrigger>
         </TabsList>
@@ -187,6 +202,9 @@ export function SettingsContent() {
                 </p>
               </div>
             </CardContent>
+            <CardFooter className="justify-end border-t px-6 py-4">
+              <Button disabled={!detailsChanged}>Save</Button>
+            </CardFooter>
           </Card>
 
           {/* Links */}
@@ -245,72 +263,46 @@ export function SettingsContent() {
                 </div>
               </div>
             </CardContent>
+            <CardFooter className="justify-end border-t px-6 py-4">
+              <Button disabled={!linksChanged}>Save</Button>
+            </CardFooter>
           </Card>
         </TabsContent>
 
-        {/* ── Publisher Settings Tab ──────────────────────────── */}
+        {/* ── Publisher Pricing Tab ──────────────────────────── */}
         {isPublisher && (
           <TabsContent value="publisher" className="space-y-8">
-            {/* Engagement tier */}
             <Card>
               <CardHeader>
-                <CardTitle>Engagement Tier</CardTitle>
-                <CardDescription>
-                  Your tier is based on your audience size and open rate. Higher engagement unlocks better sponsorship rates.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="secondary"
-                    className={getEngagementColor(currentUser.engagementTier)}
-                  >
-                    {currentUser.engagementTier.charAt(0).toUpperCase() + currentUser.engagementTier.slice(1)}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Subscribers</p>
-                    <p className="text-lg font-medium tabular-nums">
-                      {formatNumber(currentUser.subscriberCount)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Open rate</p>
-                    <p className="text-lg font-medium tabular-nums">
-                      {currentUser.openRate}%
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="audience-size">Broadcast audience size</Label>
-                  <Input
-                    id="audience-size"
-                    inputMode="numeric"
-                    placeholder="e.g. 10,000"
-                    value={audienceSize}
-                    onChange={(e) => handleAudienceChange(e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Update this if your subscriber count has changed.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pricing & availability */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Pricing & Availability</CardTitle>
+                <CardTitle>Pricing</CardTitle>
                 <CardDescription>
                   Set the rate you charge sponsors for each email send.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
+                {/* Engagement stats */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-lg border p-4 space-y-1">
+                    <p className="text-xs text-muted-foreground">Subscribers</p>
+                    <p className="text-lg font-medium tabular-nums">{formatNumber(currentUser.subscriberCount)}</p>
+                  </div>
+                  <div className="rounded-lg border p-4 space-y-1">
+                    <p className="text-xs text-muted-foreground">Open Rate</p>
+                    <p className="text-lg font-medium tabular-nums">{currentUser.openRate}%</p>
+                  </div>
+                  <div className="rounded-lg border p-4 space-y-1">
+                    <p className="text-xs text-muted-foreground">Click Rate</p>
+                    <p className="text-lg font-medium tabular-nums">{currentUser.clickRate}%</p>
+                  </div>
+                </div>
+
+                <EngagementBadge tier={currentUser.engagementTier} />
+
+                <Separator />
+
+                {/* Send fee */}
                 <div className="space-y-2">
-                  <Label htmlFor="send-fee">Your send fee</Label>
+                  <Label htmlFor="send-fee">Send fee</Label>
                   <InputGroup>
                     <InputGroupAddon align="inline-start">
                       <InputGroupText>$</InputGroupText>
@@ -328,8 +320,14 @@ export function SettingsContent() {
                       <InputGroupText>per send</InputGroupText>
                     </InputGroupAddon>
                   </InputGroup>
+                  <p className="text-xs text-muted-foreground">
+                    Based on your engagement, we recommend {formatCurrency(currentUser.recommendedFee)} per send.
+                  </p>
                 </div>
               </CardContent>
+              <CardFooter className="justify-end border-t px-6 py-4">
+                <Button disabled={!pricingChanged}>Save</Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         )}
@@ -340,7 +338,7 @@ export function SettingsContent() {
             {/* Your campaign */}
             <Card>
               <CardHeader>
-                <CardTitle>Your Campaign</CardTitle>
+                <CardTitle>Ad Campaign</CardTitle>
                 <CardDescription>
                   This is the ad that publishers will see and run in their newsletters.
                 </CardDescription>
@@ -424,6 +422,9 @@ export function SettingsContent() {
                   />
                 </div>
               </CardContent>
+              <CardFooter className="justify-end border-t px-6 py-4">
+                <Button disabled={!campaignChanged}>Save</Button>
+              </CardFooter>
             </Card>
           </TabsContent>
         )}

@@ -78,7 +78,7 @@ export function AppNav() {
                 <Avatar size="sm">
                   <AvatarFallback>{firstInitial}</AvatarFallback>
                 </Avatar>
-                <span className="text-sm">{activeUser.name.split(" ")[0]}</span>
+                <span className="text-sm">{role === "publisher" ? "Publisher" : "Sponsor"}</span>
                 <CaretUpDown className="size-3.5 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>

@@ -39,6 +39,8 @@ export interface Hero {
   openRate: number
   clickRate: number
   recommendedFee: number
+  budgetPerThousand?: number
+  maxBudget?: number
   bio: string
   website: string
   socialLinks: { platform: string; url: string }[]
@@ -150,6 +152,8 @@ export const heroes: Hero[] = [
     openRate: 45,
     clickRate: 9.1,
     recommendedFee: 500,
+    budgetPerThousand: 35,
+    maxBudget: 2500,
     bio: "Author, speaker, and community builder. I run a 5,000-member community for women in leadership. My subscribers are engaged, ambitious, and ready to invest in themselves.",
     website: "https://priyapatel.com",
     socialLinks: [
@@ -172,6 +176,8 @@ export const heroes: Hero[] = [
     openRate: 28,
     clickRate: 4.2,
     recommendedFee: 150,
+    budgetPerThousand: 25,
+    maxBudget: 750,
     bio: "I teach creators how to package their knowledge into profitable online courses. Looking to reach new audiences through trusted publisher recommendations.",
     website: "https://jakemorrison.io",
     socialLinks: [
@@ -215,6 +221,8 @@ export const heroes: Hero[] = [
     openRate: 25,
     clickRate: 3.8,
     recommendedFee: 120,
+    budgetPerThousand: 20,
+    maxBudget: 500,
     bio: "I run a SaaS tool that helps podcasters grow their audience. Looking to partner with publishers who have engaged, creator-focused audiences.",
     website: "https://podgrowth.co",
     socialLinks: [
@@ -237,6 +245,8 @@ export const heroes: Hero[] = [
     openRate: 40,
     clickRate: 7.3,
     recommendedFee: 325,
+    budgetPerThousand: 30,
+    maxBudget: 1500,
     bio: "Mom of 3, author of 'Connected Parenting', and creator of the Mindful Moms community. My audience is deeply engaged and trusts my product recommendations.",
     website: "https://emmanguyen.com",
     socialLinks: [
@@ -281,6 +291,8 @@ export const heroes: Hero[] = [
     openRate: 27,
     clickRate: 4.5,
     recommendedFee: 160,
+    budgetPerThousand: 25,
+    maxBudget: 800,
     bio: "I built a 7-figure membership site and now teach others to do the same. Looking to reach engaged publisher audiences in the education and coaching space.",
     website: "https://lisapark.co",
     socialLinks: [
@@ -458,6 +470,8 @@ export const heroes: Hero[] = [
     openRate: 26,
     clickRate: 4.0,
     recommendedFee: 130,
+    budgetPerThousand: 22,
+    maxBudget: 650,
     bio: "Co-founder of MailSpark, an email marketing platform built specifically for creators and course sellers. We're looking to get in front of engaged publisher audiences who already understand the value of email.",
     website: "https://mailspark.io",
     socialLinks: [
@@ -480,6 +494,8 @@ export const heroes: Hero[] = [
     openRate: 24,
     clickRate: 3.5,
     recommendedFee: 110,
+    budgetPerThousand: 18,
+    maxBudget: 500,
     bio: "I built SoloBooks — dead-simple accounting for one-person businesses. No accounting degree required. Looking to partner with publishers whose audiences are freelancers, coaches, and creators managing their own finances.",
     website: "https://solobooks.co",
     socialLinks: [
@@ -501,6 +517,8 @@ export const heroes: Hero[] = [
     openRate: 29,
     clickRate: 4.8,
     recommendedFee: 155,
+    budgetPerThousand: 25,
+    maxBudget: 750,
     bio: "I run the Certified Coach Academy — an ICF-accredited program that turns experts into certified coaches in 12 weeks. Looking to reach audiences of aspiring coaches, consultants, and educators who want to add coaching to their skillset.",
     website: "https://certifiedcoachacademy.com",
     socialLinks: [
@@ -523,6 +541,8 @@ export const heroes: Hero[] = [
     openRate: 23,
     clickRate: 3.3,
     recommendedFee: 100,
+    budgetPerThousand: 18,
+    maxBudget: 400,
     bio: "Founder of LaunchKit — a drag-and-drop landing page builder designed for course creators and coaches. We convert 2x better than generic page builders because we're built for knowledge businesses.",
     website: "https://launchkit.app",
     socialLinks: [
@@ -545,6 +565,8 @@ export const heroes: Hero[] = [
     openRate: 20,
     clickRate: 2.8,
     recommendedFee: 75,
+    budgetPerThousand: 15,
+    maxBudget: 300,
     bio: "I design premium Kajabi website and course templates that help creators look professional on day one. Looking to reach Kajabi users and online educators who want to level up their branding.",
     website: "https://camilleroux.design",
     socialLinks: [
@@ -567,6 +589,8 @@ export const heroes: Hero[] = [
     openRate: 27,
     clickRate: 4.1,
     recommendedFee: 125,
+    budgetPerThousand: 20,
+    maxBudget: 600,
     bio: "Co-founder of ClipFlow, an AI-powered video editor that turns long-form content into social clips in minutes. Creators who publish courses, YouTube videos, or podcasts are our ideal users.",
     website: "https://clipflow.ai",
     socialLinks: [
@@ -590,6 +614,8 @@ export const heroes: Hero[] = [
     openRate: 43,
     clickRate: 8.5,
     recommendedFee: 425,
+    budgetPerThousand: 30,
+    maxBudget: 2000,
     bio: "I built a 10,000-member paid community and now teach the model to other creators. As a publisher, my audience is deeply engaged course creators. As a sponsor, I'm promoting my Community Playbook program to aligned audiences.",
     website: "https://lenakapoor.com",
     socialLinks: [
@@ -612,6 +638,8 @@ export const heroes: Hero[] = [
     openRate: 37,
     clickRate: 6.9,
     recommendedFee: 300,
+    budgetPerThousand: 25,
+    maxBudget: 1500,
     bio: "Sleep researcher and former Olympic trainer. My newsletter covers the science of recovery, sleep optimization, and sustainable performance. As a sponsor, I promote my Sleep Protocol course to health-conscious audiences.",
     website: "https://marcuswebb.co",
     socialLinks: [

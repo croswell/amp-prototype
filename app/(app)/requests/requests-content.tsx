@@ -41,6 +41,7 @@ type TabKey = RequestStatus | "requested"
 // Publisher tabs
 const PUBLISHER_TABS: { key: TabKey; label: string }[] = [
   { key: "requested", label: "Requested" },
+  { key: "accepted", label: "Accepted" },
   { key: "scheduled", label: "Scheduled" },
   { key: "published", label: "Published" },
   { key: "paid", label: "Paid" },
@@ -51,6 +52,7 @@ const PUBLISHER_TABS: { key: TabKey; label: string }[] = [
 // Sponsor tabs
 const SPONSOR_TABS: { key: TabKey; label: string }[] = [
   { key: "requested", label: "Requested" },
+  { key: "accepted", label: "Accepted" },
   { key: "scheduled", label: "Scheduled" },
   { key: "published", label: "Published" },
   { key: "paid", label: "Paid" },

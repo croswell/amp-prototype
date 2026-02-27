@@ -4,7 +4,6 @@ import { useState, useCallback } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
 import {
   Sheet,
   SheetContent,
@@ -26,10 +25,19 @@ import { EmailBlockPreview } from "@/components/email-block-preview"
 import { HeroIdentity } from "@/components/hero-card"
 import { SocialIcon } from "@/components/social-icon"
 import { PayoutBadge } from "@/components/payout-badge"
-import { CalendarBlank, Timer, X, Check, CheckCircle, Clock, Globe, FileText } from "@phosphor-icons/react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { CalendarBlank, Timer, X, Check, CheckCircle, Clock, Globe, FileText, ArrowSquareOut, Broadcast } from "@phosphor-icons/react"
 import {
   type RequestStatus,
   type PromotionRequest,
+  type Hero,
   getHero,
   getStatusColor,
   formatCurrency,
@@ -68,6 +76,130 @@ export function SectionTitle({ children }: { children: React.ReactNode }) {
   return <p className="text-base font-medium">{children}</p>
 }
 
+// ─────────────────────────────────────────────────────────────
+// Shared ProfileTab — renders the other party's profile info
+// ─────────────────────────────────────────────────────────────
+
+function ProfileTab({ hero, heroType }: { hero: Hero; heroType: "publisher" | "sponsor" }) {
+  if (heroType === "publisher") {
+    return (
+      <>
+        {/* Audience stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-lg border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Subscribers</p>
+            <p className="text-lg font-medium tabular-nums">{formatNumber(hero.subscriberCount)}</p>
+          </div>
+          <div className="rounded-lg border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Open Rate</p>
+            <p className="text-lg font-medium tabular-nums">{hero.openRate}%</p>
+          </div>
+          <div className="rounded-lg border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Click Rate</p>
+            <p className="text-lg font-medium tabular-nums">{hero.clickRate}%</p>
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-2">
+          <SectionTitle>Bio</SectionTitle>
+          <p className="text-sm leading-relaxed">{hero.bio}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {hero.website && (
+            <Badge variant="outline" className="text-xs">
+              <Globe className="size-3" />
+              {hero.website.replace(/^https?:\/\//, "")}
+            </Badge>
+          )}
+          {hero.socialLinks.map((link) => (
+            <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+              <SocialIcon platform={link.platform} className="size-3" />
+              {link.platform}
+            </Badge>
+          ))}
+        </div>
+      </>
+    )
+  }
+
+  // Sponsor profile
+  return (
+    <>
+      <div className="space-y-2">
+        <SectionTitle>Bio</SectionTitle>
+        <p className="text-sm leading-relaxed">{hero.bio}</p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {hero.verticals.map((v) => (
+          <Badge key={v} variant="outline" className="text-xs">
+            {v}
+          </Badge>
+        ))}
+        {hero.website && (
+          <Badge variant="outline" className="text-xs">
+            <Globe className="size-3" />
+            {hero.website.replace(/^https?:\/\//, "")}
+          </Badge>
+        )}
+        {hero.socialLinks.map((link) => (
+          <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+            <SocialIcon platform={link.platform} className="size-3" />
+            {link.platform}
+          </Badge>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Shared DealTermsTable — renders deal terms in a bordered table
+// ─────────────────────────────────────────────────────────────
+
+function DealTermsTable({
+  request,
+  dateLabel = "Schedule",
+  payoutLabel = "Payout per send",
+}: {
+  request: PromotionRequest
+  dateLabel?: string
+  payoutLabel?: string
+}) {
+  const totalCost = request.proposedFee * request.numberOfSends
+  const endDate = new Date(request.proposedDate + "T00:00:00")
+  endDate.setDate(endDate.getDate() + request.numberOfSends * 7)
+  const endDateStr = endDate.toISOString().split("T")[0]
+
+  return (
+    <div className="rounded-lg border">
+      <Table>
+        <TableBody>
+          <TableRow className="hover:bg-transparent">
+            <TableCell className="text-muted-foreground">{payoutLabel}</TableCell>
+            <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
+          </TableRow>
+          <TableRow className="hover:bg-transparent">
+            <TableCell className="text-muted-foreground">Number of sends</TableCell>
+            <TableCell className="text-right">{request.numberOfSends}</TableCell>
+          </TableRow>
+          <TableRow className="hover:bg-transparent">
+            <TableCell className="text-muted-foreground">{dateLabel}</TableCell>
+            <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
+          </TableRow>
+          <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
+            <TableCell className="text-muted-foreground">Total</TableCell>
+            <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
 // Accept animation phases
 type AcceptPhase = "idle" | "loading" | "success"
 
@@ -93,16 +225,12 @@ export function PromotionSheet({
 }: PromotionSheetProps) {
   // Accept animation
   const [acceptPhase, setAcceptPhase] = useState<AcceptPhase>("idle")
-  // Date picker for scheduling
-  const [scheduledDate, setScheduledDate] = useState("")
-
   const effectiveStatus = status ?? request?.status ?? null
 
   // Reset state when a new request opens
   function handleOpen(nextOpen: boolean) {
     if (nextOpen && request) {
       setAcceptPhase("idle")
-      setScheduledDate(request.proposedDate)
     }
     onOpenChange(nextOpen)
   }
@@ -127,26 +255,6 @@ export function PromotionSheet({
     }, 1200)
   }, [request, onStatusChange, onOpenChange])
 
-  // ── Publisher picks a date and schedules ──
-  function handleSchedule() {
-    if (!request) return
-    onStatusChange?.(request.id, "scheduled")
-    onOpenChange(false)
-  }
-
-  // ── Sponsor approves a publisher's scheduled request ──
-  function handleSponsorApprove() {
-    if (!request) return
-    onStatusChange?.(request.id, "scheduled")
-    onOpenChange(false)
-  }
-
-  // ── Sponsor declines ──
-  function handleSponsorDecline() {
-    if (!request) return
-    onStatusChange?.(request.id, "declined")
-    onOpenChange(false)
-  }
 
   return (
     <Sheet open={open} onOpenChange={handleOpen}>
@@ -162,16 +270,17 @@ export function PromotionSheet({
           />
         )}
 
-        {/* ── Accepted: pick schedule date ── */}
+        {/* ── Accepted: create broadcast (publisher) or waiting (sponsor) ── */}
         {request && effectiveStatus === "accepted" && (
           <AcceptedView
             request={request}
             role={role}
-            scheduledDate={scheduledDate}
-            onDateChange={setScheduledDate}
-            onSchedule={handleSchedule}
-            onSponsorApprove={handleSponsorApprove}
-            onSponsorDecline={handleSponsorDecline}
+            onCreateBroadcast={() => {
+              if (request) {
+                onStatusChange?.(request.id, "scheduled")
+                onOpenChange(false)
+              }
+            }}
           />
         )}
 
@@ -182,22 +291,22 @@ export function PromotionSheet({
 
         {/* ── Published (read-only) ── */}
         {request && effectiveStatus === "published" && (
-          <PublishedView request={request} />
+          <PublishedView request={request} role={role} />
         )}
 
         {/* ── Paid (read-only) ── */}
         {request && effectiveStatus === "paid" && (
-          <PaidView request={request} />
+          <PaidView request={request} role={role} />
         )}
 
         {/* ── Declined (read-only) ── */}
         {request && effectiveStatus === "declined" && (
-          <ClosedView request={request} statusKey="declined" />
+          <ClosedView request={request} role={role} statusKey="declined" />
         )}
 
         {/* ── Expired (read-only) ── */}
         {request && effectiveStatus === "expired" && (
-          <ClosedView request={request} statusKey="expired" />
+          <ClosedView request={request} role={role} statusKey="expired" />
         )}
       </SheetContent>
     </Sheet>
@@ -472,6 +581,9 @@ function PendingView({
         {/* ── Waiting view (no action needed) ── */}
         {!isSponsorReviewing && !isPublisherReviewing && (
           <>
+            {/* Other party identity */}
+            {headerHero && <HeroIdentity hero={headerHero} />}
+
             {!needsAction && (
               <div className="rounded-lg border bg-muted/50 p-4">
                 <div className="flex items-center gap-3">
@@ -502,13 +614,13 @@ function PendingView({
 
             {/* Brief */}
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground">Brief</p>
+              <SectionTitle>Brief</SectionTitle>
               <p className="text-sm leading-relaxed">{request.brief}</p>
             </div>
 
             {/* Ad preview */}
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground">Ad preview</p>
+              <SectionTitle>Ad preview</SectionTitle>
               <EmailBlockPreview
                 headline={request.adHeadline}
                 body={request.adBody}
@@ -608,38 +720,47 @@ function PendingView({
 function AcceptedView({
   request,
   role,
-  scheduledDate,
-  onDateChange,
-  onSchedule,
-  onSponsorApprove,
-  onSponsorDecline,
+  onCreateBroadcast,
 }: {
   request: PromotionRequest
   role: string
-  scheduledDate: string
-  onDateChange: (v: string) => void
-  onSchedule: () => void
-  onSponsorApprove: () => void
-  onSponsorDecline: () => void
+  onCreateBroadcast: () => void
 }) {
+  const [showBroadcastDialog, setShowBroadcastDialog] = useState(false)
   const sponsor = getHero(request.sponsorId)
   const publisher = getHero(request.publisherId)
   const isPublisherRole = role === "publisher" || role === "both"
   const isSponsorRole = !isPublisherRole
   const totalCost = request.proposedFee * request.numberOfSends
 
-  // Sponsor sees the publisher; publisher sees the sponsor
-  const headerHero = isSponsorRole ? publisher : sponsor
-  const initials = headerHero ? headerHero.name.charAt(0) : "?"
+  // End date for schedule range
+  const endDate = new Date(request.proposedDate + "T00:00:00")
+  endDate.setDate(endDate.getDate() + request.numberOfSends * 7)
+  const endDateStr = endDate.toISOString().split("T")[0]
+
+  // Other party: publisher sees sponsor, sponsor sees publisher
+  const otherHero = isPublisherRole ? sponsor : publisher
+
+  // Success banner copy depends on flow
+  const bannerCopy = isPublisherRole
+    ? "You accepted this campaign"
+    : request.initiatedBy === "sponsor"
+      ? `${publisher?.name} accepted your request`
+      : `You approved ${publisher?.name}'s proposal`
 
   return (
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <SheetTitle className="flex-1 text-lg">{headerHero?.name}</SheetTitle>
+          <div className="flex-1">
+            <SheetTitle className="text-lg">
+              {isPublisherRole ? "Create broadcast" : "Deal accepted"}
+            </SheetTitle>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <FileText className="size-3.5 shrink-0" />
+              {request.adHeadline}
+            </p>
+          </div>
           <Badge variant="secondary" className={getStatusColor("accepted")}>
             {STATUS_LABELS.accepted}
           </Badge>
@@ -653,177 +774,171 @@ function AcceptedView({
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        {/* ── Sponsor view: tabbed layout ── */}
+        {otherHero && <HeroIdentity hero={otherHero} showEngagement={isSponsorRole} />}
+
+        {/* ── Sponsor view: tabbed layout with waiting state ── */}
         {isSponsorRole && publisher ? (
-          <Tabs defaultValue="proposal">
+          <Tabs defaultValue="details">
             <TabsList variant="line">
-              <TabsTrigger value="proposal">Proposal</TabsTrigger>
-              <TabsTrigger value="about">Profile</TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="proposal" className="space-y-4 pt-2">
+            <TabsContent value="details" className="space-y-4 pt-2">
               {/* Success banner */}
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
                 <div className="flex items-center gap-2">
                   <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
                   <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                    {`${publisher.name} approved your campaign`}
+                    {bannerCopy}
                   </p>
                 </div>
               </div>
 
-              {/* Campaign preview */}
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground">Your campaign</p>
-                <EmailBlockPreview
-                  headline={request.adHeadline}
-                  body={request.adBody}
-                  cta={request.adCta}
-                />
-              </div>
-
-              {/* Deal details */}
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Fee / send</p>
-                  <PayoutBadge amount={request.proposedFee} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Sends</p>
-                  <p className="text-sm tabular-nums">{request.numberOfSends}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Total cost</p>
-                  <p className="text-sm font-medium tabular-nums">{formatCurrency(totalCost)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Preferred date</p>
-                  <Badge className={BADGE_COLORS.blue}>
-                    <CalendarBlank className="size-3" />
-                    {formatDate(request.proposedDate)}
-                  </Badge>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="about" className="space-y-6 pt-2">
-              {/* Audience stats */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg border p-4 space-y-1">
-                  <p className="text-xs text-muted-foreground">Subscribers</p>
-                  <p className="text-lg font-medium tabular-nums">{formatNumber(publisher.subscriberCount)}</p>
-                </div>
-                <div className="rounded-lg border p-4 space-y-1">
-                  <p className="text-xs text-muted-foreground">Open Rate</p>
-                  <p className="text-lg font-medium tabular-nums">{publisher.openRate}%</p>
-                </div>
-                <div className="rounded-lg border p-4 space-y-1">
-                  <p className="text-xs text-muted-foreground">Click Rate</p>
-                  <p className="text-lg font-medium tabular-nums">{publisher.clickRate}%</p>
+              {/* Waiting indicator */}
+              <div className="rounded-lg border bg-muted/50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex size-8 items-center justify-center">
+                    <div className="absolute inset-0 animate-ping rounded-full bg-amber-400/30" />
+                    <div className="relative size-3 rounded-full bg-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Waiting for {publisher.name.split(" ")[0]} to create the broadcast</p>
+                    <p className="text-xs text-muted-foreground">
+                      You&apos;ll be notified when it&apos;s scheduled
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <Separator />
-
-              {/* Bio */}
-              <div className="space-y-2">
-                <SectionTitle>Bio</SectionTitle>
-                <p className="text-sm leading-relaxed">{publisher.bio}</p>
-              </div>
-
-              {/* Links row */}
-              <div className="flex flex-wrap gap-2">
-                {publisher.website && (
-                  <Badge variant="outline" className="text-xs">
-                    <Globe className="size-3" />
-                    {publisher.website.replace(/^https?:\/\//, "")}
-                  </Badge>
-                )}
-                {publisher.socialLinks.map((link) => (
-                  <Badge key={link.platform} variant="outline" className="text-xs capitalize">
-                    <SocialIcon platform={link.platform} className="size-3" />
-                    {link.platform}
-                  </Badge>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <>
-            {/* ── Publisher view: original single-scroll layout ── */}
-            {/* Success banner */}
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
-              <div className="flex items-center gap-2">
-                <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
-                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                  You approved this campaign
-                </p>
-              </div>
-            </div>
-
-            {/* Ad preview */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground">Ad</p>
+              {/* Ad preview */}
               <EmailBlockPreview
                 headline={request.adHeadline}
                 body={request.adBody}
                 cta={request.adCta}
               />
+
+              {/* Deal terms table */}
+              <div className="rounded-lg border">
+                <Table>
+                  <TableBody>
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell className="text-muted-foreground">Payout per send</TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
+                    </TableRow>
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell className="text-muted-foreground">Number of sends</TableCell>
+                      <TableCell className="text-right">{request.numberOfSends}</TableCell>
+                    </TableRow>
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell className="text-muted-foreground">Schedule</TableCell>
+                      <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
+                    </TableRow>
+                    <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
+                      <TableCell className="text-muted-foreground">Total</TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="profile" className="space-y-6 pt-2">
+              <ProfileTab hero={publisher} heroType="publisher" />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <>
+            {/* ── Publisher view: Create Broadcast flow ── */}
+            {/* Success banner */}
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
+              <div className="flex items-center gap-2">
+                <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                  {bannerCopy}
+                </p>
+              </div>
             </div>
 
-            {/* Publisher picks a date */}
-            {isPublisherRole && (
-              <div className="space-y-2">
-                <label className="text-xs font-medium">Pick a send date</label>
-                <Input
-                  type="date"
-                  value={scheduledDate}
-                  onChange={(e) => onDateChange(e.target.value)}
-                />
-              </div>
-            )}
+            {/* Ad preview */}
+            <EmailBlockPreview
+              headline={request.adHeadline}
+              body={request.adBody}
+              cta={request.adCta}
+            />
 
-            {/* Deal details */}
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Payout</p>
-                <PayoutBadge amount={request.proposedFee} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Preferred date</p>
-                <Badge className={BADGE_COLORS.blue}>
-                  <CalendarBlank className="size-3" />
-                  {formatDate(request.proposedDate)}
-                </Badge>
-              </div>
+            {/* Deal terms table */}
+            <div className="rounded-lg border">
+              <Table>
+                <TableBody>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="text-muted-foreground">Payout per send</TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="text-muted-foreground">Number of sends</TableCell>
+                    <TableCell className="text-right">{request.numberOfSends}</TableCell>
+                  </TableRow>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell className="text-muted-foreground">Schedule</TableCell>
+                    <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
+                  </TableRow>
+                  <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
+                    <TableCell className="text-muted-foreground">Total payout</TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </>
         )}
       </SheetBody>
 
-      {/* Publisher: schedule it */}
+      {/* Publisher: Create Broadcast CTA */}
       {isPublisherRole && (
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
           </SheetClose>
-          <Button onClick={onSchedule}>
-            Schedule
+          <Button onClick={() => setShowBroadcastDialog(true)}>
+            <Broadcast className="size-4" />
+            Create Broadcast
           </Button>
         </SheetFooter>
       )}
 
-      {/* Sponsor: approve/decline with total cost on the button */}
+      {/* Sponsor: just close */}
       {isSponsorRole && (
         <SheetFooter>
-          <Button variant="outline" onClick={onSponsorDecline}>
-            Decline
-          </Button>
-          <Button onClick={onSponsorApprove}>
-            Approve
-          </Button>
+          <SheetClose asChild>
+            <Button variant="outline">Close</Button>
+          </SheetClose>
         </SheetFooter>
       )}
+
+      {/* Create Broadcast dialog */}
+      <Dialog open={showBroadcastDialog} onOpenChange={setShowBroadcastDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create your broadcast</DialogTitle>
+            <DialogDescription>
+              We&apos;ll open a new email broadcast in your Kajabi account. Your template is ready with the <span className="font-medium text-foreground">{request.adHeadline}</span> ad already placed, and the send schedule is synced. All you need to do is write your email.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBroadcastDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              setShowBroadcastDialog(false)
+              onCreateBroadcast()
+            }}>
+              <ArrowSquareOut className="size-4" />
+              Go to Kajabi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -839,17 +954,23 @@ function ScheduledView({
   request: PromotionRequest
   role: string
 }) {
-  const sponsor = getHero(request.sponsorId)
-  const initials = sponsor ? sponsor.name.charAt(0) : "?"
+  const isPublisherRole = role === "publisher" || role === "both"
+  const otherHero = isPublisherRole
+    ? getHero(request.sponsorId)
+    : getHero(request.publisherId)
+  const heroType = isPublisherRole ? "sponsor" : "publisher"
 
   return (
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
+          <div className="flex-1">
+            <SheetTitle className="text-lg">Scheduled</SheetTitle>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <FileText className="size-3.5 shrink-0" />
+              {request.adHeadline}
+            </p>
+          </div>
           <Badge variant="secondary" className={getStatusColor("scheduled")}>
             {STATUS_LABELS.scheduled}
           </Badge>
@@ -863,39 +984,42 @@ function ScheduledView({
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        <div className="rounded-lg border bg-muted/50 p-4">
-          <div className="flex items-center gap-3">
-            <Clock className="size-5 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">
-                Scheduled for {formatDate(request.proposedDate)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Approved and ready to go live
-              </p>
+        {otherHero && <HeroIdentity hero={otherHero} showEngagement={heroType === "publisher"} />}
+
+        <Tabs defaultValue="details">
+          <TabsList variant="line">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4 pt-2">
+            <div className="rounded-lg border bg-muted/50 p-4">
+              <div className="flex items-center gap-3">
+                <Clock className="size-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">
+                    Scheduled for {formatDate(request.proposedDate)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Approved and ready to go live
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <EmailBlockPreview
-          headline={request.adHeadline}
-          body={request.adBody}
-          cta={request.adCta}
-        />
+            <EmailBlockPreview
+              headline={request.adHeadline}
+              body={request.adBody}
+              cta={request.adCta}
+            />
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Payout</p>
-            <PayoutBadge amount={request.proposedFee} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Send date</p>
-            <Badge className={BADGE_COLORS.blue}>
-              <CalendarBlank className="size-3" />
-              {formatDate(request.proposedDate)}
-            </Badge>
-          </div>
-        </div>
+            <DealTermsTable request={request} />
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6 pt-2">
+            {otherHero && <ProfileTab hero={otherHero} heroType={heroType} />}
+          </TabsContent>
+        </Tabs>
       </SheetBody>
 
       <SheetFooter>
@@ -911,18 +1035,24 @@ function ScheduledView({
 // Published View (read-only)
 // ─────────────────────────────────────────────────────────────
 
-function PublishedView({ request }: { request: PromotionRequest }) {
-  const sponsor = getHero(request.sponsorId)
-  const initials = sponsor ? sponsor.name.charAt(0) : "?"
+function PublishedView({ request, role }: { request: PromotionRequest; role: string }) {
+  const isPublisherRole = role === "publisher" || role === "both"
+  const otherHero = isPublisherRole
+    ? getHero(request.sponsorId)
+    : getHero(request.publisherId)
+  const heroType = isPublisherRole ? "sponsor" : "publisher"
 
   return (
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
+          <div className="flex-1">
+            <SheetTitle className="text-lg">Published</SheetTitle>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <FileText className="size-3.5 shrink-0" />
+              {request.adHeadline}
+            </p>
+          </div>
           <Badge variant="secondary" className={getStatusColor("published")}>
             {STATUS_LABELS.published}
           </Badge>
@@ -936,25 +1066,28 @@ function PublishedView({ request }: { request: PromotionRequest }) {
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        <EmailBlockPreview
-          headline={request.adHeadline}
-          body={request.adBody}
-          cta={request.adCta}
-        />
+        {otherHero && <HeroIdentity hero={otherHero} showEngagement={heroType === "publisher"} />}
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Payout</p>
-            <PayoutBadge amount={request.proposedFee} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Published on</p>
-            <Badge className={BADGE_COLORS.blue}>
-              <CalendarBlank className="size-3" />
-              {formatDate(request.proposedDate)}
-            </Badge>
-          </div>
-        </div>
+        <Tabs defaultValue="details">
+          <TabsList variant="line">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4 pt-2">
+            <EmailBlockPreview
+              headline={request.adHeadline}
+              body={request.adBody}
+              cta={request.adCta}
+            />
+
+            <DealTermsTable request={request} dateLabel="Published on" />
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6 pt-2">
+            {otherHero && <ProfileTab hero={otherHero} heroType={heroType} />}
+          </TabsContent>
+        </Tabs>
       </SheetBody>
 
       <SheetFooter>
@@ -970,18 +1103,24 @@ function PublishedView({ request }: { request: PromotionRequest }) {
 // Paid View (read-only)
 // ─────────────────────────────────────────────────────────────
 
-function PaidView({ request }: { request: PromotionRequest }) {
-  const sponsor = getHero(request.sponsorId)
-  const initials = sponsor ? sponsor.name.charAt(0) : "?"
+function PaidView({ request, role }: { request: PromotionRequest; role: string }) {
+  const isPublisherRole = role === "publisher" || role === "both"
+  const otherHero = isPublisherRole
+    ? getHero(request.sponsorId)
+    : getHero(request.publisherId)
+  const heroType = isPublisherRole ? "sponsor" : "publisher"
 
   return (
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
+          <div className="flex-1">
+            <SheetTitle className="text-lg">Paid</SheetTitle>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <FileText className="size-3.5 shrink-0" />
+              {request.adHeadline}
+            </p>
+          </div>
           <Badge variant="secondary" className={getStatusColor("paid")}>
             {STATUS_LABELS.paid}
           </Badge>
@@ -995,34 +1134,37 @@ function PaidView({ request }: { request: PromotionRequest }) {
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
-          <div className="flex items-center gap-2">
-            <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
-            <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-              Payment cleared
-            </p>
-          </div>
-        </div>
+        {otherHero && <HeroIdentity hero={otherHero} showEngagement={heroType === "publisher"} />}
 
-        <EmailBlockPreview
-          headline={request.adHeadline}
-          body={request.adBody}
-          cta={request.adCta}
-        />
+        <Tabs defaultValue="details">
+          <TabsList variant="line">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+          </TabsList>
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Payout</p>
-            <PayoutBadge amount={request.proposedFee} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Published on</p>
-            <Badge className={BADGE_COLORS.blue}>
-              <CalendarBlank className="size-3" />
-              {formatDate(request.proposedDate)}
-            </Badge>
-          </div>
-        </div>
+          <TabsContent value="details" className="space-y-4 pt-2">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
+              <div className="flex items-center gap-2">
+                <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                  Payment cleared
+                </p>
+              </div>
+            </div>
+
+            <EmailBlockPreview
+              headline={request.adHeadline}
+              body={request.adBody}
+              cta={request.adCta}
+            />
+
+            <DealTermsTable request={request} />
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6 pt-2">
+            {otherHero && <ProfileTab hero={otherHero} heroType={heroType} />}
+          </TabsContent>
+        </Tabs>
       </SheetBody>
 
       <SheetFooter>
@@ -1040,22 +1182,34 @@ function PaidView({ request }: { request: PromotionRequest }) {
 
 function ClosedView({
   request,
+  role,
   statusKey,
 }: {
   request: PromotionRequest
+  role: string
   statusKey: "declined" | "expired"
 }) {
-  const sponsor = getHero(request.sponsorId)
-  const initials = sponsor ? sponsor.name.charAt(0) : "?"
+  const isPublisherRole = role === "publisher" || role === "both"
+  const otherHero = isPublisherRole
+    ? getHero(request.sponsorId)
+    : getHero(request.publisherId)
+  const heroType = isPublisherRole ? "sponsor" : "publisher"
+
+  const bannerCopy = statusKey === "declined"
+    ? "This request was declined"
+    : "This request has expired"
 
   return (
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <SheetTitle className="flex-1 text-lg">{sponsor?.name}</SheetTitle>
+          <div className="flex-1">
+            <SheetTitle className="text-lg">{STATUS_LABELS[statusKey]}</SheetTitle>
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <FileText className="size-3.5 shrink-0" />
+              {request.adHeadline}
+            </p>
+          </div>
           <Badge variant="secondary" className={getStatusColor(statusKey)}>
             {STATUS_LABELS[statusKey]}
           </Badge>
@@ -1069,17 +1223,33 @@ function ClosedView({
       </SheetHeader>
 
       <SheetBody className="space-y-4">
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Original brief</p>
-          <p className="text-sm leading-relaxed text-muted-foreground">{request.brief}</p>
-        </div>
+        {otherHero && <HeroIdentity hero={otherHero} showEngagement={heroType === "publisher"} />}
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Proposed payout</p>
-            <PayoutBadge amount={request.proposedFee} />
-          </div>
-        </div>
+        <Tabs defaultValue="details">
+          <TabsList variant="line">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4 pt-2">
+            {/* Status banner */}
+            <div className="rounded-lg border bg-muted/50 p-3">
+              <p className="text-sm text-muted-foreground">{bannerCopy}</p>
+            </div>
+
+            <EmailBlockPreview
+              headline={request.adHeadline}
+              body={request.adBody}
+              cta={request.adCta}
+            />
+
+            <DealTermsTable request={request} payoutLabel="Proposed payout" />
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6 pt-2">
+            {otherHero && <ProfileTab hero={otherHero} heroType={heroType} />}
+          </TabsContent>
+        </Tabs>
       </SheetBody>
 
       <SheetFooter>

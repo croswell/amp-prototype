@@ -35,10 +35,11 @@ function getWeekRange(dateStr: string): string {
   return `${fmt(mon)} – ${fmt(sun)}`
 }
 
-type TabKey = RequestStatus
+type TabKey = RequestStatus | "requested"
 
 // Publisher tabs
 const PUBLISHER_TABS: { key: TabKey; label: string }[] = [
+  { key: "requested", label: "Requested" },
   { key: "accepted", label: "Approved" },
   { key: "scheduled", label: "Scheduled" },
   { key: "published", label: "Published" },
@@ -49,7 +50,7 @@ const PUBLISHER_TABS: { key: TabKey; label: string }[] = [
 
 // Sponsor tabs
 const SPONSOR_TABS: { key: TabKey; label: string }[] = [
-  { key: "pending", label: "Pending" },
+  { key: "requested", label: "Requested" },
   { key: "accepted", label: "Approved" },
   { key: "scheduled", label: "Scheduled" },
   { key: "published", label: "Published" },
@@ -95,12 +96,27 @@ export function RequestsContent() {
   // Pick tabs based on role
   const tabs = role === "sponsor" ? SPONSOR_TABS : PUBLISHER_TABS
 
-  // Find first tab with data, default to "scheduled"
+  // Filter helper: "requested" tab shows pending requests the current user initiated
+  const filterByTab = (r: PromotionRequest, tabKey: TabKey) => {
+    if (tabKey === "requested") {
+      if (r.status !== "pending") return false
+      if (role === "sponsor") return r.initiatedBy === "sponsor"
+      if (role === "publisher") return r.initiatedBy === "publisher"
+      // "both" role: match if they're on the initiating side
+      return (
+        (r.sponsorId === currentUser.id && r.initiatedBy === "sponsor") ||
+        (r.publisherId === currentUser.id && r.initiatedBy === "publisher")
+      )
+    }
+    return r.status === tabKey
+  }
+
+  // Find first tab with data, default to "accepted" (Approved)
   const defaultTab = useMemo(() => {
     for (const tab of tabs) {
-      if (requests.some((r) => r.status === tab.key)) return tab.key
+      if (requests.some((r) => filterByTab(r, tab.key))) return tab.key
     }
-    return "scheduled"
+    return "accepted"
   }, [tabs, requests])
 
   // ── Table columns ──
@@ -182,34 +198,23 @@ export function RequestsContent() {
       <div className="space-y-1.5">
         <h1 className="text-2xl font-medium tracking-tight">Promotions</h1>
         <p className="text-sm text-muted-foreground">
-          Manage your promotion requests and track their progress.
+          Track and manage your promotion partnerships.
         </p>
       </div>
 
       <Tabs defaultValue={defaultTab}>
         <TabsList variant="line">
-          {tabs.map((tab) => {
-            const count = requests.filter((r) => r.status === tab.key).length
-            return (
+          {tabs.map((tab) => (
               <TabsTrigger key={tab.key} value={tab.key}>
                 {tab.label}
-                {count > 0 && (
-                  <Badge
-                    variant="secondary"
-                    className="ml-1 h-5 bg-muted-foreground/20 px-1.5 py-0 text-xs tabular-nums text-foreground"
-                  >
-                    {count}
-                  </Badge>
-                )}
               </TabsTrigger>
-            )
-          })}
+          ))}
         </TabsList>
         {tabs.map((tab) => (
           <TabsContent key={tab.key} value={tab.key} className="mt-6">
             <DataTable
               columns={columns}
-              data={requests.filter((r) => r.status === tab.key)}
+              data={requests.filter((r) => filterByTab(r, tab.key))}
             />
           </TabsContent>
         ))}

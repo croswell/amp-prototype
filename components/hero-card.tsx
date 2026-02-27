@@ -55,7 +55,7 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
           </div>
           {showPublisherStats && (
             <p className="text-sm text-foreground">
-              {formatNumber(hero.subscriberCount)} subscribers · {hero.openRate}% open rate · {hero.sendSchedule}
+              {formatNumber(hero.subscriberCount)} subscribers · {hero.openRate}% open rate
             </p>
           )}
           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
@@ -76,9 +76,6 @@ export function HeroCard({ hero, onClick, showPublisherStats }: HeroCardProps) {
           ) : (
             <div className="flex flex-wrap items-center gap-2">
               <PayoutBadge amount={hero.recommendedFee} label="" variant="filled" suffix="/Send" />
-              <Badge variant="outline" className="text-xs tabular-nums">
-                {hero.sendSchedule}
-              </Badge>
             </div>
           )}
         </CardContent>

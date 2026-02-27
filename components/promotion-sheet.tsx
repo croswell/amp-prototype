@@ -33,7 +33,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { CalendarBlank, Timer, X, Check, CheckCircle, Clock, Globe, FileText, ArrowSquareOut, Broadcast } from "@phosphor-icons/react"
+import { Timer, X, Check, CheckCircle, Clock, Globe, FileText, ArrowSquareOut, Broadcast } from "@phosphor-icons/react"
 import {
   type RequestStatus,
   type PromotionRequest,
@@ -160,39 +160,17 @@ function ProfileTab({ hero, heroType }: { hero: Hero; heroType: "publisher" | "s
 // Shared DealTermsTable — renders deal terms in a bordered table
 // ─────────────────────────────────────────────────────────────
 
-function DealTermsTable({
-  request,
-  dateLabel = "Schedule",
-  payoutLabel = "Payout per send",
-}: {
-  request: PromotionRequest
-  dateLabel?: string
-  payoutLabel?: string
-}) {
-  const totalCost = request.proposedFee * request.numberOfSends
-  const endDate = new Date(request.proposedDate + "T00:00:00")
-  endDate.setDate(endDate.getDate() + request.numberOfSends * 7)
-  const endDateStr = endDate.toISOString().split("T")[0]
-
+function DealTermsTable({ request, role }: { request: PromotionRequest; role: string }) {
+  const label = role === "sponsor" ? "Price per send" : "Payout per send"
   return (
     <div className="rounded-lg border">
       <Table>
         <TableBody>
-          <TableRow className="hover:bg-transparent">
-            <TableCell className="text-muted-foreground">{payoutLabel}</TableCell>
-            <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
-          </TableRow>
-          <TableRow className="hover:bg-transparent">
-            <TableCell className="text-muted-foreground">Number of sends</TableCell>
-            <TableCell className="text-right">{request.numberOfSends}</TableCell>
-          </TableRow>
-          <TableRow className="hover:bg-transparent">
-            <TableCell className="text-muted-foreground">{dateLabel}</TableCell>
-            <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
-          </TableRow>
-          <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
-            <TableCell className="text-muted-foreground">Total</TableCell>
-            <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
+          <TableRow className="border-0 hover:bg-transparent">
+            <TableCell className="text-muted-foreground">{label}</TableCell>
+            <TableCell className="text-right">
+              <PayoutBadge amount={request.proposedFee} variant="filled" />
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>
@@ -346,13 +324,6 @@ function PendingView({
   // Publisher reviewing a sponsor-initiated request gets the full sponsor profile
   const isPublisherReviewing = isPublisherRole && request.initiatedBy === "sponsor"
 
-  const totalCost = request.proposedFee * request.numberOfSends
-
-  // End date for schedule range
-  const endDate = new Date(request.proposedDate + "T00:00:00")
-  endDate.setDate(endDate.getDate() + request.numberOfSends * 7)
-  const endDateStr = endDate.toISOString().split("T")[0]
-
   // For sponsor reviewing: show the publisher. For publisher reviewing: show the sponsor.
   const headerHero = isSponsorReviewing ? publisher : sponsor
   const initials = headerHero ? headerHero.name.charAt(0) : "?"
@@ -408,34 +379,19 @@ function PendingView({
               <div className="rounded-lg border p-4 space-y-2">
                 <div className="flex items-center">
                   <p className="text-xs text-muted-foreground">From {publisher.name.split(" ")[0]}</p>
-                  <p className="ml-auto text-xs text-muted-foreground">{formatDate(request.proposedDate)}</p>
+                  <p className="ml-auto text-xs text-muted-foreground">{formatDate(request.createdAt)}</p>
                 </div>
                 <p className="text-sm leading-relaxed">{request.brief}</p>
               </div>
 
               {/* Deal summary */}
-              <div className="rounded-lg border">
-                <Table>
-                  <TableBody>
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell className="text-muted-foreground">Price per send</TableCell>
-                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
-                    </TableRow>
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell className="text-muted-foreground">Frequency</TableCell>
-                      <TableCell className="text-right">1x / week</TableCell>
-                    </TableRow>
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell className="text-muted-foreground">Schedule</TableCell>
-                      <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
-                    </TableRow>
-                    <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
-                      <TableCell className="text-muted-foreground">Total</TableCell>
-                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
+              <DealTermsTable request={request} role={role} />
+
+              <EmailBlockPreview
+                headline={request.adHeadline}
+                body={request.adBody}
+                cta={request.adCta}
+              />
             </TabsContent>
 
             <TabsContent value="about" className="space-y-6 pt-2">
@@ -499,10 +455,12 @@ function PendingView({
                 <div className="rounded-lg border p-4 space-y-2">
                   <div className="flex items-center">
                     <p className="text-xs text-muted-foreground">From {sponsor.name.split(" ")[0]}</p>
-                    <p className="ml-auto text-xs text-muted-foreground">{formatDate(request.proposedDate)}</p>
+                    <p className="ml-auto text-xs text-muted-foreground">{formatDate(request.createdAt)}</p>
                   </div>
                   <p className="text-sm leading-relaxed">{request.brief}</p>
                 </div>
+
+                <DealTermsTable request={request} role={role} />
 
                 <Separator />
 
@@ -514,35 +472,6 @@ function PendingView({
                     body={request.adBody}
                     cta={request.adCta}
                   />
-                </div>
-
-                <Separator />
-
-                {/* Budget */}
-                <div className="space-y-2">
-                  <SectionTitle>Budget</SectionTitle>
-                  <div className="rounded-lg border">
-                    <Table>
-                      <TableBody>
-                        <TableRow className="hover:bg-transparent">
-                          <TableCell className="text-muted-foreground">Payout per send</TableCell>
-                          <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
-                        </TableRow>
-                        <TableRow className="hover:bg-transparent">
-                          <TableCell className="text-muted-foreground">Number of sends</TableCell>
-                          <TableCell className="text-right">{request.numberOfSends}</TableCell>
-                        </TableRow>
-                        <TableRow className="hover:bg-transparent">
-                          <TableCell className="text-muted-foreground">Schedule</TableCell>
-                          <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
-                        </TableRow>
-                        <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
-                          <TableCell className="text-muted-foreground">Total payout</TableCell>
-                          <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
                 </div>
               </TabsContent>
 
@@ -618,28 +547,11 @@ function PendingView({
               <p className="text-sm leading-relaxed">{request.brief}</p>
             </div>
 
-            {/* Ad preview */}
-            <div className="space-y-1.5">
-              <SectionTitle>Ad preview</SectionTitle>
-              <EmailBlockPreview
-                headline={request.adHeadline}
-                body={request.adBody}
-                cta={request.adCta}
-              />
-            </div>
-
             {/* Deal details */}
             <div className="flex flex-wrap gap-4 text-sm">
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Payout</p>
+                <p className="text-xs text-muted-foreground">{isSponsorRole ? "Price" : "Payout"}</p>
                 <PayoutBadge amount={request.proposedFee} />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Preferred date</p>
-                <Badge className={BADGE_COLORS.blue}>
-                  <CalendarBlank className="size-3" />
-                  {formatDate(request.proposedDate)}
-                </Badge>
               </div>
               {needsAction && (
                 <div className="space-y-1">
@@ -650,6 +562,16 @@ function PendingView({
                   </Badge>
                 </div>
               )}
+            </div>
+
+            {/* Ad preview */}
+            <div className="space-y-1.5">
+              <SectionTitle>Ad preview</SectionTitle>
+              <EmailBlockPreview
+                headline={request.adHeadline}
+                body={request.adBody}
+                cta={request.adCta}
+              />
             </div>
           </>
         )}
@@ -731,12 +653,6 @@ function AcceptedView({
   const publisher = getHero(request.publisherId)
   const isPublisherRole = role === "publisher" || role === "both"
   const isSponsorRole = !isPublisherRole
-  const totalCost = request.proposedFee * request.numberOfSends
-
-  // End date for schedule range
-  const endDate = new Date(request.proposedDate + "T00:00:00")
-  endDate.setDate(endDate.getDate() + request.numberOfSends * 7)
-  const endDateStr = endDate.toISOString().split("T")[0]
 
   // Other party: publisher sees sponsor, sponsor sees publisher
   const otherHero = isPublisherRole ? sponsor : publisher
@@ -811,36 +727,14 @@ function AcceptedView({
                 </div>
               </div>
 
+              <DealTermsTable request={request} role={role} />
+
               {/* Ad preview */}
               <EmailBlockPreview
                 headline={request.adHeadline}
                 body={request.adBody}
                 cta={request.adCta}
               />
-
-              {/* Deal terms table */}
-              <div className="rounded-lg border">
-                <Table>
-                  <TableBody>
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell className="text-muted-foreground">Payout per send</TableCell>
-                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
-                    </TableRow>
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell className="text-muted-foreground">Number of sends</TableCell>
-                      <TableCell className="text-right">{request.numberOfSends}</TableCell>
-                    </TableRow>
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell className="text-muted-foreground">Schedule</TableCell>
-                      <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
-                    </TableRow>
-                    <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
-                      <TableCell className="text-muted-foreground">Total</TableCell>
-                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
             </TabsContent>
 
             <TabsContent value="profile" className="space-y-6 pt-2">
@@ -860,36 +754,14 @@ function AcceptedView({
               </div>
             </div>
 
+            <DealTermsTable request={request} role={role} />
+
             {/* Ad preview */}
             <EmailBlockPreview
               headline={request.adHeadline}
               body={request.adBody}
               cta={request.adCta}
             />
-
-            {/* Deal terms table */}
-            <div className="rounded-lg border">
-              <Table>
-                <TableBody>
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell className="text-muted-foreground">Payout per send</TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell className="text-muted-foreground">Number of sends</TableCell>
-                    <TableCell className="text-right">{request.numberOfSends}</TableCell>
-                  </TableRow>
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell className="text-muted-foreground">Schedule</TableCell>
-                    <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
-                  </TableRow>
-                  <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
-                    <TableCell className="text-muted-foreground">Total payout</TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
           </>
         )}
       </SheetBody>
@@ -998,7 +870,7 @@ function ScheduledView({
                 <Clock className="size-5 text-muted-foreground" />
                 <div>
                   <p className="text-sm font-medium">
-                    Scheduled for {formatDate(request.proposedDate)}
+                    Broadcast scheduled
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Approved and ready to go live
@@ -1007,13 +879,13 @@ function ScheduledView({
               </div>
             </div>
 
+            <DealTermsTable request={request} role={role} />
+
             <EmailBlockPreview
               headline={request.adHeadline}
               body={request.adBody}
               cta={request.adCta}
             />
-
-            <DealTermsTable request={request} />
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6 pt-2">
@@ -1075,13 +947,13 @@ function PublishedView({ request, role }: { request: PromotionRequest; role: str
           </TabsList>
 
           <TabsContent value="details" className="space-y-4 pt-2">
+            <DealTermsTable request={request} role={role} />
+
             <EmailBlockPreview
               headline={request.adHeadline}
               body={request.adBody}
               cta={request.adCta}
             />
-
-            <DealTermsTable request={request} dateLabel="Published on" />
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6 pt-2">
@@ -1152,13 +1024,13 @@ function PaidView({ request, role }: { request: PromotionRequest; role: string }
               </div>
             </div>
 
+            <DealTermsTable request={request} role={role} />
+
             <EmailBlockPreview
               headline={request.adHeadline}
               body={request.adBody}
               cta={request.adCta}
             />
-
-            <DealTermsTable request={request} />
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6 pt-2">
@@ -1237,13 +1109,13 @@ function ClosedView({
               <p className="text-sm text-muted-foreground">{bannerCopy}</p>
             </div>
 
+            <DealTermsTable request={request} role={role} />
+
             <EmailBlockPreview
               headline={request.adHeadline}
               body={request.adBody}
               cta={request.adCta}
             />
-
-            <DealTermsTable request={request} payoutLabel="Proposed payout" />
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6 pt-2">

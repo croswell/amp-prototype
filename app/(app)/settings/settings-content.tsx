@@ -78,8 +78,6 @@ export function SettingsContent() {
   const [sendFee, setSendFee] = useState(
     currentUser.recommendedFee.toString()
   )
-  const [promotionsPerMonth, setPromotionsPerMonth] = useState(2)
-
   const audienceNum = parseInt(audienceSize.replace(/,/g, "")) || 0
 
   function handleAudienceChange(value: string) {
@@ -90,11 +88,6 @@ export function SettingsContent() {
     }
     setAudienceSize(parseInt(raw).toLocaleString("en-US"))
   }
-
-  // ── Sponsor spend limit state ──────────────────────────────
-  const [spendLimit, setSpendLimit] = useState(
-    currentUser.spendLimit?.toString() || "3000"
-  )
 
   // ── Campaign state ─────────────────────────────────────────
   const [campHeadline, setCampHeadline] = useState(INITIAL_CAMPAIGN.headline)
@@ -312,7 +305,7 @@ export function SettingsContent() {
               <CardHeader>
                 <CardTitle>Pricing & Availability</CardTitle>
                 <CardDescription>
-                  Set your rate and how many promotions you'll accept per month.
+                  Set the rate you charge sponsors for each email send.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -336,26 +329,6 @@ export function SettingsContent() {
                     </InputGroupAddon>
                   </InputGroup>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Promotions per month</Label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => setPromotionsPerMonth(n)}
-                        className={`flex h-9 flex-1 items-center justify-center rounded-sm border text-sm font-medium transition-colors ${
-                          promotionsPerMonth === n
-                            ? "border-foreground bg-foreground text-background"
-                            : "border-border hover:bg-muted"
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -364,38 +337,6 @@ export function SettingsContent() {
         {/* ── Campaigns Tab ──────────────────────────────────── */}
         {isSponsor && (
           <TabsContent value="campaigns" className="space-y-8">
-            {/* Spend limit */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Spend Limit</CardTitle>
-                <CardDescription>
-                  Set a monthly budget cap for all your promotions combined.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="spend-limit">Monthly budget</Label>
-                  <InputGroup>
-                    <InputGroupAddon align="inline-start">
-                      <InputGroupText>$</InputGroupText>
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      id="spend-limit"
-                      inputMode="numeric"
-                      placeholder="0"
-                      value={spendLimit}
-                      onChange={(e) =>
-                        setSpendLimit(e.target.value.replace(/\D/g, ""))
-                      }
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupText>/ month</InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Your campaign */}
             <Card>
               <CardHeader>

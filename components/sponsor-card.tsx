@@ -12,40 +12,16 @@ import {
   type Hero,
   formatCurrency,
 } from "@/lib/mock-data"
-import { CalendarBlank, Timer } from "@phosphor-icons/react"
-
 interface SponsorCardProps {
   hero: Hero
   onAccept?: (heroId: string) => void
   onDismiss?: (heroId: string) => void
 }
 
-// Generate a deterministic "preferred week" based on the hero ID.
-// This gives each sponsor a consistent timeframe without adding to the data model.
-function getPreferredWeek(heroId: string): string {
-  const hash = heroId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  const dayOffset = (hash % 4) * 7 + 7 // 1–4 weeks from now
-  const date = new Date()
-  date.setDate(date.getDate() + dayOffset)
-  // Round to the nearest Monday
-  const day = date.getDay()
-  const diff = day === 0 ? 1 : day === 1 ? 0 : 8 - day
-  date.setDate(date.getDate() + diff)
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-}
-
-// Deterministic days remaining (1–6) based on hero ID
-function getDaysRemaining(heroId: string): number {
-  const hash = heroId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  return (hash % 6) + 1
-}
-
 export function SponsorCard({ hero, onAccept, onDismiss }: SponsorCardProps) {
   const initials = hero.name.charAt(0)
 
   const budget = hero.recommendedFee
-  const preferredWeek = getPreferredWeek(hero.id)
-  const daysRemaining = getDaysRemaining(hero.id)
 
   return (
     <Card size="sm" className="h-full">
@@ -64,24 +40,12 @@ export function SponsorCard({ hero, onAccept, onDismiss }: SponsorCardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Budget + details */}
-          <div className="space-y-2">
-            <div className="flex items-baseline justify-between">
-              <span className="text-xs text-muted-foreground">Budget per send</span>
-              <span className="text-sm font-semibold tabular-nums">
-                {formatCurrency(budget)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CalendarBlank className="size-3.5" />
-                Week of {preferredWeek}
-              </span>
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Timer className="size-3.5" />
-                {daysRemaining}d left
-              </span>
-            </div>
+          {/* Budget */}
+          <div className="flex items-baseline justify-between">
+            <span className="text-xs text-muted-foreground">Budget per send</span>
+            <span className="text-sm font-semibold tabular-nums">
+              {formatCurrency(budget)}
+            </span>
           </div>
 
           {/* Vertical badges */}

@@ -24,6 +24,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { PayoutBadge } from "@/components/payout-badge"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { Separator } from "@/components/ui/separator"
 import { HeroCard, HeroIdentity } from "@/components/hero-card"
@@ -50,7 +51,6 @@ import {
   Clock,
   Tray,
   ArrowRight,
-  CalendarBlank,
   Check,
   X as XIcon,
   Globe,
@@ -59,7 +59,7 @@ import {
   CaretDoubleUp,
   Users,
 } from "@phosphor-icons/react"
-import { formatDate, BADGE_COLORS, SectionTitle } from "@/components/promotion-sheet"
+import { SectionTitle } from "@/components/promotion-sheet"
 
 export function HomeContent() {
   const searchParams = useSearchParams()
@@ -154,11 +154,11 @@ export function HomeContent() {
 
   // ── Recommended heroes ──
   const recommendedSponsors = useMemo(
-    () => getRecommendedHeroes("publisher").slice(0, 4),
+    () => getRecommendedHeroes("publisher").slice(0, 10),
     []
   )
   const recommendedPublishers = useMemo(
-    () => getRecommendedHeroes("sponsor").slice(0, 4),
+    () => getRecommendedHeroes("sponsor").slice(0, 10),
     []
   )
 
@@ -228,11 +228,9 @@ export function HomeContent() {
               <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
                 {formatCurrency(sponsorSpend)}
               </p>
-              {currentUser.spendLimit && (
-                <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                  / {formatCurrency(currentUser.spendLimit)} monthly budget
-                </p>
-              )}
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
+                Last 30 days
+              </p>
             </CardContent>
           </Card>
         )}
@@ -307,11 +305,6 @@ export function HomeContent() {
                   : item.request.publisherId
               )
               const initials = otherHero ? otherHero.name.charAt(0) : "?"
-              const date = new Date(item.request.proposedDate + "T00:00:00")
-              const endDate = new Date(date)
-              endDate.setDate(endDate.getDate() + 7)
-              const fmt = (d: Date) =>
-                d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
 
               return (
                 <div
@@ -328,14 +321,8 @@ export function HomeContent() {
                   <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
                     {item.request.adHeadline}
                   </p>
-                  <span className="shrink-0 text-sm text-muted-foreground w-32">
-                    {fmt(date)} – {fmt(endDate)}
-                  </span>
-                  <span className="shrink-0 text-sm text-muted-foreground tabular-nums">
-                    {item.request.numberOfSends} {item.request.numberOfSends === 1 ? "send" : "sends"}
-                  </span>
                   <span className="shrink-0 text-sm text-foreground tabular-nums">
-                    {formatCurrency(item.request.proposedFee * item.request.numberOfSends)}
+                    {formatCurrency(item.request.proposedFee)}
                   </span>
                   <Button
                     size="sm"
@@ -507,6 +494,21 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
 
         <Separator />
 
+        <div className="rounded-lg border">
+          <Table>
+            <TableBody>
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableCell className="text-muted-foreground">Payout per send</TableCell>
+                <TableCell className="text-right">
+                  <PayoutBadge amount={hero.recommendedFee} variant="filled" />
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+
+        <Separator />
+
         {/* Campaign preview */}
         <div className="space-y-2">
           <SectionTitle>Ad preview</SectionTitle>
@@ -515,37 +517,6 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
             body={hero.bio}
             cta="Learn More"
           />
-        </div>
-
-        <Separator />
-
-        {/* Budget breakdown */}
-        <div className="space-y-2">
-          <SectionTitle>Budget</SectionTitle>
-          <div className="rounded-lg border">
-            <Table>
-              <TableBody>
-                <TableRow className="hover:bg-transparent">
-                  <TableCell className="text-muted-foreground">Rate per send</TableCell>
-                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.recommendedFee)}</TableCell>
-                </TableRow>
-                <TableRow className="hover:bg-transparent">
-                  <TableCell className="text-muted-foreground">Frequency</TableCell>
-                  <TableCell className="text-right">{hero.sendSchedule}</TableCell>
-                </TableRow>
-                {hero.spendLimit && (
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell className="text-muted-foreground">Monthly budget</TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.spendLimit)}</TableCell>
-                  </TableRow>
-                )}
-                <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
-                  <TableCell className="text-muted-foreground">Est. total (3 sends)</TableCell>
-                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.recommendedFee * 3)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
         </div>
       </SheetBody>
 
@@ -570,7 +541,6 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
 
 function PublisherProfileSheet({ hero }: { hero: Hero }) {
   const [phase, setPhase] = useState<"idle" | "loading" | "success">("idle")
-  const totalCost = hero.recommendedFee * 3 // Default 3 sends for the preview
 
   const handleSendRequest = useCallback(() => {
     setPhase("loading")
@@ -647,27 +617,17 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
 
         <Separator />
 
-        {/* Pricing breakdown */}
-        <div className="space-y-2">
-          <SectionTitle>Price estimate</SectionTitle>
-          <div className="rounded-lg border">
-            <Table>
-              <TableBody>
-                <TableRow className="hover:bg-transparent">
-                  <TableCell className="text-muted-foreground">Price per send</TableCell>
-                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.recommendedFee)}</TableCell>
-                </TableRow>
-                <TableRow className="hover:bg-transparent">
-                  <TableCell className="text-muted-foreground">Frequency</TableCell>
-                  <TableCell className="text-right">{hero.sendSchedule}</TableCell>
-                </TableRow>
-                <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
-                  <TableCell className="text-muted-foreground">Estimated total</TableCell>
-                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+        <div className="rounded-lg border">
+          <Table>
+            <TableBody>
+              <TableRow className="border-0 hover:bg-transparent">
+                <TableCell className="text-muted-foreground">Price per send</TableCell>
+                <TableCell className="text-right">
+                  <PayoutBadge amount={hero.recommendedFee} variant="filled" />
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
       </SheetBody>
 

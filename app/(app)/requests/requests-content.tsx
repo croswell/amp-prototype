@@ -20,21 +20,6 @@ import {
   getStatusColor,
   STATUS_LABELS,
 } from "@/lib/mock-data"
-import { formatDate } from "@/components/promotion-sheet"
-
-// Get the Mon–Sun week range containing a given date string
-function getWeekRange(dateStr: string): string {
-  const d = new Date(dateStr)
-  const day = d.getDay()
-  const diffToMon = day === 0 ? -6 : 1 - day
-  const mon = new Date(d)
-  mon.setDate(d.getDate() + diffToMon)
-  const sun = new Date(mon)
-  sun.setDate(mon.getDate() + 6)
-  const fmt = (dt: Date) =>
-    dt.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-  return `${fmt(mon)} – ${fmt(sun)}`
-}
 
 type TabKey = RequestStatus | "requested"
 
@@ -152,26 +137,10 @@ export function RequestsContent() {
         ),
       },
       {
-        id: "schedule",
-        header: "Date",
+        id: "payout",
+        header: "Payout",
         cell: ({ row }) => (
-          <span className="text-muted-foreground text-sm">
-            {getWeekRange(row.original.proposedDate)}
-          </span>
-        ),
-      },
-      {
-        id: "sends",
-        header: "Sends",
-        cell: ({ row }) => (
-          <span className="text-muted-foreground tabular-nums">{row.original.numberOfSends}</span>
-        ),
-      },
-      {
-        id: "total",
-        header: "Total",
-        cell: ({ row }) => (
-          <PayoutBadge amount={row.original.proposedFee * row.original.numberOfSends} />
+          <PayoutBadge amount={row.original.proposedFee} />
         ),
       },
       {

@@ -40,6 +40,7 @@ import {
   formatCurrency,
   formatNumber,
   getStatusColor,
+  STATUS_LABELS,
   getRecommendedHeroes,
   getActiveUser,
   getRoleForPersona,
@@ -54,7 +55,6 @@ import {
   Check,
   X as XIcon,
   Globe,
-  Megaphone,
   CaretRight,
   CaretDoubleUp,
   Users,
@@ -95,17 +95,28 @@ export function HomeContent() {
 
   function handleReviewAction(requestId: string, action: ReviewAction) {
     switch (action.type) {
-      case "suggest_changes":
-        setStatusOverrides((prev) => ({ ...prev, [requestId]: "in_review" }))
-        setReviewOverrides((prev) => ({
-          ...prev,
-          [requestId]: {
-            ...prev[requestId],
-            reviewTurn: "sponsor",
-            proposedEdits: action.proposedEdits,
-          },
-        }))
+      case "suggest_changes": {
+        // If revision notes already exist, this is the second round — auto-complete
+        const hasRevisionNotes = !!reviewOverrides[requestId]?.revisionNotes
+        if (hasRevisionNotes) {
+          setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
+          setReviewOverrides((prev) => ({
+            ...prev,
+            [requestId]: { ...prev[requestId], reviewTurn: undefined, proposedEdits: action.proposedEdits },
+          }))
+        } else {
+          setStatusOverrides((prev) => ({ ...prev, [requestId]: "in_review" }))
+          setReviewOverrides((prev) => ({
+            ...prev,
+            [requestId]: {
+              ...prev[requestId],
+              reviewTurn: "sponsor",
+              proposedEdits: action.proposedEdits,
+            },
+          }))
+        }
         break
+      }
       case "approve_edits":
         setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
         setReviewOverrides((prev) => ({
@@ -161,64 +172,32 @@ export function HomeContent() {
     (r) => r.status === "pending"
   ).length
 
-  // ── Inbox items: things needing the current user's action ──
-  const inboxItems = useMemo(() => {
-    const items: { request: PromotionRequest; type: "publisher" | "sponsor"; label: string }[] = []
+  // ── Recent activity: 3 most recent open items (needing action) ──
+  const OPEN_STATUSES: RequestStatus[] = ["pending", "in_review", "accepted"]
+  const recentActivity = useMemo(() => {
+    const myRequests = [...incoming, ...outgoing]
+    return myRequests
+      .filter((r) => OPEN_STATUSES.includes(r.status))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+      .slice(0, 3)
+  }, [incoming, outgoing])
 
-    if (isPublisher) {
-      // Publisher sees pending requests FROM sponsors (sponsor initiated, publisher needs to accept)
-      incoming
-        .filter((r) => r.status === "pending" && r.initiatedBy === "sponsor")
-        .forEach((r) => {
-          const sponsor = getHero(r.sponsorId)
-          items.push({
-            request: r,
-            type: "publisher",
-            label: `${sponsor?.name ?? "Sponsor"} wants you to run their ad`,
-          })
-        })
-
-      // Publisher sees in_review items where it's their turn
-      incoming
-        .filter((r) => r.status === "in_review" && r.reviewTurn === "publisher")
-        .forEach((r) => {
-          const sponsor = getHero(r.sponsorId)
-          items.push({
-            request: r,
-            type: "publisher",
-            label: `${sponsor?.name.split(" ")[0] ?? "Sponsor"} requested a revision`,
-          })
-        })
+  // Direction-aware status label for pending items
+  function getDisplayStatus(req: PromotionRequest): { label: string; color: string } {
+    if (req.status === "pending") {
+      const userInitiated =
+        (isPublisher && req.initiatedBy === "publisher") ||
+        (isSponsor && req.initiatedBy === "sponsor")
+      if (userInitiated) {
+        return { label: "Requested", color: getStatusColor("pending") }
+      }
+      return {
+        label: "New",
+        color: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
+      }
     }
-
-    if (isSponsor) {
-      // Sponsor sees publisher-initiated pending requests (publisher wants to run their campaign)
-      outgoing
-        .filter((r) => r.status === "pending" && r.initiatedBy === "publisher")
-        .forEach((r) => {
-          const publisher = getHero(r.publisherId)
-          items.push({
-            request: r,
-            type: "sponsor",
-            label: `${publisher?.name ?? "Publisher"} wants to run your campaign`,
-          })
-        })
-
-      // Sponsor sees in_review items where it's their turn
-      outgoing
-        .filter((r) => r.status === "in_review" && r.reviewTurn === "sponsor")
-        .forEach((r) => {
-          const publisher = getHero(r.publisherId)
-          items.push({
-            request: r,
-            type: "sponsor",
-            label: `Review ${publisher?.name.split(" ")[0] ?? "Publisher"}'s copy edits`,
-          })
-        })
-    }
-
-    return items
-  }, [isPublisher, isSponsor, incoming, outgoing])
+    return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
+  }
 
   // ── Recommended heroes ──
   const recommendedSponsors = useMemo(
@@ -359,54 +338,46 @@ export function HomeContent() {
       </div>
       </div>
 
-      {/* ── Inbox section ── */}
+      {/* ── Recent Activity ── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-lg font-medium">
-            Inbox
-            {inboxItems.length > 0 && (
-              <Badge
-                className="h-5 bg-muted-foreground/20 px-1.5 py-0 text-xs tabular-nums text-foreground"
-              >
-                {inboxItems.length}
-              </Badge>
-            )}
-          </h2>
+          <h2 className="text-lg font-medium">Recent Activity</h2>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/requests${persona === "sarah" ? "" : `?persona=${persona}`}`}>
+              View all
+              <ArrowRight data-icon="inline-end" className="size-4" />
+            </Link>
+          </Button>
         </div>
 
-        {inboxItems.length > 0 ? (
+        {recentActivity.length > 0 ? (
           <div className="rounded-lg border bg-card">
-            {inboxItems.slice(0, 5).map((item, index) => {
-              const otherHero = getHero(
-                item.type === "publisher"
-                  ? item.request.sponsorId
-                  : item.request.publisherId
-              )
+            {recentActivity.map((req, index) => {
+              const isIncoming = req.publisherId === activeUser.id
+              const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
               const initials = otherHero ? otherHero.name.charAt(0) : "?"
+              const { label: statusLabel, color: statusColor } = getDisplayStatus(req)
 
               return (
                 <div
-                  key={item.request.id}
-                  className={`flex cursor-pointer items-center gap-4 p-4${index < inboxItems.slice(0, 5).length - 1 ? " border-b" : ""}`}
-                  onClick={() => openPromotionSheet(item.request)}
+                  key={req.id}
+                  className={`flex cursor-pointer items-center gap-4 p-4${index < recentActivity.length - 1 ? " border-b" : ""}`}
+                  onClick={() => openPromotionSheet(req)}
                 >
                   <div className="flex min-w-0 items-center gap-3 w-48 shrink-0">
                     <Avatar className="size-8">
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                     </Avatar>
-                    <span className="cursor-pointer truncate text-sm font-medium hover:underline">{otherHero?.name}</span>
+                    <span className="truncate text-sm font-medium">{otherHero?.name}</span>
                   </div>
                   <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
-                    {item.request.adHeadline}
+                    {req.adHeadline}
                   </p>
-                  <span className="shrink-0 text-sm text-foreground tabular-nums">
-                    {formatCurrency(item.request.proposedFee)}
-                  </span>
-                  <Button
-                    size="sm"
-                    onClick={() => openPromotionSheet(item.request)}
-                  >
-                    Review
+                  <Badge variant="secondary" className={`shrink-0 ${statusColor}`}>
+                    {statusLabel}
+                  </Badge>
+                  <Button variant="outline" size="sm" onClick={() => openPromotionSheet(req)}>
+                    View
                   </Button>
                 </div>
               )
@@ -418,18 +389,9 @@ export function HomeContent() {
               <Tray className="size-6 text-muted-foreground" />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              You have no new messages
+              No activity yet
             </p>
           </div>
-        )}
-
-        {inboxItems.length > 5 && (
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={`/requests${persona === "sarah" ? "" : `?persona=${persona}`}`}>
-              View all {inboxItems.length} items
-              <ArrowRight data-icon="inline-end" className="size-4" />
-            </Link>
-          </Button>
         )}
       </div>
 

@@ -36,6 +36,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Timer, X, Check, CheckCircle, Clock, Globe, FileText, ArrowSquareOut, Broadcast, PencilSimple, ArrowsClockwise, Eye } from "@phosphor-icons/react"
+import { toast } from "sonner"
 import {
   type RequestStatus,
   type PromotionRequest,
@@ -243,8 +244,20 @@ export function PromotionSheet({
     setTimeout(() => {
       setAcceptPhase("success")
       onStatusChange?.(request.id, "accepted")
+      // Show toast after a brief delay so the success state is visible
+      setTimeout(() => {
+        toast.success("Sponsorship accepted", {
+          description: "You can manage it from the Promotions page.",
+          action: {
+            label: "View Promotions",
+            onClick: () => {
+              window.location.href = `/requests${window.location.search}`
+            },
+          },
+        })
+      }, 600)
     }, 1200)
-  }, [request, onStatusChange, onOpenChange])
+  }, [request, onStatusChange])
 
 
   return (
@@ -270,14 +283,6 @@ export function PromotionSheet({
               if (request) {
                 onStatusChange?.(request.id, "scheduled")
                 onOpenChange(false)
-              }
-            }}
-            onSuggestChanges={(edits) => {
-              if (request) {
-                onReviewAction?.(request.id, {
-                  type: "suggest_changes",
-                  proposedEdits: edits,
-                })
               }
             }}
           />
@@ -573,7 +578,7 @@ function PendingView({
                   <div>
                     <p className="text-sm font-medium">Waiting for response</p>
                     <p className="text-xs text-muted-foreground">
-                      You&apos;ll be notified when they respond
+                      You&apos;ll get an email when they respond
                     </p>
                   </div>
                 </div>
@@ -663,11 +668,11 @@ function PendingView({
           {acceptPhase === "success" ? (
             <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
               <Check weight="bold" className="size-4" />
-              Approved
+              Accepted
             </Button>
           ) : (
             <Button loading={acceptPhase === "loading"} onClick={onAccept}>
-              {acceptPhase === "loading" ? "Accepting..." : "Accept"}
+              {acceptPhase === "loading" ? "Accepting…" : "Accept Sponsorship"}
             </Button>
           )}
         </SheetFooter>
@@ -693,19 +698,12 @@ function AcceptedView({
   request,
   role,
   onCreateBroadcast,
-  onSuggestChanges,
 }: {
   request: PromotionRequest
   role: string
   onCreateBroadcast: () => void
-  onSuggestChanges: (edits: { adHeadline: string; adBody: string; adCta: string; adCtaUrl: string }) => void
 }) {
   const [showBroadcastDialog, setShowBroadcastDialog] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editHeadline, setEditHeadline] = useState(request.adHeadline)
-  const [editBody, setEditBody] = useState(request.adBody)
-  const [editCta, setEditCta] = useState(request.adCta)
-  const [editCtaUrl, setEditCtaUrl] = useState(request.adCtaUrl)
 
   const sponsor = getHero(request.sponsorId)
   const publisher = getHero(request.publisherId)
@@ -722,35 +720,13 @@ function AcceptedView({
       ? `${publisher?.name} accepted your request`
       : `You approved ${publisher?.name}'s proposal`
 
-  function startEditing() {
-    setEditHeadline(request.adHeadline)
-    setEditBody(request.adBody)
-    setEditCta(request.adCta)
-    setEditCtaUrl(request.adCtaUrl)
-    setIsEditing(true)
-  }
-
-  function cancelEditing() {
-    setIsEditing(false)
-  }
-
-  function handleSuggestChanges() {
-    onSuggestChanges({
-      adHeadline: editHeadline,
-      adBody: editBody,
-      adCta: editCta,
-      adCtaUrl: editCtaUrl,
-    })
-    setIsEditing(false)
-  }
-
   return (
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <SheetTitle className="text-lg">
-              {isPublisherRole ? (isEditing ? "Edit ad copy" : "Create broadcast") : "Deal accepted"}
+              {isPublisherRole ? "Create broadcast" : "Deal accepted"}
             </SheetTitle>
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <FileText className="size-3.5 shrink-0" />
@@ -801,7 +777,7 @@ function AcceptedView({
                   <div>
                     <p className="text-sm font-medium">Waiting for {publisher.name.split(" ")[0]} to create the broadcast</p>
                     <p className="text-xs text-muted-foreground">
-                      You&apos;ll be notified when it&apos;s scheduled
+                      You&apos;ll get an email when it&apos;s scheduled
                     </p>
                   </div>
                 </div>
@@ -836,90 +812,21 @@ function AcceptedView({
 
             <DealTermsTable request={request} role={role} />
 
-            {/* Ad copy — display or edit mode */}
-            {isEditing ? (
-              <div className="space-y-3">
-                <SectionTitle>Edit ad copy</SectionTitle>
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">Headline</label>
-                  <Input
-                    value={editHeadline}
-                    onChange={(e) => setEditHeadline(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">Body</label>
-                  <Textarea
-                    value={editBody}
-                    onChange={(e) => setEditBody(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">CTA label</label>
-                    <Input
-                      value={editCta}
-                      onChange={(e) => setEditCta(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs text-muted-foreground">CTA URL</label>
-                    <Input
-                      value={editCtaUrl}
-                      onChange={(e) => setEditCtaUrl(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Live preview */}
-                <div className="space-y-2 pt-2">
-                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Eye className="size-3" />
-                    Preview
-                  </p>
-                  <EmailBlockPreview
-                    headline={editHeadline}
-                    body={editBody}
-                    cta={editCta}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <SectionTitle>Ad copy</SectionTitle>
-                  <Button variant="outline" size="sm" onClick={startEditing}>
-                    <PencilSimple className="size-3.5" />
-                    Edit Ad Copy
-                  </Button>
-                </div>
-                <EmailBlockPreview
-                  headline={request.adHeadline}
-                  body={request.adBody}
-                  cta={request.adCta}
-                />
-              </div>
-            )}
+            {/* Ad copy — read-only after approval */}
+            <div className="space-y-2">
+              <SectionTitle>Ad copy</SectionTitle>
+              <EmailBlockPreview
+                headline={request.adHeadline}
+                body={request.adBody}
+                cta={request.adCta}
+              />
+            </div>
           </>
         )}
       </SheetBody>
 
-      {/* Publisher editing: Cancel / Suggest Changes */}
-      {isPublisherRole && isEditing && (
-        <SheetFooter>
-          <Button variant="outline" onClick={cancelEditing}>
-            Cancel
-          </Button>
-          <Button onClick={handleSuggestChanges}>
-            <ArrowsClockwise className="size-4" />
-            Suggest Changes
-          </Button>
-        </SheetFooter>
-      )}
-
-      {/* Publisher not editing: Close / Create Broadcast */}
-      {isPublisherRole && !isEditing && (
+      {/* Publisher: Close / Create Broadcast */}
+      {isPublisherRole && (
         <SheetFooter>
           <SheetClose asChild>
             <Button variant="outline">Close</Button>
@@ -998,7 +905,6 @@ function InReviewView({
   const [editHeadline, setEditHeadline] = useState(request.proposedEdits?.adHeadline ?? request.adHeadline)
   const [editBody, setEditBody] = useState(request.proposedEdits?.adBody ?? request.adBody)
   const [editCta, setEditCta] = useState(request.proposedEdits?.adCta ?? request.adCta)
-  const [editCtaUrl, setEditCtaUrl] = useState(request.proposedEdits?.adCtaUrl ?? request.adCtaUrl)
 
   // Sponsor revision notes state
   const [revisionNotes, setRevisionNotes] = useState("")
@@ -1025,7 +931,7 @@ function InReviewView({
       adHeadline: editHeadline,
       adBody: editBody,
       adCta: editCta,
-      adCtaUrl: editCtaUrl,
+      adCtaUrl: request.adCtaUrl,
     })
   }
 
@@ -1046,16 +952,16 @@ function InReviewView({
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <div className="flex-1">
+          <div className="flex-1 space-y-2">
             <SheetTitle className="text-lg">{headerTitle}</SheetTitle>
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <FileText className="size-3.5 shrink-0" />
               {request.adHeadline}
             </p>
+            <Badge variant="secondary" className={getStatusColor("in_review")}>
+              {STATUS_LABELS.in_review}
+            </Badge>
           </div>
-          <Badge variant="secondary" className={getStatusColor("in_review")}>
-            {STATUS_LABELS.in_review}
-          </Badge>
           <SheetClose asChild>
             <Button variant="outline" size="icon-sm">
               <X />
@@ -1080,7 +986,7 @@ function InReviewView({
                 <div>
                   <p className="text-sm font-medium">Awaiting sponsor approval</p>
                   <p className="text-xs text-muted-foreground">
-                    You&apos;ll be notified when {sponsor?.name.split(" ")[0]} responds
+                    You&apos;ll get an email when {sponsor?.name.split(" ")[0]} responds
                   </p>
                 </div>
               </div>
@@ -1129,21 +1035,12 @@ function InReviewView({
                   rows={4}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">CTA label</label>
-                  <Input
-                    value={editCta}
-                    onChange={(e) => setEditCta(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground">CTA URL</label>
-                  <Input
-                    value={editCtaUrl}
-                    onChange={(e) => setEditCtaUrl(e.target.value)}
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">CTA label</label>
+                <Input
+                  value={editCta}
+                  onChange={(e) => setEditCta(e.target.value)}
+                />
               </div>
 
               {/* Live preview */}
@@ -1174,6 +1071,33 @@ function InReviewView({
               />
             </div>
 
+            {/* Request Revision — inline with copy */}
+            {showRevisionInput ? (
+              <div className="space-y-3 rounded-lg border p-4">
+                <label className="text-sm font-medium">Revision notes</label>
+                <Textarea
+                  placeholder="Tell the publisher what you'd like changed..."
+                  value={revisionNotes}
+                  onChange={(e) => setRevisionNotes(e.target.value)}
+                  rows={3}
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShowRevisionInput(false)}>
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleRequestRevision} disabled={!revisionNotes.trim()}>
+                    Send Revision Notes
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setShowRevisionInput(true)} className="w-fit">
+                <PencilSimple className="size-3.5" />
+                Request Revision
+              </Button>
+            )}
+
             <Separator />
 
             {/* Original copy for comparison */}
@@ -1188,20 +1112,6 @@ function InReviewView({
             </div>
 
             <DealTermsTable request={request} role={role} />
-
-            {/* Revision notes input (shown when "Request Revision" is clicked) */}
-            {showRevisionInput && (
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Revision notes</label>
-                <Textarea
-                  placeholder="Tell the publisher what you'd like changed..."
-                  value={revisionNotes}
-                  onChange={(e) => setRevisionNotes(e.target.value)}
-                  rows={3}
-                  autoFocus
-                />
-              </div>
-            )}
           </>
         )}
 
@@ -1217,7 +1127,7 @@ function InReviewView({
                 <div>
                   <p className="text-sm font-medium">Waiting for {publisher?.name.split(" ")[0]} to revise</p>
                   <p className="text-xs text-muted-foreground">
-                    You&apos;ll be notified when they resubmit
+                    You&apos;ll get an email when they resubmit
                   </p>
                 </div>
               </div>
@@ -1267,34 +1177,21 @@ function InReviewView({
         </SheetFooter>
       )}
 
-      {/* Sponsor reviewing: Request Revision / Approve */}
+      {/* Sponsor reviewing: Approve only (Request Revision is inline with copy above) */}
       {isSponsorRole && isMyTurn && (
         <SheetFooter>
-          {showRevisionInput ? (
-            <>
-              <Button variant="outline" onClick={() => setShowRevisionInput(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleRequestRevision} disabled={!revisionNotes.trim()}>
-                Send Revision Notes
-              </Button>
-            </>
+          <SheetClose asChild>
+            <Button variant="outline">Close</Button>
+          </SheetClose>
+          {approvePhase === "success" ? (
+            <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+              <Check weight="bold" className="size-4" />
+              Approved
+            </Button>
           ) : (
-            <>
-              <Button variant="outline" onClick={() => setShowRevisionInput(true)}>
-                Request Revision
-              </Button>
-              {approvePhase === "success" ? (
-                <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
-                  <Check weight="bold" className="size-4" />
-                  Approved
-                </Button>
-              ) : (
-                <Button loading={approvePhase === "loading"} onClick={handleApprove}>
-                  {approvePhase === "loading" ? "Approving..." : "Approve"}
-                </Button>
-              )}
-            </>
+            <Button loading={approvePhase === "loading"} onClick={handleApprove}>
+              {approvePhase === "loading" ? "Approving..." : "Approve"}
+            </Button>
           )}
         </SheetFooter>
       )}
@@ -1369,7 +1266,19 @@ function ScheduledView({
                     Broadcast scheduled
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Approved and ready to go live
+                    {request.scheduledAt
+                      ? new Date(request.scheduledAt).toLocaleDateString("en-US", {
+                          weekday: "long",
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        }) +
+                        " at " +
+                        new Date(request.scheduledAt).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })
+                      : "Approved and ready to go live"}
                   </p>
                 </div>
               </div>

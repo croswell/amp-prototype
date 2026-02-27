@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { EngagementBadge } from "@/components/engagement-badge"
-import { currentUser, formatCurrency, formatNumber } from "@/lib/mock-data"
+import { currentUser, formatCurrency, formatNumber, getActiveUser, getRoleForPersona } from "@/lib/mock-data"
 import type { Vertical } from "@/lib/mock-data"
 import { Globe, LinkSimple, SignOut } from "@phosphor-icons/react"
 
@@ -51,30 +51,32 @@ const INITIAL_CAMPAIGN = {
 
 export function SettingsContent() {
   const searchParams = useSearchParams()
-  const role = searchParams.get("role") || "publisher"
+  const persona = searchParams.get("persona") || "sarah"
+  const activeUser = getActiveUser(persona)
+  const role = getRoleForPersona(persona)
 
   const isPublisher = role === "publisher" || role === "both"
   const isSponsor = role === "sponsor" || role === "both"
 
   // ── Profile state ──────────────────────────────────────────
-  const [name, setName] = useState(currentUser.name)
-  const [tagline, setTagline] = useState(currentUser.tagline)
-  const [bio, setBio] = useState(currentUser.bio)
-  const [website, setWebsite] = useState(currentUser.website)
+  const [name, setName] = useState(activeUser.name)
+  const [tagline, setTagline] = useState(activeUser.tagline)
+  const [bio, setBio] = useState(activeUser.bio)
+  const [website, setWebsite] = useState(activeUser.website)
   const [twitter, setTwitter] = useState(
-    currentUser.socialLinks.find((l) => l.platform === "twitter")?.url || ""
+    activeUser.socialLinks.find((l) => l.platform === "twitter")?.url || ""
   )
   const [instagram, setInstagram] = useState(
-    currentUser.socialLinks.find((l) => l.platform === "instagram")?.url || ""
+    activeUser.socialLinks.find((l) => l.platform === "instagram")?.url || ""
   )
   const [linkedin, setLinkedin] = useState(
-    currentUser.socialLinks.find((l) => l.platform === "linkedin")?.url || ""
+    activeUser.socialLinks.find((l) => l.platform === "linkedin")?.url || ""
   )
-  const [vertical, setVertical] = useState<Vertical>(currentUser.verticals[0])
+  const [vertical, setVertical] = useState<Vertical>(activeUser.verticals[0])
 
   // ── Publisher state ────────────────────────────────────────
   const [sendFee, setSendFee] = useState(
-    currentUser.recommendedFee.toString()
+    activeUser.recommendedFee.toString()
   )
 
   // ── Campaign state ─────────────────────────────────────────
@@ -85,31 +87,31 @@ export function SettingsContent() {
   const [campBudget, setCampBudget] = useState(INITIAL_CAMPAIGN.budgetPerSend)
 
   // ── Account data ───────────────────────────────────────────
-  const joinedDate = new Date(currentUser.joinedDate)
+  const joinedDate = new Date(activeUser.joinedDate)
   const memberSince = joinedDate.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   })
 
   // ── Change detection ─────────────────────────────────────
-  const initialTwitter = currentUser.socialLinks.find((l) => l.platform === "twitter")?.url || ""
-  const initialInstagram = currentUser.socialLinks.find((l) => l.platform === "instagram")?.url || ""
-  const initialLinkedin = currentUser.socialLinks.find((l) => l.platform === "linkedin")?.url || ""
+  const initialTwitter = activeUser.socialLinks.find((l) => l.platform === "twitter")?.url || ""
+  const initialInstagram = activeUser.socialLinks.find((l) => l.platform === "instagram")?.url || ""
+  const initialLinkedin = activeUser.socialLinks.find((l) => l.platform === "linkedin")?.url || ""
 
   const detailsChanged =
-    name !== currentUser.name ||
-    tagline !== currentUser.tagline ||
-    bio !== currentUser.bio ||
-    vertical !== currentUser.verticals[0]
+    name !== activeUser.name ||
+    tagline !== activeUser.tagline ||
+    bio !== activeUser.bio ||
+    vertical !== activeUser.verticals[0]
 
   const linksChanged =
-    website !== currentUser.website ||
+    website !== activeUser.website ||
     twitter !== initialTwitter ||
     instagram !== initialInstagram ||
     linkedin !== initialLinkedin
 
   const pricingChanged =
-    sendFee !== currentUser.recommendedFee.toString()
+    sendFee !== activeUser.recommendedFee.toString()
 
   const campaignChanged =
     campHeadline !== INITIAL_CAMPAIGN.headline ||
@@ -284,19 +286,19 @@ export function SettingsContent() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="rounded-lg border p-4 space-y-1">
                     <p className="text-xs text-muted-foreground">Subscribers</p>
-                    <p className="text-lg font-medium tabular-nums">{formatNumber(currentUser.subscriberCount)}</p>
+                    <p className="text-lg font-medium tabular-nums">{formatNumber(activeUser.subscriberCount)}</p>
                   </div>
                   <div className="rounded-lg border p-4 space-y-1">
                     <p className="text-xs text-muted-foreground">Open Rate</p>
-                    <p className="text-lg font-medium tabular-nums">{currentUser.openRate}%</p>
+                    <p className="text-lg font-medium tabular-nums">{activeUser.openRate}%</p>
                   </div>
                   <div className="rounded-lg border p-4 space-y-1">
                     <p className="text-xs text-muted-foreground">Click Rate</p>
-                    <p className="text-lg font-medium tabular-nums">{currentUser.clickRate}%</p>
+                    <p className="text-lg font-medium tabular-nums">{activeUser.clickRate}%</p>
                   </div>
                 </div>
 
-                <EngagementBadge tier={currentUser.engagementTier} />
+                <EngagementBadge tier={activeUser.engagementTier} />
 
                 <Separator />
 
@@ -321,7 +323,7 @@ export function SettingsContent() {
                     </InputGroupAddon>
                   </InputGroup>
                   <p className="text-xs text-muted-foreground">
-                    Based on your engagement, we recommend {formatCurrency(currentUser.recommendedFee)} per send.
+                    Based on your engagement, we recommend {formatCurrency(activeUser.recommendedFee)} per send.
                   </p>
                 </div>
               </CardContent>

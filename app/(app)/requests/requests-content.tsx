@@ -18,18 +18,22 @@ import {
   promotionRequests,
   getHero,
   getStatusColor,
-  formatCurrency,
   STATUS_LABELS,
   getActiveUser,
   getRoleForPersona,
 } from "@/lib/mock-data"
 
-type TabKey = RequestStatus | "requested"
+type TabKey = "open" | "scheduled" | "published" | "declined"
+
+const TAB_STATUSES: Record<TabKey, RequestStatus[]> = {
+  open: ["pending", "in_review", "accepted"],
+  scheduled: ["scheduled"],
+  published: ["published", "paid"],
+  declined: ["declined", "expired"],
+}
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "requested", label: "Requested" },
-  { key: "in_review", label: "In Review" },
-  { key: "accepted", label: "Accepted" },
+  { key: "open", label: "In Progress" },
   { key: "scheduled", label: "Scheduled" },
   { key: "published", label: "Published" },
   { key: "declined", label: "Declined" },
@@ -79,18 +83,29 @@ export function RequestsContent() {
 
   function handleReviewAction(requestId: string, action: ReviewAction) {
     switch (action.type) {
-      case "suggest_changes":
-        // Publisher suggests edits → status becomes in_review, sponsor's turn
-        setStatusOverrides((prev) => ({ ...prev, [requestId]: "in_review" }))
-        setReviewOverrides((prev) => ({
-          ...prev,
-          [requestId]: {
-            ...prev[requestId],
-            reviewTurn: "sponsor",
-            proposedEdits: action.proposedEdits,
-          },
-        }))
+      case "suggest_changes": {
+        // If revision notes already exist, this is the second round — auto-complete
+        const hasRevisionNotes = !!reviewOverrides[requestId]?.revisionNotes
+        if (hasRevisionNotes) {
+          setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
+          setReviewOverrides((prev) => ({
+            ...prev,
+            [requestId]: { ...prev[requestId], reviewTurn: undefined, proposedEdits: action.proposedEdits },
+          }))
+        } else {
+          // Publisher suggests edits → status becomes in_review, sponsor's turn
+          setStatusOverrides((prev) => ({ ...prev, [requestId]: "in_review" }))
+          setReviewOverrides((prev) => ({
+            ...prev,
+            [requestId]: {
+              ...prev[requestId],
+              reviewTurn: "sponsor",
+              proposedEdits: action.proposedEdits,
+            },
+          }))
+        }
         break
+      }
       case "approve_edits":
         // Sponsor approves → status returns to accepted
         setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
@@ -113,29 +128,33 @@ export function RequestsContent() {
     }
   }
 
-  const tabs = TABS
+  const filterByTab = (r: PromotionRequest, tabKey: TabKey) =>
+    TAB_STATUSES[tabKey].includes(r.status)
 
-  // Filter helper: "requested" tab shows pending requests the current user initiated
-  const filterByTab = (r: PromotionRequest, tabKey: TabKey) => {
-    if (tabKey === "requested") {
-      if (r.status !== "pending") return false
-      if (role === "sponsor") return r.initiatedBy === "sponsor"
-      return r.initiatedBy === "publisher"
+  const tabCounts = Object.fromEntries(
+    TABS.map((tab) => [tab.key, requests.filter((r) => filterByTab(r, tab.key)).length])
+  ) as Record<TabKey, number>
+
+  const defaultTab: TabKey = TABS.find((t) => tabCounts[t.key] > 0)?.key ?? "open"
+
+  // Direction-aware status label for pending items
+  function getDisplayStatus(req: PromotionRequest): { label: string; color: string } {
+    if (req.status === "pending") {
+      // Did the current user initiate this, or did the other party?
+      const userInitiated =
+        (role === "publisher" && req.initiatedBy === "publisher") ||
+        (role === "sponsor" && req.initiatedBy === "sponsor")
+      if (userInitiated) {
+        return { label: "Requested", color: getStatusColor("pending") }
+      }
+      // Incoming request from the other party
+      return {
+        label: "New",
+        color: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
+      }
     }
-    // Declined tab also catches expired
-    if (tabKey === "declined") return r.status === "declined" || r.status === "expired"
-    // Published tab also catches paid
-    if (tabKey === "published") return r.status === "published" || r.status === "paid"
-    return r.status === tabKey
+    return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
   }
-
-  // Find first tab with data, default to "accepted" (Approved)
-  const defaultTab = useMemo(() => {
-    for (const tab of tabs) {
-      if (requests.some((r) => filterByTab(r, tab.key))) return tab.key
-    }
-    return "accepted"
-  }, [tabs, requests])
 
   // ── Table columns ──
   const columns = useMemo<ColumnDef<PromotionRequest>[]>(
@@ -167,6 +186,18 @@ export function RequestsContent() {
         cell: ({ row }) => (
           <span className="text-muted-foreground">{row.original.adHeadline}</span>
         ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const { label, color } = getDisplayStatus(row.original)
+          return (
+            <Badge variant="secondary" className={color}>
+              {label}
+            </Badge>
+          )
+        },
       },
       {
         id: "payout",
@@ -215,16 +246,21 @@ export function RequestsContent() {
 
       <Tabs defaultValue={defaultTab}>
         <TabsList variant="line">
-          {tabs.map((tab) => (
+          {TABS.map((tab) => (
             <TabsTrigger key={tab.key} value={tab.key}>
               {tab.label}
+              {tabCounts[tab.key] > 0 && (
+                <Badge className="ml-1.5 h-5 bg-muted-foreground/20 px-1.5 py-0 text-xs tabular-nums text-foreground">
+                  {tabCounts[tab.key]}
+                </Badge>
+              )}
             </TabsTrigger>
           ))}
         </TabsList>
-        {tabs.map((tab) => {
-          const tabData = requests.filter((r) => filterByTab(r, tab.key))
+        {TABS.map(({ key: tabKey }) => {
+          const tabData = requests.filter((r) => filterByTab(r, tabKey))
           return (
-            <TabsContent key={tab.key} value={tab.key} className="mt-8">
+            <TabsContent key={tabKey} value={tabKey} className="mt-8">
               {/* Desktop: table */}
               <div className="hidden md:block">
                 <DataTable columns={columns} data={tabData} />
@@ -253,9 +289,9 @@ export function RequestsContent() {
                           <p className="truncate text-sm font-medium">{otherHero?.name}</p>
                           <p className="truncate text-xs text-muted-foreground">{req.adHeadline}</p>
                         </div>
-                        <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
-                          {formatCurrency(req.proposedFee)}
-                        </span>
+                        <Badge variant="secondary" className={`shrink-0 ${getDisplayStatus(req).color}`}>
+                          {getDisplayStatus(req).label}
+                        </Badge>
                         <CaretRight className="size-4 shrink-0 text-muted-foreground" />
                       </button>
                     )

@@ -191,7 +191,7 @@ const TAGLINES: Record<Vertical, string[]> = {
 }
 
 const SOCIAL_PLATFORMS = ["twitter", "instagram", "linkedin", "youtube", "tiktok"] as const
-const SEND_SCHEDULES: SendSchedule[] = ["3x/week", "2x/week", "1x/week", "2x/month", "1x/month"]
+const SEND_SCHEDULES: SendSchedule[] = ["3x/Week", "2x/Week", "1x/Week", "2x/Month", "1x/Month"]
 
 // ============================================================
 // Generator

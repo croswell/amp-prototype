@@ -28,6 +28,7 @@ import {
   Star,
   EnvelopeSimple,
 } from "@phosphor-icons/react"
+import { SocialIcon } from "@/components/social-icon"
 
 // Generate mock ad copy for a sponsor based on their profile data.
 // In the real product this comes from their setup flow.
@@ -112,7 +113,7 @@ export function ProfileContent() {
                         href={link.url}
                         className="flex items-center gap-1.5 text-sm capitalize text-muted-foreground hover:text-foreground"
                       >
-                        <Globe className="size-3.5" />
+                        <SocialIcon platform={link.platform} className="size-3.5" />
                         {link.platform}
                       </a>
                     ))}
@@ -337,7 +338,7 @@ export function ProfileContent() {
                     href={link.url}
                     className="flex items-center gap-2 text-sm capitalize text-muted-foreground hover:text-foreground"
                   >
-                    <Globe className="size-3.5" />
+                    <SocialIcon platform={link.platform} className="size-3.5" />
                     {link.platform}
                   </a>
                 ))}

@@ -12,7 +12,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { currentUser } from "@/lib/mock-data"
-import { Gear, CaretUpDown, Check } from "@phosphor-icons/react"
+import { CaretUpDown, Check } from "@phosphor-icons/react"
 
 export function AppNav() {
   const pathname = usePathname()
@@ -33,6 +33,11 @@ export function AppNav() {
       label: "Promotions",
       href: `/requests?role=${roleParam}`,
       active: pathname.startsWith("/requests"),
+    },
+    {
+      label: "Settings",
+      href: `/settings?role=${roleParam}`,
+      active: pathname === "/settings",
     },
   ]
 
@@ -61,18 +66,6 @@ export function AppNav() {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            data-active={pathname === "/settings" || undefined}
-            className="data-[active]:bg-accent"
-          >
-            <Link href={`/settings?role=${roleParam}`}>
-              <Gear className="size-4" />
-              <span className="sr-only">Settings</span>
-            </Link>
-          </Button>
           {hasSwitcher ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -14,10 +14,19 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet"
+import {
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
 import { EmailBlockPreview } from "@/components/email-block-preview"
+import { HeroIdentity } from "@/components/hero-card"
+import { SocialIcon } from "@/components/social-icon"
 import { PayoutBadge } from "@/components/payout-badge"
-import { CalendarBlank, Timer, X, Check, CheckCircle, Clock, Globe } from "@phosphor-icons/react"
+import { CalendarBlank, Timer, X, Check, CheckCircle, Clock, Globe, FileText } from "@phosphor-icons/react"
 import {
   type RequestStatus,
   type PromotionRequest,
@@ -223,6 +232,11 @@ function PendingView({
 
   const totalCost = request.proposedFee * request.numberOfSends
 
+  // End date for schedule range
+  const endDate = new Date(request.proposedDate + "T00:00:00")
+  endDate.setDate(endDate.getDate() + request.numberOfSends * 7)
+  const endDateStr = endDate.toISOString().split("T")[0]
+
   // For sponsor reviewing: show the publisher. For publisher reviewing: show the sponsor.
   const headerHero = isSponsorReviewing ? publisher : sponsor
   const initials = headerHero ? headerHero.name.charAt(0) : "?"
@@ -231,13 +245,27 @@ function PendingView({
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            <AvatarFallback>{initials}</AvatarFallback>
-          </Avatar>
-          <SheetTitle className="flex-1 text-lg">{headerHero?.name}</SheetTitle>
-          <Badge className={BADGE_COLORS.blue}>
-            {request.initiatedBy === "sponsor" ? "Inbound" : isSponsorReviewing ? "Inbound" : "Outbound"}
-          </Badge>
+          {!isSponsorReviewing && (
+            <Avatar size="lg">
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+          )}
+          <div className="flex-1">
+            <SheetTitle className="text-lg">
+              {isSponsorReviewing ? "Promotion request" : headerHero?.name}
+            </SheetTitle>
+            {isSponsorReviewing && (
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <FileText className="size-3.5 shrink-0" />
+                {request.adHeadline}
+              </p>
+            )}
+          </div>
+          {!isSponsorReviewing && (
+            <Badge className={BADGE_COLORS.blue}>
+              {request.initiatedBy === "sponsor" ? "Inbound" : "Outbound"}
+            </Badge>
+          )}
           <SheetClose asChild>
             <Button variant="outline" size="icon-sm">
               <X />
@@ -250,84 +278,77 @@ function PendingView({
       <SheetBody className="space-y-4">
         {/* ── Sponsor reviewing: tabbed layout ── */}
         {isSponsorReviewing && publisher && (
-          <Tabs defaultValue="proposal">
-            <TabsList variant="line">
-              <TabsTrigger value="proposal">Proposal</TabsTrigger>
-              <TabsTrigger value="about">About {publisher.name.split(" ")[0]}</TabsTrigger>
-            </TabsList>
+          <>
+            <HeroIdentity hero={publisher} showEngagement />
 
-            <TabsContent value="proposal" className="space-y-4">
-              {/* Campaign preview */}
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground">Your campaign</p>
-                <EmailBlockPreview
-                  headline={request.adHeadline}
-                  body={request.adBody}
-                  cta={request.adCta}
-                />
-              </div>
+            <Tabs defaultValue="proposal">
+              <TabsList variant="line">
+                <TabsTrigger value="proposal">Proposal</TabsTrigger>
+                <TabsTrigger value="about">Profile</TabsTrigger>
+              </TabsList>
 
-              {/* Their message */}
-              <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground">Their message</p>
+            <TabsContent value="proposal" className="space-y-4 pt-2">
+              {/* Message from publisher */}
+              <div className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-center">
+                  <p className="text-xs text-muted-foreground">From {publisher.name.split(" ")[0]}</p>
+                  <p className="ml-auto text-xs text-muted-foreground">{formatDate(request.proposedDate)}</p>
+                </div>
                 <p className="text-sm leading-relaxed">{request.brief}</p>
               </div>
 
               {/* Deal summary */}
-              <div className="flex flex-wrap gap-4 text-sm">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Fee / send</p>
-                  <PayoutBadge amount={request.proposedFee} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Sends</p>
-                  <p className="text-sm tabular-nums">{request.numberOfSends}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Total cost</p>
-                  <p className="text-sm font-medium tabular-nums">{formatCurrency(totalCost)}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Proposed date</p>
-                  <Badge className={BADGE_COLORS.blue}>
-                    <CalendarBlank className="size-3" />
-                    {formatDate(request.proposedDate)}
-                  </Badge>
-                </div>
+              <div className="rounded-lg border">
+                <Table>
+                  <TableBody>
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell className="text-muted-foreground">Price per send</TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(request.proposedFee)}</TableCell>
+                    </TableRow>
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell className="text-muted-foreground">Frequency</TableCell>
+                      <TableCell className="text-right">1x / week</TableCell>
+                    </TableRow>
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell className="text-muted-foreground">Schedule</TableCell>
+                      <TableCell className="text-right">{formatDate(request.proposedDate)} – {formatDate(endDateStr)}</TableCell>
+                    </TableRow>
+                    <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
+                      <TableCell className="text-muted-foreground">Total</TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </div>
-
-              {/* Expiry */}
-              <Badge className={BADGE_COLORS.gold}>
-                <Timer className="size-3" />
-                Expires in {getDaysRemaining(request.id)} days
-              </Badge>
             </TabsContent>
 
-            <TabsContent value="about" className="space-y-4">
+            <TabsContent value="about" className="space-y-6 pt-2">
               {/* Audience stats */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-4 space-y-1">
                   <p className="text-xs text-muted-foreground">Subscribers</p>
                   <p className="text-lg font-medium tabular-nums">{formatNumber(publisher.subscriberCount)}</p>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-4 space-y-1">
                   <p className="text-xs text-muted-foreground">Open Rate</p>
                   <p className="text-lg font-medium tabular-nums">{publisher.openRate}%</p>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-4 space-y-1">
                   <p className="text-xs text-muted-foreground">Click Rate</p>
                   <p className="text-lg font-medium tabular-nums">{publisher.clickRate}%</p>
                 </div>
               </div>
 
-              {/* Bio */}
-              <p className="text-sm leading-relaxed text-muted-foreground">{publisher.bio}</p>
+              <Separator />
 
-              {/* Niche + links row */}
+              {/* Bio */}
+              <div className="space-y-2">
+                <p className="text-base font-medium">Bio</p>
+                <p className="text-sm leading-relaxed">{publisher.bio}</p>
+              </div>
+
+              {/* Links row */}
               <div className="flex flex-wrap gap-2">
-                <Badge className={`text-xs ${BADGE_COLORS.terracotta}`}>
-                  {publisher.verticals[0]}
-                </Badge>
                 {publisher.website && (
                   <Badge variant="outline" className="text-xs">
                     <Globe className="size-3" />
@@ -336,12 +357,14 @@ function PendingView({
                 )}
                 {publisher.socialLinks.map((link) => (
                   <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+                    <SocialIcon platform={link.platform} className="size-3" />
                     {link.platform}
                   </Badge>
                 ))}
               </div>
             </TabsContent>
           </Tabs>
+          </>
         )}
 
         {/* ── Publisher reviewing OR waiting (original flow) ── */}
@@ -436,7 +459,7 @@ function PendingView({
             </Button>
           ) : (
             <Button loading={acceptPhase === "loading"} onClick={onAccept}>
-              {acceptPhase === "loading" ? "Approving..." : `Approve · ${formatCurrency(totalCost)}`}
+              {acceptPhase === "loading" ? "Approving..." : "Approve"}
             </Button>
           )}
         </SheetFooter>
@@ -455,7 +478,7 @@ function PendingView({
           {acceptPhase === "success" ? (
             <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
               <Check weight="bold" className="size-4" />
-              Accepted
+              Approved
             </Button>
           ) : (
             <Button loading={acceptPhase === "loading"} onClick={onAccept}>
@@ -534,16 +557,16 @@ function AcceptedView({
           <Tabs defaultValue="proposal">
             <TabsList variant="line">
               <TabsTrigger value="proposal">Proposal</TabsTrigger>
-              <TabsTrigger value="about">About {publisher.name.split(" ")[0]}</TabsTrigger>
+              <TabsTrigger value="about">Profile</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="proposal" className="space-y-4">
+            <TabsContent value="proposal" className="space-y-4 pt-2">
               {/* Success banner */}
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
                 <div className="flex items-center gap-2">
                   <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
                   <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                    {`${publisher.name} accepted your campaign`}
+                    {`${publisher.name} approved your campaign`}
                   </p>
                 </div>
               </div>
@@ -582,31 +605,33 @@ function AcceptedView({
               </div>
             </TabsContent>
 
-            <TabsContent value="about" className="space-y-4">
+            <TabsContent value="about" className="space-y-6 pt-2">
               {/* Audience stats */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-4 space-y-1">
                   <p className="text-xs text-muted-foreground">Subscribers</p>
                   <p className="text-lg font-medium tabular-nums">{formatNumber(publisher.subscriberCount)}</p>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-4 space-y-1">
                   <p className="text-xs text-muted-foreground">Open Rate</p>
                   <p className="text-lg font-medium tabular-nums">{publisher.openRate}%</p>
                 </div>
-                <div className="rounded-lg border p-3">
+                <div className="rounded-lg border p-4 space-y-1">
                   <p className="text-xs text-muted-foreground">Click Rate</p>
                   <p className="text-lg font-medium tabular-nums">{publisher.clickRate}%</p>
                 </div>
               </div>
 
-              {/* Bio */}
-              <p className="text-sm leading-relaxed text-muted-foreground">{publisher.bio}</p>
+              <Separator />
 
-              {/* Niche + links row */}
+              {/* Bio */}
+              <div className="space-y-2">
+                <p className="text-base font-medium">Bio</p>
+                <p className="text-sm leading-relaxed">{publisher.bio}</p>
+              </div>
+
+              {/* Links row */}
               <div className="flex flex-wrap gap-2">
-                <Badge className={`text-xs ${BADGE_COLORS.terracotta}`}>
-                  {publisher.verticals[0]}
-                </Badge>
                 {publisher.website && (
                   <Badge variant="outline" className="text-xs">
                     <Globe className="size-3" />
@@ -615,6 +640,7 @@ function AcceptedView({
                 )}
                 {publisher.socialLinks.map((link) => (
                   <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+                    <SocialIcon platform={link.platform} className="size-3" />
                     {link.platform}
                   </Badge>
                 ))}
@@ -629,7 +655,7 @@ function AcceptedView({
               <div className="flex items-center gap-2">
                 <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
                 <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                  You accepted this campaign
+                  You approved this campaign
                 </p>
               </div>
             </div>
@@ -693,7 +719,7 @@ function AcceptedView({
             Decline
           </Button>
           <Button onClick={onSponsorApprove}>
-            Approve · {formatCurrency(totalCost)}
+            Approve
           </Button>
         </SheetFooter>
       )}

@@ -21,7 +21,7 @@ export function EmailBlockPreview({
         <h4 className="text-sm font-medium leading-snug">{headline}</h4>
         <p className="text-xs leading-relaxed text-muted-foreground">{body}</p>
         <div className="pt-1">
-          <span className="inline-block bg-muted px-4 py-2 text-xs font-medium text-muted-foreground cursor-default">
+          <span className="inline-block rounded-md border px-4 py-2 text-xs font-medium text-muted-foreground cursor-default">
             {cta}
           </span>
         </div>

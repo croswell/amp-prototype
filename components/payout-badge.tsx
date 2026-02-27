@@ -10,15 +10,16 @@ const VARIANT_STYLES = {
 interface PayoutBadgeProps {
   amount: number
   label?: string
+  suffix?: string
   variant?: keyof typeof VARIANT_STYLES
   className?: string
 }
 
-export function PayoutBadge({ amount, label, variant = "outline", className }: PayoutBadgeProps) {
+export function PayoutBadge({ amount, label, suffix, variant = "outline", className }: PayoutBadgeProps) {
   if (variant === "outline") {
     return (
       <span className={cn("text-sm tabular-nums text-muted-foreground", className)}>
-        {label && <span>{label}</span>}{formatCurrency(amount)}
+        {label && <span>{label}</span>}{formatCurrency(amount)}{suffix}
       </span>
     )
   }
@@ -27,12 +28,12 @@ export function PayoutBadge({ amount, label, variant = "outline", className }: P
     <Badge
       variant="outline"
       className={cn(
-        "font-[family-name:var(--font-geist-mono)] text-xs uppercase tracking-wide tabular-nums",
+        "text-xs tabular-nums",
         VARIANT_STYLES[variant],
         className
       )}
     >
-      {label && <span>{label}</span>}{formatCurrency(amount)}
+      {label && <span>{label}</span>}{formatCurrency(amount)}{suffix}
     </Badge>
   )
 }

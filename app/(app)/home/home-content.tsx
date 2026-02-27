@@ -18,8 +18,16 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table"
 import { EmailBlockPreview } from "@/components/email-block-preview"
-import { HeroCard } from "@/components/hero-card"
+import { Separator } from "@/components/ui/separator"
+import { HeroCard, HeroIdentity } from "@/components/hero-card"
+import { SocialIcon } from "@/components/social-icon"
 import { PromotionSheet } from "@/components/promotion-sheet"
 import { PayoutBadge } from "@/components/payout-badge"
 import {
@@ -140,17 +148,6 @@ export function HomeContent() {
           })
         })
 
-      // Sponsor sees accepted requests waiting for their approval (publisher accepted, sponsor needs to approve)
-      outgoing
-        .filter((r) => r.status === "accepted")
-        .forEach((r) => {
-          const publisher = getHero(r.publisherId)
-          items.push({
-            request: r,
-            type: "sponsor",
-            label: `${publisher?.name ?? "Publisher"} accepted your campaign`,
-          })
-        })
     }
 
     return items
@@ -541,10 +538,7 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
     <>
       <SheetHeader>
         <div className="flex items-center gap-3">
-          <Avatar size="lg">
-            <AvatarFallback>{hero.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <SheetTitle className="flex-1 text-lg">{hero.name}</SheetTitle>
+          <SheetTitle className="flex-1 text-lg">Recommended publisher</SheetTitle>
           <SheetClose asChild>
             <Button variant="outline" size="icon-sm">
               <XIcon />
@@ -554,7 +548,7 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
         </div>
       </SheetHeader>
 
-      <SheetBody className="space-y-4">
+      <SheetBody className="space-y-6">
         {phase === "success" && (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
             <div className="flex items-center gap-2">
@@ -566,75 +560,72 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
           </div>
         )}
 
-        <Tabs defaultValue="proposal">
-          <TabsList variant="line">
-            <TabsTrigger value="proposal">Proposal</TabsTrigger>
-            <TabsTrigger value="about">About {hero.name.split(" ")[0]}</TabsTrigger>
-          </TabsList>
+        <HeroIdentity hero={hero} showEngagement />
 
-          <TabsContent value="proposal" className="space-y-4">
-            {/* Campaign preview */}
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground">Your campaign</p>
-              <EmailBlockPreview
-                headline={currentUserCampaign.adHeadline}
-                body={currentUserCampaign.adBody}
-                cta={currentUserCampaign.adCta}
-              />
-            </div>
+        {/* Audience stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-lg border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Subscribers</p>
+            <p className="text-lg font-medium tabular-nums">{formatNumber(hero.subscriberCount)}</p>
+          </div>
+          <div className="rounded-lg border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Open Rate</p>
+            <p className="text-lg font-medium tabular-nums">{hero.openRate}%</p>
+          </div>
+          <div className="rounded-lg border p-4 space-y-1">
+            <p className="text-xs text-muted-foreground">Click Rate</p>
+            <p className="text-lg font-medium tabular-nums">{hero.clickRate}%</p>
+          </div>
+        </div>
 
-            {/* Fee info */}
-            <div className="flex flex-wrap gap-4 text-sm">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Fee / send</p>
-                <p className="text-sm tabular-nums">{formatCurrency(hero.recommendedFee)}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Est. total (3 sends)</p>
-                <p className="text-sm font-medium tabular-nums">{formatCurrency(totalCost)}</p>
-              </div>
-            </div>
-          </TabsContent>
+        <Separator />
 
-          <TabsContent value="about" className="space-y-4">
-            {/* Audience stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg border p-3">
-                <p className="text-xs text-muted-foreground">Subscribers</p>
-                <p className="text-lg font-medium tabular-nums">{formatNumber(hero.subscriberCount)}</p>
-              </div>
-              <div className="rounded-lg border p-3">
-                <p className="text-xs text-muted-foreground">Open Rate</p>
-                <p className="text-lg font-medium tabular-nums">{hero.openRate}%</p>
-              </div>
-              <div className="rounded-lg border p-3">
-                <p className="text-xs text-muted-foreground">Click Rate</p>
-                <p className="text-lg font-medium tabular-nums">{hero.clickRate}%</p>
-              </div>
-            </div>
+        {/* Bio */}
+        <div className="space-y-2">
+          <p className="text-base font-medium">Bio</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
+        </div>
 
-            {/* Bio */}
-            <p className="text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
+        {/* Links row */}
+        <div className="flex flex-wrap gap-2">
+          {hero.website && (
+            <Badge variant="outline" className="text-xs">
+              <Globe className="size-3" />
+              {hero.website.replace(/^https?:\/\//, "")}
+            </Badge>
+          )}
+          {hero.socialLinks.map((link) => (
+            <Badge key={link.platform} variant="outline" className="text-xs capitalize">
+              <SocialIcon platform={link.platform} className="size-3" />
+              {link.platform}
+            </Badge>
+          ))}
+        </div>
 
-            {/* Niche + links row */}
-            <div className="flex flex-wrap gap-2">
-              <Badge className={`text-xs ${BADGE_COLORS.terracotta}`}>
-                {hero.verticals[0]}
-              </Badge>
-              {hero.website && (
-                <Badge variant="outline" className="text-xs">
-                  <Globe className="size-3" />
-                  {hero.website.replace(/^https?:\/\//, "")}
-                </Badge>
-              )}
-              {hero.socialLinks.map((link) => (
-                <Badge key={link.platform} variant="outline" className="text-xs capitalize">
-                  {link.platform}
-                </Badge>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+        <Separator />
+
+        {/* Pricing breakdown */}
+        <div className="space-y-2">
+          <p className="text-base font-medium">Price estimate</p>
+          <div className="rounded-lg border">
+            <Table>
+              <TableBody>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell className="text-muted-foreground">Price per send</TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(hero.recommendedFee)}</TableCell>
+                </TableRow>
+                <TableRow className="hover:bg-transparent">
+                  <TableCell className="text-muted-foreground">Frequency</TableCell>
+                  <TableCell className="text-right">{hero.sendSchedule}</TableCell>
+                </TableRow>
+                <TableRow className="border-0 bg-muted/50 hover:bg-muted/50">
+                  <TableCell className="text-muted-foreground">Estimated total</TableCell>
+                  <TableCell className="text-right font-medium tabular-nums">{formatCurrency(totalCost)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </SheetBody>
 
       <SheetFooter>

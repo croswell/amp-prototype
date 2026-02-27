@@ -6,7 +6,7 @@ import { generatedHeroes } from "./generated-heroes"
 
 export type Role = "publisher" | "sponsor" | "both"
 export type EngagementTier = "high" | "medium" | "low"
-export type SendSchedule = "3x/week" | "2x/week" | "1x/week" | "2x/month" | "1x/month"
+export type SendSchedule = "3x/Week" | "2x/Week" | "1x/Week" | "2x/Month" | "1x/Month"
 export type RequestStatus =
   | "pending"
   | "accepted"
@@ -62,6 +62,7 @@ export interface PromotionRequest {
   adCtaUrl: string
   adImage?: string
   proposedFee: number
+  numberOfSends: number
   proposedDate: string
   notes: string
   createdAt: string
@@ -74,7 +75,7 @@ export interface PromotionRequest {
 
 export const STATUS_LABELS: Record<RequestStatus, string> = {
   pending: "Pending",
-  accepted: "Accepted",
+  accepted: "Approved",
   scheduled: "Scheduled",
   published: "Published",
   paid: "Paid",
@@ -108,7 +109,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 24,
     rating: 4.9,
     joinedDate: "2024-03-15",
-    sendSchedule: "2x/week",
+    sendSchedule: "2x/Week",
   },
   {
     id: "hero-2",
@@ -131,7 +132,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 18,
     rating: 4.8,
     joinedDate: "2024-05-20",
-    sendSchedule: "1x/week",
+    sendSchedule: "1x/Week",
   },
   {
     id: "hero-3",
@@ -154,7 +155,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 31,
     rating: 5.0,
     joinedDate: "2024-01-10",
-    sendSchedule: "2x/week",
+    sendSchedule: "2x/Week",
   },
   {
     id: "hero-4",
@@ -176,7 +177,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 8,
     rating: 4.7,
     joinedDate: "2024-08-01",
-    sendSchedule: "1x/week",
+    sendSchedule: "1x/Week",
     spendLimit: 2000,
   },
   {
@@ -200,7 +201,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 15,
     rating: 4.6,
     joinedDate: "2024-06-12",
-    sendSchedule: "1x/week",
+    sendSchedule: "1x/Week",
   },
   {
     id: "hero-6",
@@ -223,7 +224,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 5,
     rating: 4.5,
     joinedDate: "2024-09-01",
-    sendSchedule: "2x/month",
+    sendSchedule: "2x/Month",
     spendLimit: 1500,
   },
   {
@@ -247,7 +248,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 22,
     rating: 4.9,
     joinedDate: "2024-02-28",
-    sendSchedule: "2x/week",
+    sendSchedule: "2x/Week",
   },
   {
     id: "hero-8",
@@ -270,7 +271,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 12,
     rating: 4.7,
     joinedDate: "2024-04-15",
-    sendSchedule: "1x/week",
+    sendSchedule: "1x/Week",
   },
   {
     id: "hero-9",
@@ -292,7 +293,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 10,
     rating: 4.8,
     joinedDate: "2024-07-10",
-    sendSchedule: "2x/month",
+    sendSchedule: "2x/Month",
     spendLimit: 2500,
   },
   {
@@ -316,7 +317,7 @@ export const heroes: Hero[] = [
     promotionsCompleted: 28,
     rating: 4.9,
     joinedDate: "2024-01-05",
-    sendSchedule: "3x/week",
+    sendSchedule: "3x/Week",
   },
   ...generatedHeroes,
 ]
@@ -346,8 +347,19 @@ export const currentUser: Hero = {
   promotionsCompleted: 20,
   rating: 4.8,
   joinedDate: "2024-02-01",
-  sendSchedule: "2x/week",
+  sendSchedule: "2x/Week",
   spendLimit: 3000,
+}
+
+// ============================================================
+// Sponsor's single campaign (per spec: "One promotion")
+// ============================================================
+
+export const currentUserCampaign = {
+  adHeadline: "The Course Creator Accelerator",
+  adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
+  adCta: "Apply Now",
+  adCtaUrl: "https://alexjohnson.co/accelerator",
 }
 
 // ============================================================
@@ -368,6 +380,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Try PodGrowth Free",
     adCtaUrl: "https://podgrowth.co/trial",
     proposedFee: 275,
+    numberOfSends: 3,
     proposedDate: "2025-03-20",
     notes: "",
     createdAt: "2025-02-22",
@@ -385,10 +398,48 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Watch the Free Training",
     adCtaUrl: "https://lisapark.co/training",
     proposedFee: 350,
+    numberOfSends: 2,
     proposedDate: "2025-04-05",
     notes: "",
     createdAt: "2025-02-23",
     updatedAt: "2025-02-23",
+  },
+  // ── Pending: publisher-initiated (publisher wants to run the sponsor's campaign) ──
+  {
+    id: "req-18",
+    sponsorId: "current-user",
+    publisherId: "hero-1",
+    status: "pending",
+    initiatedBy: "publisher",
+    brief: "Your Course Creator Accelerator is a perfect fit for my audience of coaches building online businesses. I'd love to feature it in my next send — my readers are always asking how to package their expertise into courses.",
+    adHeadline: "The Course Creator Accelerator",
+    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
+    adCta: "Apply Now",
+    adCtaUrl: "https://alexjohnson.co/accelerator",
+    proposedFee: 350,
+    numberOfSends: 3,
+    proposedDate: "2025-04-01",
+    notes: "",
+    createdAt: "2025-02-25",
+    updatedAt: "2025-02-25",
+  },
+  {
+    id: "req-19",
+    sponsorId: "current-user",
+    publisherId: "hero-10",
+    status: "pending",
+    initiatedBy: "publisher",
+    brief: "I think the Course Creator Accelerator would resonate strongly with my solopreneur audience. Many of them are sitting on expertise they haven't monetized yet — your program is exactly what they need to take the leap.",
+    adHeadline: "The Course Creator Accelerator",
+    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
+    adCta: "Apply Now",
+    adCtaUrl: "https://alexjohnson.co/accelerator",
+    proposedFee: 425,
+    numberOfSends: 4,
+    proposedDate: "2025-04-10",
+    notes: "",
+    createdAt: "2025-02-24",
+    updatedAt: "2025-02-24",
   },
   // ── Accepted: other party said yes ──
   {
@@ -403,6 +454,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Apply Now",
     adCtaUrl: "https://alexjohnson.co/accelerator",
     proposedFee: 350,
+    numberOfSends: 4,
     proposedDate: "2025-04-12",
     notes: "",
     createdAt: "2025-02-24",
@@ -420,6 +472,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Learn More",
     adCtaUrl: "https://alexjohnson.co/accelerator",
     proposedFee: 275,
+    numberOfSends: 2,
     proposedDate: "2025-04-18",
     notes: "",
     createdAt: "2025-02-23",
@@ -437,6 +490,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Get the Free Blueprint",
     adCtaUrl: "https://jakemorrison.io/blueprint",
     proposedFee: 300,
+    numberOfSends: 3,
     proposedDate: "2025-03-15",
     notes: "",
     createdAt: "2025-02-20",
@@ -454,6 +508,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Try PodGrowth Free",
     adCtaUrl: "https://podgrowth.co/trial",
     proposedFee: 350,
+    numberOfSends: 2,
     proposedDate: "2025-03-22",
     notes: "",
     createdAt: "2025-02-18",
@@ -472,6 +527,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Join the Program",
     adCtaUrl: "https://priyapatel.com/lead",
     proposedFee: 400,
+    numberOfSends: 4,
     proposedDate: "2025-04-10",
     notes: "",
     createdAt: "2025-02-19",
@@ -489,6 +545,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Get Instant Access",
     adCtaUrl: "https://emmanguyen.com/workshop",
     proposedFee: 275,
+    numberOfSends: 2,
     proposedDate: "2025-04-15",
     notes: "",
     createdAt: "2025-02-20",
@@ -506,6 +563,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Apply Now",
     adCtaUrl: "https://alexjohnson.co/accelerator",
     proposedFee: 500,
+    numberOfSends: 4,
     proposedDate: "2025-04-01",
     notes: "",
     createdAt: "2025-02-15",
@@ -523,6 +581,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Watch the Free Training",
     adCtaUrl: "https://lisapark.co/training",
     proposedFee: 425,
+    numberOfSends: 6,
     proposedDate: "2025-03-28",
     notes: "",
     createdAt: "2025-02-10",
@@ -540,6 +599,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Learn More",
     adCtaUrl: "https://alexjohnson.co/accelerator",
     proposedFee: 325,
+    numberOfSends: 4,
     proposedDate: "2025-03-05",
     notes: "",
     createdAt: "2025-02-01",
@@ -557,6 +617,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Enroll Now",
     adCtaUrl: "https://ryanbrooks.com/bootcamp",
     proposedFee: 375,
+    numberOfSends: 6,
     proposedDate: "2025-04-08",
     notes: "",
     createdAt: "2025-02-16",
@@ -574,6 +635,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Start the Challenge",
     adCtaUrl: "https://marcusrivera.fit/challenge",
     proposedFee: 275,
+    numberOfSends: 2,
     proposedDate: "2025-03-18",
     notes: "",
     createdAt: "2025-02-08",
@@ -592,6 +654,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Reserve Your Spot",
     adCtaUrl: "https://aishathompson.com/masterclass",
     proposedFee: 225,
+    numberOfSends: 1,
     proposedDate: "2025-03-25",
     notes: "",
     createdAt: "2025-02-17",
@@ -609,6 +672,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Join the Sprint",
     adCtaUrl: "https://jakemorrison.io/sprint",
     proposedFee: 250,
+    numberOfSends: 1,
     proposedDate: "2025-02-01",
     notes: "",
     createdAt: "2025-01-10",
@@ -629,6 +693,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Register Now",
     adCtaUrl: "https://carlosmendez.design/brand",
     proposedFee: 200,
+    numberOfSends: 1,
     proposedDate: "2025-03-22",
     notes: "",
     createdAt: "2025-02-12",
@@ -647,6 +712,7 @@ export const promotionRequests: PromotionRequest[] = [
     adCta: "Get the Toolkit",
     adCtaUrl: "https://carlosmendez.design/toolkit",
     proposedFee: 200,
+    numberOfSends: 1,
     proposedDate: "2025-02-10",
     notes: "",
     createdAt: "2025-01-20",

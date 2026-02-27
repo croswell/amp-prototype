@@ -39,7 +39,7 @@ type TabKey = RequestStatus
 
 // Publisher tabs
 const PUBLISHER_TABS: { key: TabKey; label: string }[] = [
-  { key: "accepted", label: "Accepted" },
+  { key: "accepted", label: "Approved" },
   { key: "scheduled", label: "Scheduled" },
   { key: "published", label: "Published" },
   { key: "paid", label: "Paid" },
@@ -50,6 +50,7 @@ const PUBLISHER_TABS: { key: TabKey; label: string }[] = [
 // Sponsor tabs
 const SPONSOR_TABS: { key: TabKey; label: string }[] = [
   { key: "pending", label: "Pending" },
+  { key: "accepted", label: "Approved" },
   { key: "scheduled", label: "Scheduled" },
   { key: "published", label: "Published" },
   { key: "paid", label: "Paid" },
@@ -134,19 +135,26 @@ export function RequestsContent() {
         ),
       },
       {
-        id: "fee",
-        header: "Payout",
-        cell: ({ row }) => (
-          <PayoutBadge amount={row.original.proposedFee} />
-        ),
-      },
-      {
         id: "schedule",
         header: "Date",
         cell: ({ row }) => (
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-sm">
             {getWeekRange(row.original.proposedDate)}
           </span>
+        ),
+      },
+      {
+        id: "sends",
+        header: "Sends",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground tabular-nums">{row.original.numberOfSends}</span>
+        ),
+      },
+      {
+        id: "total",
+        header: "Total",
+        cell: ({ row }) => (
+          <PayoutBadge amount={row.original.proposedFee * row.original.numberOfSends} />
         ),
       },
       {

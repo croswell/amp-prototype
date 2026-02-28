@@ -57,6 +57,7 @@ import {
   CaretDoubleUp,
   CaretLeft,
   Users,
+  CreditCard,
 } from "@phosphor-icons/react"
 
 export function HomeContent() {
@@ -67,6 +68,7 @@ export function HomeContent() {
   const role = getRoleForPersona(persona)
   const activeViewRole = getActiveViewRole(role, view)
 
+  const isNewAccount = searchParams.get("new") === "true"
   const isPublisher = activeViewRole === "publisher"
   const isSponsor = activeViewRole === "sponsor"
 
@@ -149,6 +151,28 @@ export function HomeContent() {
         {greeting}, {activeUser.name.split(" ")[0]}
       </h1>
 
+      {/* ── Stripe connection callout (new accounts only) ── */}
+      {isNewAccount && (
+        <div className="flex items-center gap-4 rounded-lg border bg-card p-4">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
+            <CreditCard className="size-5 text-foreground" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground">
+              Connect Stripe to {isPublisher ? "receive payments" : "fund campaigns"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isPublisher
+                ? "Link your Stripe account so sponsors can pay you directly."
+                : "Add a payment method to start sending promotion requests."}
+            </p>
+          </div>
+          <Button size="sm" className="shrink-0">
+            Connect Stripe
+          </Button>
+        </div>
+      )}
+
       {/* ── Stat cards ── */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {isPublisher && (
@@ -181,7 +205,7 @@ export function HomeContent() {
                 <CurrencyDollar className="size-4" />
               </p>
               <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-                {formatCurrency(publisherRevenue)}
+                {formatCurrency(isNewAccount ? 0 : publisherRevenue)}
               </p>
               <p className="mt-auto pt-3 text-xs text-muted-foreground">
                 Last 30 days
@@ -197,7 +221,7 @@ export function HomeContent() {
                 <CurrencyDollar className="size-4" />
               </p>
               <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-                {formatCurrency(sponsorSpend)}
+                {formatCurrency(isNewAccount ? 0 : sponsorSpend)}
               </p>
               <p className="mt-auto pt-3 text-xs text-muted-foreground">
                 Last 30 days
@@ -212,7 +236,7 @@ export function HomeContent() {
               <Lightning className="size-4" />
             </p>
             <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-              {activeCount}
+              {isNewAccount ? 0 : activeCount}
             </p>
             <p className="mt-auto pt-3 text-xs text-muted-foreground">
               Last 30 days
@@ -226,7 +250,7 @@ export function HomeContent() {
               <CheckCircle className="size-4" />
             </p>
             <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-              {completedCount}
+              {isNewAccount ? 0 : completedCount}
             </p>
             <p className="mt-auto pt-3 text-xs text-muted-foreground">
               Last 30 days
@@ -241,7 +265,7 @@ export function HomeContent() {
                 <Clock className="size-4" />
               </p>
               <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-                {pendingApprovals}
+                {isNewAccount ? 0 : pendingApprovals}
               </p>
               <p className="mt-auto pt-3 text-xs text-muted-foreground">
                 Last 30 days
@@ -264,7 +288,7 @@ export function HomeContent() {
           </Button>
         </div>
 
-        {recentActivity.length > 0 ? (
+        {!isNewAccount && recentActivity.length > 0 ? (
           <div className="rounded-lg border bg-card">
             {recentActivity.map((req, index) => {
               const isIncoming = req.publisherId === activeUser.id

@@ -468,7 +468,7 @@ export default function OnboardingPage() {
 
             <Button
               className="w-full"
-              onClick={() => router.push("/home?role=publisher")}
+              onClick={() => router.push("/home?role=publisher&new=true")}
             >
               Continue to Home
               <ArrowRight data-icon="inline-end" className="size-4" />
@@ -501,7 +501,7 @@ export default function OnboardingPage() {
 
             <Button
               className="w-full"
-              onClick={() => router.push("/home?role=sponsor")}
+              onClick={() => router.push("/home?role=sponsor&new=true")}
             >
               Continue to Dashboard
               <ArrowRight data-icon="inline-end" className="size-4" />

@@ -315,7 +315,7 @@ export function RequestDetailContent() {
               <span className="sr-only">Back</span>
             </Link>
           </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">{liveRequest.adHeadline}</h1>
+          <h1 className="text-balance text-2xl font-semibold tracking-tight">{liveRequest.adHeadline}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           <Badge

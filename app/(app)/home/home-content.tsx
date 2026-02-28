@@ -131,7 +131,7 @@ export function HomeContent() {
   return (
     <div className="space-y-10">
       <div className="relative space-y-8 pb-10 after:absolute after:bottom-0 after:left-1/2 after:w-screen after:-translate-x-1/2 after:border-b after:border-border">
-      <h1 className="text-2xl font-medium tracking-tight">
+      <h1 className="text-balance text-2xl font-medium tracking-tight">
         {greeting}, {activeUser.name.split(" ")[0]}
       </h1>
 
@@ -257,7 +257,7 @@ export function HomeContent() {
       {/* ── Recent Activity ── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium">Recent Activity</h2>
+          <h2 className="text-balance text-lg font-medium">Recent Activity</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link href={`/requests${personaParam}`}>
               View all
@@ -313,7 +313,7 @@ export function HomeContent() {
 
       {/* ── Recommended sections ── */}
       <div className="space-y-4">
-        <h2 className="text-lg font-medium">
+        <h2 className="text-balance text-lg font-medium">
           {isPublisher ? "Recommended Sponsors" : "Recommended Publishers"}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -523,7 +523,7 @@ function SponsorProfileDialog({
         <HeroIdentity hero={hero} />
 
         {/* Bio */}
-        <p className="text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
+        <p className="text-pretty text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
 
         {/* Niche + Links — single inline row */}
         <div className="flex flex-wrap items-center gap-2">
@@ -757,7 +757,7 @@ function PublisherProfileDialog({
         {/* Bio */}
         <div className="space-y-2">
           <SectionTitle>Bio</SectionTitle>
-          <p className="text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
+          <p className="text-pretty text-sm leading-relaxed text-muted-foreground">{hero.bio}</p>
         </div>
 
         {/* Links row */}

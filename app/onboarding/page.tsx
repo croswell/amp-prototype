@@ -153,7 +153,7 @@ export default function OnboardingPage() {
             <div className="flex flex-col items-center gap-4 text-center">
               <img src="/icon-black.svg" alt="Amplify" className="size-12 rounded-md dark:hidden" />
               <img src="/icon-white.svg" alt="Amplify" className="size-12 rounded-md hidden dark:block" />
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 Welcome to Amplify
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
@@ -177,7 +177,7 @@ export default function OnboardingPage() {
           <div className="flex flex-col items-center gap-4 py-12 text-center">
             <CircleNotch className="size-8 animate-spin text-muted-foreground" />
             <div className="space-y-2">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 Connecting to Kajabi&hellip;
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
@@ -191,7 +191,7 @@ export default function OnboardingPage() {
         {step === "edit-profile" && (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 Set up your profile
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
@@ -269,7 +269,7 @@ export default function OnboardingPage() {
         {step === "role-select" && (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 How do you want to get started?
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
@@ -342,7 +342,7 @@ export default function OnboardingPage() {
         {step === "publisher-setup" && (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 See your earning potential
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
@@ -449,7 +449,7 @@ export default function OnboardingPage() {
         {step === "profile" && (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 Your publisher profile is ready
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
@@ -473,7 +473,7 @@ export default function OnboardingPage() {
         {step === "sponsor-profile" && (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 You&apos;re all set
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">
@@ -506,7 +506,7 @@ export default function OnboardingPage() {
         {step === "sponsor-campaign" && (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h1 className="text-2xl font-medium tracking-tight">
+              <h1 className="text-balance text-2xl font-medium tracking-tight">
                 Create your first campaign
               </h1>
               <p className="text-pretty text-sm text-muted-foreground">

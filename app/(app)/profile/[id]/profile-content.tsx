@@ -81,7 +81,7 @@ export function ProfileContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-sm leading-relaxed text-muted-foreground">
+                <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
                   {hero.bio}
                 </p>
 
@@ -135,7 +135,7 @@ export function ProfileContent() {
                   <p className="text-xs font-medium text-muted-foreground">
                     Brief
                   </p>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
                     {hero.bio}
                   </p>
                 </div>
@@ -215,7 +215,7 @@ export function ProfileContent() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <p className="text-sm leading-relaxed text-muted-foreground">
+                <p className="text-pretty text-sm leading-relaxed text-muted-foreground">
                   {hero.bio}
                 </p>
 

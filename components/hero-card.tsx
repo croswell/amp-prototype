@@ -55,7 +55,7 @@ export function HeroCard({ hero, onClick, showPublisherStats, children }: HeroCa
               {formatNumber(hero.subscriberCount)} subscribers · {hero.openRate}% open · {hero.clickRate}% click
             </p>
           )}
-          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="line-clamp-2 text-pretty text-sm leading-relaxed text-muted-foreground">
             {hero.bio.length > 160 ? hero.bio.slice(0, 160).trimEnd() + "…" : hero.bio}
           </p>
         </CardHeader>

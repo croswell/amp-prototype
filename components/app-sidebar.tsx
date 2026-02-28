@@ -22,18 +22,23 @@ import {
   Megaphone,
   Gear,
 } from "@phosphor-icons/react"
-import { getActiveUser, getRoleForPersona } from "@/lib/mock-data"
+import { getActiveUser, getRoleForPersona, getActiveViewRole } from "@/lib/mock-data"
 
 export function AppSidebar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const persona = searchParams.get("persona") || "sarah"
+  const persona = searchParams.get("role") || "publisher"
+  const view = searchParams.get("view")
   const activeUser = getActiveUser(persona)
   const role = getRoleForPersona(persona)
+  const activeViewRole = getActiveViewRole(role, view)
   const { setOpenMobile } = useSidebar()
 
   // Build query string for links
-  const qs = persona === "sarah" ? "" : `?persona=${persona}`
+  const params = new URLSearchParams()
+  if (persona !== "publisher") params.set("role", persona)
+  if (view && role === "both") params.set("view", view)
+  const qs = params.toString() ? `?${params.toString()}` : ""
 
   // Initials from active user's name
   const initials = activeUser.name
@@ -116,7 +121,9 @@ export function AppSidebar() {
           <div className="flex flex-col">
             <span className="text-sm font-medium leading-tight">{activeUser.name}</span>
             <span className="text-xs text-muted-foreground">
-              {role === "sponsor" ? "Sponsor" : role === "both" ? "Publisher & Sponsor" : "Publisher"}
+              {role === "both"
+                ? `Viewing as ${activeViewRole === "sponsor" ? "Sponsor" : "Publisher"}`
+                : role === "sponsor" ? "Sponsor" : "Publisher"}
             </span>
           </div>
         </div>

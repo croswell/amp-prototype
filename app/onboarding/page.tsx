@@ -150,7 +150,8 @@ export default function OnboardingPage() {
         {step === "kajabi-signin" && (
           <div className="mx-auto max-w-sm space-y-6">
             <div className="flex flex-col items-center gap-4 text-center">
-              <img src="/icon-black.svg" alt="Amplify" className="size-12 rounded-md" />
+              <img src="/icon-black.svg" alt="Amplify" className="size-12 rounded-md dark:hidden" />
+              <img src="/icon-white.svg" alt="Amplify" className="size-12 rounded-md hidden dark:block" />
               <h1 className="text-2xl font-medium tracking-tight">
                 Welcome to Amplify
               </h1>

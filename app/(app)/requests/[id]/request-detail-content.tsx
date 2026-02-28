@@ -34,6 +34,7 @@ import {
   getHero,
   getActiveUser,
   getRoleForPersona,
+  getActiveViewRole,
   getStatusColor,
   STATUS_LABELS,
   deriveRequestState,
@@ -144,8 +145,12 @@ export function RequestDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const persona = searchParams.get("persona")
-  const personaParam = persona ? `?persona=${persona}` : ""
+  const persona = searchParams.get("role")
+  const qsParams = new URLSearchParams()
+  if (persona) qsParams.set("role", persona)
+  const view = searchParams.get("view")
+  if (view && persona === "both") qsParams.set("view", view)
+  const personaParam = qsParams.toString() ? `?${qsParams.toString()}` : ""
 
   const request = getRequest(params.id as string)
   if (!request) {
@@ -153,7 +158,8 @@ export function RequestDetailContent() {
   }
 
   const activeUser = getActiveUser(persona)
-  const viewerRole = getRoleForPersona(persona) as "publisher" | "sponsor"
+  const role = getRoleForPersona(persona)
+  const viewerRole = getActiveViewRole(role, view)
 
   // ── Local state so actions update the page in real time ──
   const [localStatus, setLocalStatus] = useState<RequestStatus>(request.status)
@@ -326,7 +332,7 @@ export function RequestDetailContent() {
             variant="secondary"
             className={
               liveRequest.status === "pending" && liveRequest.initiatedBy !== viewerRole
-                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
                 : getStatusColor(liveRequest.status)
             }
           >

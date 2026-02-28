@@ -41,6 +41,7 @@ import {
   getRecommendedHeroes,
   getActiveUser,
   getRoleForPersona,
+  getActiveViewRole,
 } from "@/lib/mock-data"
 import {
   CurrencyDollar,
@@ -60,14 +61,20 @@ import {
 
 export function HomeContent() {
   const searchParams = useSearchParams()
-  const persona = searchParams.get("persona") || "sarah"
+  const persona = searchParams.get("role") || "publisher"
+  const view = searchParams.get("view")
   const activeUser = getActiveUser(persona)
   const role = getRoleForPersona(persona)
+  const activeViewRole = getActiveViewRole(role, view)
 
-  const isPublisher = role === "publisher"
-  const isSponsor = role === "sponsor"
+  const isPublisher = activeViewRole === "publisher"
+  const isSponsor = activeViewRole === "sponsor"
 
-  const personaParam = persona && persona !== "sarah" ? `?persona=${persona}` : ""
+  // Build query string preserving persona and view params
+  const params = new URLSearchParams()
+  if (persona !== "publisher") params.set("role", persona)
+  if (view && role === "both") params.set("view", view)
+  const personaParam = params.toString() ? `?${params.toString()}` : ""
 
   // Profile sheet state
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
@@ -114,7 +121,7 @@ export function HomeContent() {
       }
       return {
         label: "New",
-        color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+        color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
       }
     }
     return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
@@ -250,7 +257,7 @@ export function HomeContent() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-medium">Recent Activity</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link href={`/requests${persona === "sarah" ? "" : `?persona=${persona}`}`}>
+            <Link href={`/requests${personaParam}`}>
               View all
               <ArrowRight data-icon="inline-end" className="size-4" />
             </Link>
@@ -324,10 +331,10 @@ export function HomeContent() {
       {/* ── Hero profile Dialog ── */}
       <Dialog open={!!selectedHero} onOpenChange={(open) => !open && setSelectedHeroId(null)}>
         <DialogContent showCloseButton={false} className="sm:max-w-lg gap-0 p-0">
-          {selectedHero && (selectedHero.role === "sponsor" || (selectedHero.role === "both" && role === "publisher")) && (
+          {selectedHero && (selectedHero.role === "sponsor" || (selectedHero.role === "both" && activeViewRole === "publisher")) && (
             <SponsorProfileDialog hero={selectedHero} activeUser={activeUser} personaParam={personaParam} />
           )}
-          {selectedHero && (selectedHero.role === "publisher" || (selectedHero.role === "both" && role !== "publisher")) && (
+          {selectedHero && (selectedHero.role === "publisher" || (selectedHero.role === "both" && activeViewRole !== "publisher")) && (
             <PublisherProfileDialog hero={selectedHero} activeUser={activeUser} personaParam={personaParam} />
           )}
         </DialogContent>

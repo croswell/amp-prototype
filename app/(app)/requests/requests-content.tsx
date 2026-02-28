@@ -20,6 +20,7 @@ import {
   STATUS_LABELS,
   getActiveUser,
   getRoleForPersona,
+  getActiveViewRole,
   formatCurrency,
   calculatePayout,
 } from "@/lib/mock-data"
@@ -42,18 +43,24 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export function RequestsContent() {
   const searchParams = useSearchParams()
-  const persona = searchParams.get("persona") || "sarah"
+  const persona = searchParams.get("role") || "publisher"
+  const view = searchParams.get("view")
   const activeUser = getActiveUser(persona)
   const role = getRoleForPersona(persona)
+  const activeViewRole = getActiveViewRole(role, view)
 
-  const personaParam = persona && persona !== "sarah" ? `?persona=${persona}` : ""
+  // Build query string preserving persona and view params
+  const qsParams = new URLSearchParams()
+  if (persona !== "publisher") qsParams.set("role", persona)
+  if (view && role === "both") qsParams.set("view", view)
+  const personaParam = qsParams.toString() ? `?${qsParams.toString()}` : ""
 
-  // Filter requests by role
+  // Filter requests by active view role
   const requests = useMemo(() => {
-    return role === "publisher"
+    return activeViewRole === "publisher"
       ? promotionRequests.filter((r) => r.publisherId === activeUser.id)
       : promotionRequests.filter((r) => r.sponsorId === activeUser.id)
-  }, [role, activeUser])
+  }, [activeViewRole, activeUser])
 
   const filterByTab = (r: PromotionRequest, tabKey: TabKey) =>
     TAB_STATUSES[tabKey].includes(r.status)
@@ -68,14 +75,14 @@ export function RequestsContent() {
   function getDisplayStatus(req: PromotionRequest): { label: string; color: string } {
     if (req.status === "pending") {
       const userInitiated =
-        (role === "publisher" && req.initiatedBy === "publisher") ||
-        (role === "sponsor" && req.initiatedBy === "sponsor")
+        (activeViewRole === "publisher" && req.initiatedBy === "publisher") ||
+        (activeViewRole === "sponsor" && req.initiatedBy === "sponsor")
       if (userInitiated) {
         return { label: "Requested", color: getStatusColor("pending") }
       }
       return {
         label: "New",
-        color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+        color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
       }
     }
     return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
@@ -86,7 +93,7 @@ export function RequestsContent() {
     () => [
       {
         accessorKey: "sponsorId",
-        header: role === "publisher" ? "Sponsor" : "Publisher",
+        header: activeViewRole === "publisher" ? "Sponsor" : "Publisher",
         cell: ({ row }) => {
           const req = row.original
           const isIncoming = req.publisherId === activeUser.id
@@ -153,7 +160,7 @@ export function RequestsContent() {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [role, personaParam]
+    [activeViewRole, personaParam]
   )
 
   return (

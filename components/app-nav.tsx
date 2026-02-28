@@ -10,24 +10,35 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { getActiveUser, getRoleForPersona } from "@/lib/mock-data"
+import { getActiveUser, getRoleForPersona, getActiveViewRole } from "@/lib/mock-data"
 import { CaretUpDown, Check } from "@phosphor-icons/react"
 
-const personas = [
-  { key: "sarah", label: "Sarah Chen", sublabel: "Publisher" },
-  { key: "jake", label: "Jake Morrison", sublabel: "Sponsor" },
-] as const
+const viewOptions = [
+  { key: "publisher" as const, label: "Publisher" },
+  { key: "sponsor" as const, label: "Sponsor" },
+]
 
 export function AppNav() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const persona = searchParams.get("persona") || "sarah"
+  const persona = searchParams.get("role") || "publisher"
+  const view = searchParams.get("view")
   const activeUser = getActiveUser(persona)
   const role = getRoleForPersona(persona)
+  const activeViewRole = getActiveViewRole(role, view)
   const firstInitial = activeUser.name.charAt(0)
 
-  // Build the query string — persona param only (role is derived)
-  const qs = persona === "sarah" ? "" : `?persona=${persona}`
+  // Build query string preserving persona and view params
+  function buildQs(overrides?: { view?: string }) {
+    const params = new URLSearchParams()
+    if (persona !== "publisher") params.set("role", persona)
+    const v = overrides?.view ?? view
+    if (v && role === "both") params.set("view", v)
+    const str = params.toString()
+    return str ? `?${str}` : ""
+  }
+
+  const qs = buildQs()
 
   const navLinks = [
     {
@@ -72,32 +83,39 @@ export function AppNav() {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
-                <Avatar size="sm">
-                  <AvatarFallback>{firstInitial}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm">{role === "publisher" ? "Publisher" : "Sponsor"}</span>
-                <CaretUpDown className="size-3.5 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              {personas.map((p) => (
-                <DropdownMenuItem key={p.key} asChild disabled={persona === p.key}>
-                  <Link href={`${pathname}${p.key === "sarah" ? "" : `?persona=${p.key}`}`}>
-                    <div className="flex flex-1 items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-sm">{p.label}</span>
-                        <span className="text-xs text-muted-foreground">{p.sublabel}</span>
+          {role === "both" ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
+                  <Avatar size="sm">
+                    <AvatarFallback>{firstInitial}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm">{activeViewRole === "publisher" ? "Publisher" : "Sponsor"}</span>
+                  <CaretUpDown className="size-3.5 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <div className="px-2 py-1.5 text-xs text-muted-foreground">{activeUser.name}</div>
+                {viewOptions.map((opt) => (
+                  <DropdownMenuItem key={opt.key} asChild>
+                    <Link href={`${pathname}${buildQs({ view: opt.key })}`}>
+                      <div className="flex flex-1 items-center justify-between">
+                        <span className="text-sm">{opt.label}</span>
+                        {activeViewRole === opt.key && <Check className="size-3.5" />}
                       </div>
-                      {persona === p.key && <Check className="size-3.5" />}
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2 px-1">
+              <Avatar size="sm">
+                <AvatarFallback>{firstInitial}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium">{activeUser.name}</span>
+            </div>
+          )}
         </div>
       </div>
     </nav>

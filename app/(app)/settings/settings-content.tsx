@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { EngagementBadge } from "@/components/engagement-badge"
-import { currentUser, formatCurrency, formatNumber, getActiveUser, getRoleForPersona } from "@/lib/mock-data"
+import { currentUser, formatCurrency, formatNumber, getActiveUser, getRoleForPersona, getActiveViewRole } from "@/lib/mock-data"
 import type { Vertical } from "@/lib/mock-data"
 import { Globe, LinkSimple, SignOut } from "@phosphor-icons/react"
 
@@ -52,12 +52,14 @@ const INITIAL_CAMPAIGN = {
 
 export function SettingsContent() {
   const searchParams = useSearchParams()
-  const persona = searchParams.get("persona") || "sarah"
+  const persona = searchParams.get("role") || "publisher"
+  const view = searchParams.get("view")
   const activeUser = getActiveUser(persona)
   const role = getRoleForPersona(persona)
+  const activeViewRole = getActiveViewRole(role, view)
 
-  const isPublisher = role === "publisher" || role === "both"
-  const isSponsor = role === "sponsor" || role === "both"
+  const isPublisher = activeViewRole === "publisher"
+  const isSponsor = activeViewRole === "sponsor"
 
   // ── Profile state ──────────────────────────────────────────
   const [name, setName] = useState(activeUser.name)
@@ -211,7 +213,7 @@ export function SettingsContent() {
                 </p>
               </div>
             </CardContent>
-            <CardFooter className="justify-end border-t px-6 py-4">
+            <CardFooter className="justify-end border-t px-6 pt-4">
               <Button disabled={!detailsChanged}>Save</Button>
             </CardFooter>
           </Card>
@@ -272,7 +274,7 @@ export function SettingsContent() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="justify-end border-t px-6 py-4">
+            <CardFooter className="justify-end border-t px-6 pt-4">
               <Button disabled={!linksChanged}>Save</Button>
             </CardFooter>
           </Card>
@@ -351,7 +353,7 @@ export function SettingsContent() {
                   </p>
                 </div>
               </CardContent>
-              <CardFooter className="justify-end border-t px-6 py-4">
+              <CardFooter className="justify-end border-t px-6 pt-4">
                 <Button disabled={!pricingChanged}>Save</Button>
               </CardFooter>
             </Card>
@@ -469,7 +471,7 @@ export function SettingsContent() {
                   />
                 </div>
               </CardContent>
-              <CardFooter className="justify-end border-t px-6 py-4">
+              <CardFooter className="justify-end border-t px-6 pt-4">
                 <Button disabled={!campaignChanged}>Save</Button>
               </CardFooter>
             </Card>

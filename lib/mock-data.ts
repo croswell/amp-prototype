@@ -2880,23 +2880,24 @@ export function getHero(id: string): Hero | undefined {
 
 // ── Persona helpers (for demo switching) ──
 
-export type Persona = "sarah" | "jake"
+export type Persona = "publisher" | "sponsor" | "both"
 
-const personaMap: Record<Persona, string> = {
-  sarah: "hero-1",
-  jake: "hero-4",
-}
-
-/** Get the Hero for a persona key. Defaults to Sarah. */
+/** Get the Hero for a persona key. Always returns Sarah. */
 export function getActiveUser(persona?: string | null): Hero {
-  const heroId = personaMap[(persona as Persona)] ?? "hero-1"
-  return heroes.find((h) => h.id === heroId) ?? currentUser
+  return heroes.find((h) => h.id === "hero-1") ?? currentUser
 }
 
 /** Get the role for a persona. Defaults to publisher. */
 export function getRoleForPersona(persona?: string | null): Role {
-  if (persona === "jake") return "sponsor"
+  if (persona === "sponsor") return "sponsor"
+  if (persona === "both") return "both"
   return "publisher"
+}
+
+/** For "both" users, get the currently active view role from the `view` param. */
+export function getActiveViewRole(role: Role, view?: string | null): "publisher" | "sponsor" {
+  if (role === "both") return view === "sponsor" ? "sponsor" : "publisher"
+  return role === "sponsor" ? "sponsor" : "publisher"
 }
 
 export function getRecommendedFee(subscriberCount: number, openRate: number): number {
@@ -3036,13 +3037,13 @@ export function getEngagementColor(tier: EngagementTier): string {
 export function getStatusColor(status: RequestStatus): string {
   switch (status) {
     case "pending":
-      return "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
+      return "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
     case "accepted":
-      return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
     case "in_review":
-      return "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
+      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
     case "scheduled":
-      return "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
+      return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
     case "published":
       return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
     case "declined":

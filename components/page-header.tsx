@@ -6,7 +6,7 @@ export function PageHeader({
   description: string
 }) {
   return (
-    <div className="relative space-y-1.5 pb-10 after:absolute after:bottom-0 after:left-1/2 after:w-screen after:-translate-x-1/2 after:border-b after:border-border">
+    <div className="relative space-y-1.5 pb-6 after:absolute after:bottom-0 after:left-1/2 after:w-screen after:-translate-x-1/2 after:border-b after:border-border sm:pb-10">
       <h1 className="text-balance text-2xl font-medium tracking-tight">{title}</h1>
       <p className="text-pretty text-sm text-muted-foreground">{description}</p>
     </div>

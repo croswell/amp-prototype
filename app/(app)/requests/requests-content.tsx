@@ -170,7 +170,45 @@ export function RequestsContent() {
         description="Track and manage your promotion partnerships."
       />
 
-      <Tabs value={defaultTab} onValueChange={handleTabChange}>
+      {/* ── Mobile: stacked sections by status ── */}
+      <div className="space-y-8 sm:hidden">
+        {TABS.map(({ key: tabKey, label }) => {
+          const tabData = requests.filter((r) => filterByTab(r, tabKey))
+          if (tabData.length === 0) return null
+          return (
+            <div key={tabKey} className="space-y-2">
+              <h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
+              {tabData.map((req) => {
+                const isIncoming = req.publisherId === activeUser.id
+                const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
+                const initials = otherHero ? otherHero.name.charAt(0) : "?"
+                return (
+                  <Link
+                    key={req.id}
+                    href={`/requests/${req.id}${personaParam}`}
+                    className="flex w-full items-center gap-3 rounded-lg border p-3 text-left"
+                  >
+                    <Avatar className="size-8 shrink-0">
+                      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{otherHero?.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{req.adHeadline}</p>
+                    </div>
+                    <Badge variant="secondary" className={`shrink-0 ${getDisplayStatus(req, activeViewRole).color}`}>
+                      {getDisplayStatus(req, activeViewRole).label}
+                    </Badge>
+                    <CaretRight className="size-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Desktop: tabs with table ── */}
+      <Tabs value={defaultTab} onValueChange={handleTabChange} className="hidden sm:block">
         <TabsList variant="line">
           {TABS.map((tab) => (
             <TabsTrigger key={tab.key} value={tab.key}>
@@ -187,43 +225,7 @@ export function RequestsContent() {
           const tabData = requests.filter((r) => filterByTab(r, tabKey))
           return (
             <TabsContent key={tabKey} value={tabKey} className="mt-4">
-              {/* Desktop: table */}
-              <div className="hidden md:block">
-                <DataTable columns={columns} data={tabData} />
-              </div>
-              {/* Mobile: card list */}
-              <div className="md:hidden space-y-2">
-                {tabData.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    No promotions in this category
-                  </p>
-                ) : (
-                  tabData.map((req) => {
-                    const isIncoming = req.publisherId === activeUser.id
-                    const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
-                    const initials = otherHero ? otherHero.name.charAt(0) : "?"
-                    return (
-                      <Link
-                        key={req.id}
-                        href={`/requests/${req.id}${personaParam}`}
-                        className="flex w-full items-center gap-3 rounded-lg border p-3 text-left"
-                      >
-                        <Avatar className="size-8 shrink-0">
-                          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{otherHero?.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">{req.adHeadline}</p>
-                        </div>
-                        <Badge variant="secondary" className={`shrink-0 ${getDisplayStatus(req, activeViewRole).color}`}>
-                          {getDisplayStatus(req, activeViewRole).label}
-                        </Badge>
-                        <CaretRight className="size-4 shrink-0 text-muted-foreground" />
-                      </Link>
-                    )
-                  })
-                )}
-              </div>
+              <DataTable columns={columns} data={tabData} />
             </TabsContent>
           )
         })}

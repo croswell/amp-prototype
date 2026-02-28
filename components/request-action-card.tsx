@@ -51,7 +51,7 @@ export function RequestActionCard({
     return (
       <Card>
         <CardContent>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <div className="flex items-center gap-2">
               <Clock className="size-4 text-foreground" />
               <p className="text-sm text-muted-foreground">{scheduledText}</p>
@@ -60,6 +60,7 @@ export function RequestActionCard({
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => {}}
               >
                 View Broadcast
@@ -157,25 +158,27 @@ export function RequestActionCard({
         <CardContent>
           <div className="space-y-4">
             <p className="text-base font-medium">Review proposal</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" onClick={onAcceptAndBroadcast}>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <Button size="sm" className="w-full sm:w-auto" onClick={onAcceptAndBroadcast}>
                 <Check className="size-3.5" />
                 Approve
               </Button>
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
                 onClick={onAcceptAndSuggestChanges}
               >
                 <PencilSimple className="size-3.5" />
                 Request Changes
               </Button>
               <Button
-                variant="link"
+                variant="destructive"
                 size="sm"
-                className="ml-auto text-muted-foreground"
+                className="w-full sm:ml-auto sm:w-auto"
                 onClick={onDecline}
               >
+                <X className="size-3.5" />
                 Decline
               </Button>
             </div>
@@ -191,9 +194,9 @@ export function RequestActionCard({
       return (
         <Card>
           <CardContent>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <p className="text-base font-medium">Proposal approved</p>
-              <Button size="sm" onClick={onCreateBroadcast}>
+              <Button size="sm" className="w-full sm:w-auto" onClick={onCreateBroadcast}>
                 <Broadcast className="size-3.5" />
                 Create Broadcast
               </Button>
@@ -220,9 +223,9 @@ export function RequestActionCard({
       return (
         <Card>
           <CardContent>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <p className="text-base font-medium">Proposal approved</p>
-              <Button size="sm" onClick={onCreateBroadcast}>
+              <Button size="sm" className="w-full sm:w-auto" onClick={onCreateBroadcast}>
                 <Broadcast className="size-3.5" />
                 Create Broadcast
               </Button>

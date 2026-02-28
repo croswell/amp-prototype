@@ -47,6 +47,7 @@ import {
   type RequestStatus,
   type CopySnapshot,
 } from "@/lib/mock-data"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { CaretLeft, ArrowRight, Broadcast } from "@phosphor-icons/react"
 import { buildPersonaParams } from "@/lib/utils"
 import { toast } from "sonner"
@@ -279,15 +280,15 @@ export function RequestDetailContent() {
     }
 
     setInlineEditing(false)
-    toast.success("Changes submitted")
+    toast("Changes submitted")
   }
 
   const handleApproveCopy = () => {
-    toast.success("Copy approved and locked!")
+    toast("Copy approved and locked!")
   }
 
   const handleCreateBroadcast = () => {
-    toast.success("Redirecting to Kajabi broadcast setup...")
+    toast("Redirecting to Kajabi broadcast setup...")
   }
 
   const handleRequestRevision = (eventId: string, note: string) => {
@@ -301,14 +302,14 @@ export function RequestDetailContent() {
         ...(note ? { note } : {}),
       },
     ])
-    toast.success("Revision requested")
+    toast("Revision requested")
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-4 border-b pb-6">
-        <div className="flex items-center gap-3">
+      <div className="space-y-4 pb-2 lg:border-b lg:pb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button variant="outline" size="icon-sm" asChild>
             <Link href={`/requests${personaParam}`}>
               <CaretLeft className="size-4" />
@@ -340,11 +341,13 @@ export function RequestDetailContent() {
         </div>
       </div>
 
-      {/* Two-column layout */}
-      <div className="grid gap-6 pt-4 lg:gap-10 lg:grid-cols-[1fr_320px]">
-        {/* Main column: timeline + action card */}
-        <div className="min-w-0">
-          {/* Timeline */}
+      {/* ── Activity / Profile tabs (below lg) ── */}
+      <Tabs defaultValue="activity" className="lg:hidden">
+        <TabsList variant="line">
+          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+        </TabsList>
+        <TabsContent value="activity" className="mt-4">
           <div className="border-b pb-6">
             {liveRequest.timeline && liveRequest.timeline.length > 0 ? (
               <Timeline
@@ -364,8 +367,53 @@ export function RequestDetailContent() {
               <FallbackTimeline request={liveRequest} initiator={liveRequest.initiatedBy === "sponsor" ? sponsor : publisher} payout={payout} />
             )}
           </div>
+          <div className="pt-10 pl-[52px]">
+            <RequestActionCard
+              request={liveRequest}
+              viewerRole={viewerRole}
+              whoseTurn={whoseTurn}
+              copyLocked={copyLocked}
+              revisionRound={revisionRound}
+              onAcceptAndBroadcast={handleApprove}
+              onAcceptAndSuggestChanges={handleRequestChanges}
+              onDecline={handleDecline}
+              onApproveCopy={handleApproveCopy}
+              onCreateBroadcast={handleCreateBroadcast}
+              publisher={publisher}
+            />
+          </div>
+        </TabsContent>
+        <TabsContent value="profile" className="mt-4">
+          <RequestSidebar
+            request={liveRequest}
+            otherParty={otherParty}
+          />
+        </TabsContent>
+      </Tabs>
 
-          {/* Action card below the border, aligned with the proposal card */}
+      {/* ── Desktop: two-column layout (lg+) ── */}
+      <div className="hidden lg:grid lg:gap-10 lg:grid-cols-[1fr_320px] lg:pt-4">
+        {/* Main column: timeline + action card */}
+        <div className="min-w-0">
+          <div className="border-b pb-6">
+            {liveRequest.timeline && liveRequest.timeline.length > 0 ? (
+              <Timeline
+                events={liveRequest.timeline}
+                getActor={getActor}
+                payout={payout}
+                onRequestRevision={handleRequestRevision}
+                canRequestRevision={canRequestRevision}
+                sponsorId={liveRequest.sponsorId}
+                inlineEditing={inlineEditing}
+                inlineEditActor={activeUser}
+                inlineEditCopy={currentCopy}
+                onInlineEditSubmit={handleSubmitChanges}
+                onInlineEditCancel={() => setInlineEditing(false)}
+              />
+            ) : (
+              <FallbackTimeline request={liveRequest} initiator={liveRequest.initiatedBy === "sponsor" ? sponsor : publisher} payout={payout} />
+            )}
+          </div>
           <div className="pt-10 pl-[52px]">
             <RequestActionCard
               request={liveRequest}
@@ -382,7 +430,6 @@ export function RequestDetailContent() {
             />
           </div>
         </div>
-
         {/* Sidebar */}
         <div className="lg:sticky lg:top-6 lg:self-start">
           <RequestSidebar
@@ -427,7 +474,7 @@ export function RequestDetailContent() {
             <Button
               onClick={() => {
                 setApproveOpen(false)
-                toast.success("Redirecting to Kajabi broadcast setup...")
+                toast("Redirecting to Kajabi broadcast setup...")
               }}
             >
               <Broadcast className="size-4" />

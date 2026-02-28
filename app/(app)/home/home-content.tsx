@@ -137,21 +137,23 @@ export function HomeContent() {
 
       {/* ── Stripe connection callout (new accounts only) ── */}
       {isNewAccount && (
-        <div className="flex items-center gap-4 rounded-lg border bg-card p-4">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
-            <CreditCard className="size-5 text-foreground" />
+        <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3 sm:flex-1 sm:gap-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
+              <CreditCard className="size-5 text-foreground" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground">
+                Connect Stripe to {isPublisher ? "receive payments" : "fund campaigns"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {isPublisher
+                  ? "Link your Stripe account so sponsors can pay you directly."
+                  : "Add a payment method to start sending promotion requests."}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground">
-              Connect Stripe to {isPublisher ? "receive payments" : "fund campaigns"}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {isPublisher
-                ? "Link your Stripe account so sponsors can pay you directly."
-                : "Add a payment method to start sending promotion requests."}
-            </p>
-          </div>
-          <Button size="sm" className="shrink-0">
+          <Button size="sm" className="w-full shrink-0 sm:w-auto">
             Connect Stripe
           </Button>
         </div>
@@ -280,21 +282,22 @@ export function HomeContent() {
                   href={`/requests/${req.id}${personaParam}`}
                   className={`flex items-center gap-4 p-4${index < recentActivity.length - 1 ? " border-b" : ""}`}
                 >
-                  <div className="flex min-w-0 items-center gap-3 w-48 shrink-0">
+                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:w-48 sm:flex-none">
                     <Avatar className="size-8">
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                     </Avatar>
                     <span className="truncate text-sm font-medium">{otherHero?.name}</span>
                   </div>
-                  <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+                  <p className="hidden min-w-0 flex-1 truncate text-sm text-muted-foreground sm:block">
                     {req.adHeadline}
                   </p>
                   <Badge variant="secondary" className={`shrink-0 ${statusColor}`}>
                     {statusLabel}
                   </Badge>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
                     <span>View</span>
                   </Button>
+                  <CaretRight className="size-5 shrink-0 text-muted-foreground sm:hidden" />
                 </Link>
               )
             })}

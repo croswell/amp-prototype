@@ -403,7 +403,7 @@ function InlineEditCard({
           </div>
           <form onSubmit={handleSubmit} className="space-y-3 p-4">
             <div className="space-y-1.5">
-              <Label htmlFor="inline-headline" className="text-xs">Headline</Label>
+              <Label htmlFor="inline-headline" className="text-sm">Headline</Label>
               <Input
                 id="inline-headline"
                 value={headline}
@@ -411,7 +411,7 @@ function InlineEditCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="inline-body" className="text-xs">Body</Label>
+              <Label htmlFor="inline-body" className="text-sm">Body</Label>
               <Textarea
                 id="inline-body"
                 value={body}
@@ -420,7 +420,7 @@ function InlineEditCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="inline-cta" className="text-xs">CTA button text</Label>
+              <Label htmlFor="inline-cta" className="text-sm">CTA button text</Label>
               <Input
                 id="inline-cta"
                 value={cta}
@@ -428,7 +428,7 @@ function InlineEditCard({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="inline-note" className="text-xs">
+              <Label htmlFor="inline-note" className="text-sm">
                 Message{" "}
                 <span className="font-normal text-muted-foreground">(optional)</span>
               </Label>

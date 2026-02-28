@@ -160,8 +160,23 @@ export function SettingsContent() {
         description="Manage your profile, campaigns, and account."
       />
 
-      <Tabs value={defaultTab} onValueChange={handleTabChange} orientation="vertical" className="gap-8">
-        <TabsList className="w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-1.5">
+      <Tabs value={defaultTab} onValueChange={handleTabChange} orientation="vertical" className="flex-col gap-6 sm:flex-row sm:gap-8">
+        {/* Mobile: select dropdown */}
+        <div className="sm:hidden">
+          <Select value={defaultTab} onValueChange={handleTabChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="profile">Profile</SelectItem>
+              {isPublisher && <SelectItem value="publisher">Pricing</SelectItem>}
+              {isSponsor && <SelectItem value="campaigns">Ad Campaign</SelectItem>}
+              <SelectItem value="account">Account</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Desktop: vertical tab list */}
+        <TabsList className="hidden w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-1.5 sm:flex">
           <TabsTrigger value="profile" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Profile</TabsTrigger>
           {isPublisher && (
             <TabsTrigger value="publisher" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Pricing</TabsTrigger>

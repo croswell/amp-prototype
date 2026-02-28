@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
@@ -8,9 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { DataTable } from "@/components/ui/data-table"
-import { PromotionSheet, type ReviewAction } from "@/components/promotion-sheet"
 import { PageHeader } from "@/components/page-header"
-import { PayoutBadge } from "@/components/payout-badge"
 import { CaretRight } from "@phosphor-icons/react"
 import {
   type RequestStatus,
@@ -21,6 +20,8 @@ import {
   STATUS_LABELS,
   getActiveUser,
   getRoleForPersona,
+  formatCurrency,
+  calculatePayout,
 } from "@/lib/mock-data"
 
 type TabKey = "open" | "scheduled" | "published" | "declined"
@@ -45,88 +46,14 @@ export function RequestsContent() {
   const activeUser = getActiveUser(persona)
   const role = getRoleForPersona(persona)
 
-  // Sheet state
-  const [selectedRequest, setSelectedRequest] = useState<PromotionRequest | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [statusOverrides, setStatusOverrides] = useState<Record<string, RequestStatus>>({})
-  const [reviewOverrides, setReviewOverrides] = useState<Record<string, {
-    reviewTurn?: "sponsor" | "publisher"
-    proposedEdits?: { adHeadline: string; adBody: string; adCta: string; adCtaUrl: string }
-    revisionNotes?: string
-  }>>({})
+  const personaParam = persona && persona !== "sarah" ? `?persona=${persona}` : ""
 
-  // Filter requests by role, then apply status overrides
+  // Filter requests by role
   const requests = useMemo(() => {
-    const filtered =
-      role === "publisher"
-        ? promotionRequests.filter((r) => r.publisherId === activeUser.id)
-        : promotionRequests.filter((r) => r.sponsorId === activeUser.id)
-    return filtered.map((r) => ({
-      ...r,
-      status: statusOverrides[r.id] || r.status,
-      ...(reviewOverrides[r.id] ? {
-        reviewTurn: reviewOverrides[r.id].reviewTurn ?? r.reviewTurn,
-        proposedEdits: reviewOverrides[r.id].proposedEdits ?? r.proposedEdits,
-        revisionNotes: reviewOverrides[r.id].revisionNotes ?? r.revisionNotes,
-      } : {}),
-    }))
-  }, [role, activeUser, statusOverrides, reviewOverrides])
-
-  function openSheet(request: PromotionRequest) {
-    setSelectedRequest(request)
-    setSheetOpen(true)
-  }
-
-  function handleStatusChange(requestId: string, newStatus: RequestStatus) {
-    setStatusOverrides((prev) => ({ ...prev, [requestId]: newStatus }))
-  }
-
-  function handleReviewAction(requestId: string, action: ReviewAction) {
-    switch (action.type) {
-      case "suggest_changes": {
-        // If revision notes already exist, this is the second round — auto-complete
-        const hasRevisionNotes = !!reviewOverrides[requestId]?.revisionNotes
-        if (hasRevisionNotes) {
-          setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
-          setReviewOverrides((prev) => ({
-            ...prev,
-            [requestId]: { ...prev[requestId], reviewTurn: undefined, proposedEdits: action.proposedEdits },
-          }))
-        } else {
-          // Publisher suggests edits → status becomes in_review, sponsor's turn
-          setStatusOverrides((prev) => ({ ...prev, [requestId]: "in_review" }))
-          setReviewOverrides((prev) => ({
-            ...prev,
-            [requestId]: {
-              ...prev[requestId],
-              reviewTurn: "sponsor",
-              proposedEdits: action.proposedEdits,
-            },
-          }))
-        }
-        break
-      }
-      case "approve_edits":
-        // Sponsor approves → status returns to accepted
-        setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
-        setReviewOverrides((prev) => ({
-          ...prev,
-          [requestId]: { ...prev[requestId], reviewTurn: undefined },
-        }))
-        break
-      case "request_revision":
-        // Sponsor requests revision → stays in_review, publisher's turn
-        setReviewOverrides((prev) => ({
-          ...prev,
-          [requestId]: {
-            ...prev[requestId],
-            reviewTurn: "publisher",
-            revisionNotes: action.revisionNotes,
-          },
-        }))
-        break
-    }
-  }
+    return role === "publisher"
+      ? promotionRequests.filter((r) => r.publisherId === activeUser.id)
+      : promotionRequests.filter((r) => r.sponsorId === activeUser.id)
+  }, [role, activeUser])
 
   const filterByTab = (r: PromotionRequest, tabKey: TabKey) =>
     TAB_STATUSES[tabKey].includes(r.status)
@@ -140,14 +67,12 @@ export function RequestsContent() {
   // Direction-aware status label for pending items
   function getDisplayStatus(req: PromotionRequest): { label: string; color: string } {
     if (req.status === "pending") {
-      // Did the current user initiate this, or did the other party?
       const userInitiated =
         (role === "publisher" && req.initiatedBy === "publisher") ||
         (role === "sponsor" && req.initiatedBy === "sponsor")
       if (userInitiated) {
         return { label: "Requested", color: getStatusColor("pending") }
       }
-      // Incoming request from the other party
       return {
         label: "New",
         color: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
@@ -168,15 +93,15 @@ export function RequestsContent() {
           const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
           const initials = otherHero ? otherHero.name.charAt(0) : "?"
           return (
-            <button
-              onClick={() => openSheet(req)}
-              className="flex items-center gap-3 cursor-pointer text-left"
+            <Link
+              href={`/requests/${req.id}${personaParam}`}
+              className="flex items-center gap-3"
             >
               <Avatar className="size-8">
                 <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
               <span className="font-medium">{otherHero?.name}</span>
-            </button>
+            </Link>
           )
         },
       },
@@ -202,40 +127,34 @@ export function RequestsContent() {
       {
         id: "payout",
         header: "Payout",
-        cell: ({ row }) => (
-          <PayoutBadge amount={row.original.proposedFee} />
-        ),
+        cell: ({ row }) => {
+          const sponsor = getHero(row.original.sponsorId)
+          const publisher = getHero(row.original.publisherId)
+          if (!sponsor || !publisher) return null
+          const payout = calculatePayout(sponsor, publisher)
+          if (!payout) return <span className="text-muted-foreground">—</span>
+          return (
+            <span className="font-medium">{formatCurrency(payout.amount)}</span>
+          )
+        },
       },
       {
         id: "actions",
         header: "",
         cell: ({ row }) => (
           <div className="flex justify-end">
-            <Button variant="outline" size="sm" onClick={() => openSheet(row.original)}>
-              View
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/requests/${row.original.id}${personaParam}`}>
+                View
+              </Link>
             </Button>
           </div>
         ),
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [role]
+    [role, personaParam]
   )
-
-  // Merge overrides into the selected request so the sheet always has fresh data
-  const effectiveRequest = useMemo(() => {
-    if (!selectedRequest) return null
-    const id = selectedRequest.id
-    return {
-      ...selectedRequest,
-      status: statusOverrides[id] || selectedRequest.status,
-      ...(reviewOverrides[id] ? {
-        reviewTurn: reviewOverrides[id].reviewTurn ?? selectedRequest.reviewTurn,
-        proposedEdits: reviewOverrides[id].proposedEdits ?? selectedRequest.proposedEdits,
-        revisionNotes: reviewOverrides[id].revisionNotes ?? selectedRequest.revisionNotes,
-      } : {}),
-    }
-  }, [selectedRequest, statusOverrides, reviewOverrides])
 
   return (
     <div className="space-y-10">
@@ -260,7 +179,7 @@ export function RequestsContent() {
         {TABS.map(({ key: tabKey }) => {
           const tabData = requests.filter((r) => filterByTab(r, tabKey))
           return (
-            <TabsContent key={tabKey} value={tabKey} className="mt-8">
+            <TabsContent key={tabKey} value={tabKey} className="mt-4">
               {/* Desktop: table */}
               <div className="hidden md:block">
                 <DataTable columns={columns} data={tabData} />
@@ -277,10 +196,10 @@ export function RequestsContent() {
                     const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
                     const initials = otherHero ? otherHero.name.charAt(0) : "?"
                     return (
-                      <button
+                      <Link
                         key={req.id}
+                        href={`/requests/${req.id}${personaParam}`}
                         className="flex w-full items-center gap-3 rounded-lg border p-3 text-left"
-                        onClick={() => openSheet(req)}
                       >
                         <Avatar className="size-8 shrink-0">
                           <AvatarFallback className="text-xs">{initials}</AvatarFallback>
@@ -293,7 +212,7 @@ export function RequestsContent() {
                           {getDisplayStatus(req).label}
                         </Badge>
                         <CaretRight className="size-4 shrink-0 text-muted-foreground" />
-                      </button>
+                      </Link>
                     )
                   })
                 )}
@@ -302,15 +221,6 @@ export function RequestsContent() {
           )
         })}
       </Tabs>
-
-      <PromotionSheet
-        request={effectiveRequest}
-        role={role}
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        onStatusChange={handleStatusChange}
-        onReviewAction={handleReviewAction}
-      />
     </div>
   )
 }

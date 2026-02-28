@@ -1,0 +1,373 @@
+"use client"
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { EmailBlockPreview } from "@/components/email-block-preview"
+import type { TimelineEvent, CopySnapshot, Hero, PayoutEstimate } from "@/lib/mock-data"
+import { formatCurrency } from "@/lib/mock-data"
+import {
+  EnvelopeSimple,
+  Check,
+  X,
+  PencilSimple,
+  ArrowsClockwise,
+  Lock,
+  Broadcast,
+  Clock,
+  CurrencyDollar,
+  Timer,
+} from "@phosphor-icons/react"
+
+function formatTimestamp(timestamp: string): string {
+  const date = new Date(timestamp)
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })
+}
+
+function formatTimestampFull(timestamp: string): string {
+  const date = new Date(timestamp)
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EVENT_ICONS: Record<string, React.ElementType> = {
+  proposal_sent: EnvelopeSimple,
+  accepted: Check,
+  declined: X,
+  copy_suggested: PencilSimple,
+  revision_requested: ArrowsClockwise,
+  copy_locked: Lock,
+  broadcast_created: Broadcast,
+  scheduled: Clock,
+  published: Check,
+  payment_sent: CurrencyDollar,
+  expired: Timer,
+}
+
+function CopyDiff({
+  before,
+  after,
+}: {
+  before: CopySnapshot
+  after: CopySnapshot
+}) {
+  return (
+    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground">Before</p>
+        <div className="rounded-lg border border-dashed bg-muted/30 p-3">
+          <p className="text-sm font-medium">{before.adHeadline}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {before.adBody}
+          </p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">
+            {before.adCta}
+          </p>
+        </div>
+      </div>
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground">After</p>
+        <div className="rounded-lg border bg-muted/30 p-3">
+          <p className="text-sm font-medium">{after.adHeadline}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            {after.adBody}
+          </p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">
+            {after.adCta}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// "Rich" events get full card treatment (proposal, copy_suggested, revision_requested)
+function RichEvent({
+  event,
+  actor,
+  isLast,
+  payout,
+  onRequestRevision,
+  showRevisionButton,
+  sponsorId,
+}: {
+  event: TimelineEvent
+  actor: Hero
+  isLast: boolean
+  payout?: PayoutEstimate | null
+  onRequestRevision?: (eventId: string) => void
+  showRevisionButton?: boolean
+  sponsorId?: string
+}) {
+  const initials = actor.name.charAt(0)
+  const Icon = EVENT_ICONS[event.type]
+
+  // If the actor is the sponsor, it's a "sponsorship request"; if publisher, "promotion request"
+  const proposalLabel =
+    sponsorId && event.actorId !== sponsorId
+      ? "sent a promotion request"
+      : "sent a sponsorship request"
+
+  const labels: Record<string, string> = {
+    proposal_sent: proposalLabel,
+    copy_suggested: "suggested copy changes",
+    revision_requested: "requested a revision",
+  }
+
+  const isProposal = event.type === "proposal_sent"
+
+  return (
+    <div className="relative flex items-start gap-3">
+      {/* Vertical connector line */}
+      {!isLast && (
+        <div className="absolute top-12 bottom-0 left-[19px] w-px bg-border" />
+      )}
+
+      {/* Avatar — top-aligned for proposals, nudged down for other rich cards */}
+      <div className={`relative z-10 shrink-0 ${isProposal ? "" : "mt-4"}`}>
+        <Avatar size="lg">
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+      </div>
+
+      {/* Content card */}
+      <div className="min-w-0 flex-1 pb-6">
+        <div className="overflow-hidden rounded-lg border bg-card">
+          {/* Header — proposal gets a bordered header row */}
+          <div
+            className={`flex items-center justify-between gap-2 ${
+              isProposal ? "border-b px-4 py-3" : "px-4 pt-4"
+            }`}
+          >
+            <p className="text-sm">
+              <span className="font-medium">{actor.name}</span>{" "}
+              <span className="text-muted-foreground">
+                {labels[event.type] || event.type}
+              </span>
+            </p>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {formatTimestamp(event.timestamp)}
+            </span>
+          </div>
+
+          {/* Body */}
+          <div className={isProposal ? "space-y-4 p-4" : "px-4 pb-4"}>
+            {event.note && (
+              <p className="mt-2 text-sm leading-relaxed">
+                &ldquo;{event.note}&rdquo;
+              </p>
+            )}
+
+            {/* Proposal: show the proposed ad copy */}
+            {isProposal && event.copyAfter && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">Ad preview</p>
+                <EmailBlockPreview
+                  headline={event.copyAfter.adHeadline}
+                  body={event.copyAfter.adBody}
+                  cta={event.copyAfter.adCta}
+                />
+              </div>
+            )}
+
+            {/* Payout breakdown on proposal cards */}
+            {isProposal && payout && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">Proposal</p>
+                <div className="overflow-hidden rounded-lg border text-sm">
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <span className="text-muted-foreground">Sponsor rate</span>
+                    <span>{formatCurrency(payout.ratePerK)}/1k subs</span>
+                  </div>
+                  {payout.maxPayout && (
+                    <div className="flex items-center justify-between border-t px-3 py-2">
+                      <span className="text-muted-foreground">Max payout</span>
+                      <span>{formatCurrency(payout.maxPayout)}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between border-t px-3 py-2">
+                    <span className="text-muted-foreground">Your audience</span>
+                    <span>{payout.audienceSize.toLocaleString()} subs</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t bg-muted/50 px-3 py-2 font-medium">
+                    <span>Payout</span>
+                    <span>{formatCurrency(payout.amount)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Copy suggested: show before/after diff */}
+            {event.type === "copy_suggested" &&
+              event.copyBefore &&
+              event.copyAfter && (
+                <CopyDiff before={event.copyBefore} after={event.copyAfter} />
+              )}
+
+            {/* Request revision button on copy_suggested cards */}
+            {event.type === "copy_suggested" &&
+              showRevisionButton &&
+              onRequestRevision && (
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onRequestRevision(event.id)}
+                  >
+                    <ArrowsClockwise className="size-3.5" />
+                    Request Revision
+                  </Button>
+                </div>
+              )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Events that show the actor's avatar instead of an icon circle
+const AVATAR_EVENTS = new Set(["accepted", "declined"])
+
+// "Simple" events are inline text with an icon (accepted, declined, copy_locked, etc.)
+function SimpleEvent({
+  event,
+  actor,
+  isLast,
+  payout,
+}: {
+  event: TimelineEvent
+  actor: Hero
+  isLast: boolean
+  payout?: PayoutEstimate | null
+}) {
+  const Icon = EVENT_ICONS[event.type]
+  const useAvatar = AVATAR_EVENTS.has(event.type)
+  const initials = actor.name.charAt(0)
+
+  const labels: Record<string, React.ReactNode> = {
+    accepted: (
+      <>
+        <span className="font-medium text-foreground">{actor.name}</span>{" "}
+        accepted the proposal{" "}
+        <Check className="inline size-3.5 text-emerald-500" weight="bold" />
+      </>
+    ),
+    declined: (
+      <>
+        <span className="font-medium text-foreground">{actor.name}</span>{" "}
+        declined the proposal
+      </>
+    ),
+    copy_locked: "Copy approved and locked",
+    broadcast_created: `${actor.name} created the broadcast`,
+    scheduled: event.metadata?.scheduledAt
+      ? `Broadcast scheduled for ${formatTimestampFull(event.metadata.scheduledAt)}`
+      : "Broadcast scheduled",
+    published: "Email sent",
+    payment_sent: payout
+      ? `Payment of ${formatCurrency(payout.amount)} cleared`
+      : `Payment cleared`,
+    expired: "Request expired",
+  }
+
+  return (
+    <div className="relative flex items-start gap-3">
+      {/* Vertical connector line */}
+      {!isLast && (
+        <div className="absolute top-10 bottom-0 left-[19px] w-px bg-border" />
+      )}
+
+      {/* Avatar or icon circle — sized to match the lg avatar width (40px) */}
+      {useAvatar ? (
+        <div className="relative z-10 shrink-0">
+          <Avatar size="lg">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+        </div>
+      ) : (
+        <div className="relative z-10 flex size-10 shrink-0 items-center justify-center rounded-full border bg-muted">
+          {Icon && <Icon className="size-4 text-muted-foreground" />}
+        </div>
+      )}
+
+      {/* Label */}
+      <div className="flex min-w-0 flex-1 items-start justify-between gap-2 pb-6 pt-2.5">
+        <p className="text-sm text-muted-foreground">
+          {labels[event.type] || event.type}
+        </p>
+        <span className="shrink-0 text-xs text-muted-foreground">
+          {formatTimestamp(event.timestamp)}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+const RICH_EVENTS = new Set(["proposal_sent", "copy_suggested", "revision_requested"])
+
+interface TimelineProps {
+  events: TimelineEvent[]
+  getActor: (id: string) => Hero
+  payout?: PayoutEstimate | null
+  onRequestRevision?: (eventId: string) => void
+  /** Show "Request Revision" on the latest copy_suggested event */
+  canRequestRevision?: boolean
+  /** Used to determine if proposal was sent by sponsor or publisher */
+  sponsorId?: string
+}
+
+export function Timeline({
+  events,
+  getActor,
+  payout,
+  onRequestRevision,
+  canRequestRevision,
+  sponsorId,
+}: TimelineProps) {
+  // Find the latest copy_suggested event id for the revision button
+  const latestCopySuggestedId = canRequestRevision
+    ? [...events].reverse().find((e) => e.type === "copy_suggested")?.id
+    : null
+
+  return (
+    <div>
+      {events.map((event, i) => {
+        const actor = getActor(event.actorId)
+        const isLast = i === events.length - 1
+
+        if (RICH_EVENTS.has(event.type)) {
+          return (
+            <RichEvent
+              key={event.id}
+              event={event}
+              actor={actor}
+              isLast={isLast}
+              payout={payout}
+              onRequestRevision={onRequestRevision}
+              showRevisionButton={event.id === latestCopySuggestedId}
+              sponsorId={sponsorId}
+            />
+          )
+        }
+
+        return (
+          <SimpleEvent
+            key={event.id}
+            event={event}
+            actor={actor}
+            isLast={isLast}
+            payout={payout}
+          />
+        )
+      })}
+    </div>
+  )
+}

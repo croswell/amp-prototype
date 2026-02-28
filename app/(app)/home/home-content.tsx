@@ -29,13 +29,12 @@ import { EmailBlockPreview } from "@/components/email-block-preview"
 import { Separator } from "@/components/ui/separator"
 import { HeroCard, HeroIdentity } from "@/components/hero-card"
 import { SocialIcon } from "@/components/social-icon"
-import { PromotionSheet, type ReviewAction } from "@/components/promotion-sheet"
+import { SectionTitle } from "@/components/promotion-sheet"
 import {
   type RequestStatus,
   type PromotionRequest,
   type Hero,
   promotionRequests,
-  heroes,
   getHero,
   formatCurrency,
   formatNumber,
@@ -59,7 +58,6 @@ import {
   CaretDoubleUp,
   Users,
 } from "@phosphor-icons/react"
-import { SectionTitle } from "@/components/promotion-sheet"
 
 export function HomeContent() {
   const searchParams = useSearchParams()
@@ -70,90 +68,14 @@ export function HomeContent() {
   const isPublisher = role === "publisher"
   const isSponsor = role === "sponsor"
 
-  // Promotion sheet state
-  const [selectedRequest, setSelectedRequest] = useState<PromotionRequest | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [statusOverrides, setStatusOverrides] = useState<Record<string, RequestStatus>>({})
-  const [reviewOverrides, setReviewOverrides] = useState<Record<string, {
-    reviewTurn?: "sponsor" | "publisher"
-    proposedEdits?: { adHeadline: string; adBody: string; adCta: string; adCtaUrl: string }
-    revisionNotes?: string
-  }>>({})
+  const personaParam = persona && persona !== "sarah" ? `?persona=${persona}` : ""
 
   // Profile sheet state
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
   const selectedHero = selectedHeroId ? getHero(selectedHeroId) ?? null : null
 
-  function openPromotionSheet(request: PromotionRequest) {
-    setSelectedRequest(request)
-    setSheetOpen(true)
-  }
-
-  function handleStatusChange(requestId: string, newStatus: RequestStatus) {
-    setStatusOverrides((prev) => ({ ...prev, [requestId]: newStatus }))
-  }
-
-  function handleReviewAction(requestId: string, action: ReviewAction) {
-    switch (action.type) {
-      case "suggest_changes": {
-        // If revision notes already exist, this is the second round — auto-complete
-        const hasRevisionNotes = !!reviewOverrides[requestId]?.revisionNotes
-        if (hasRevisionNotes) {
-          setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
-          setReviewOverrides((prev) => ({
-            ...prev,
-            [requestId]: { ...prev[requestId], reviewTurn: undefined, proposedEdits: action.proposedEdits },
-          }))
-        } else {
-          setStatusOverrides((prev) => ({ ...prev, [requestId]: "in_review" }))
-          setReviewOverrides((prev) => ({
-            ...prev,
-            [requestId]: {
-              ...prev[requestId],
-              reviewTurn: "sponsor",
-              proposedEdits: action.proposedEdits,
-            },
-          }))
-        }
-        break
-      }
-      case "approve_edits":
-        setStatusOverrides((prev) => ({ ...prev, [requestId]: "accepted" }))
-        setReviewOverrides((prev) => ({
-          ...prev,
-          [requestId]: { ...prev[requestId], reviewTurn: undefined },
-        }))
-        break
-      case "request_revision":
-        setReviewOverrides((prev) => ({
-          ...prev,
-          [requestId]: {
-            ...prev[requestId],
-            reviewTurn: "publisher",
-            revisionNotes: action.revisionNotes,
-          },
-        }))
-        break
-    }
-  }
-
-  // Apply overrides
-  const allRequests = useMemo(
-    () =>
-      promotionRequests.map((r) => ({
-        ...r,
-        status: statusOverrides[r.id] || r.status,
-        ...(reviewOverrides[r.id] ? {
-          reviewTurn: reviewOverrides[r.id].reviewTurn ?? r.reviewTurn,
-          proposedEdits: reviewOverrides[r.id].proposedEdits ?? r.proposedEdits,
-          revisionNotes: reviewOverrides[r.id].revisionNotes ?? r.revisionNotes,
-        } : {}),
-      })),
-    [statusOverrides, reviewOverrides]
-  )
-
-  const incoming = allRequests.filter((r) => r.publisherId === activeUser.id)
-  const outgoing = allRequests.filter((r) => r.sponsorId === activeUser.id)
+  const incoming = promotionRequests.filter((r) => r.publisherId === activeUser.id)
+  const outgoing = promotionRequests.filter((r) => r.sponsorId === activeUser.id)
 
   // ── Stats ──
   const publisherRevenue = incoming
@@ -213,20 +135,6 @@ export function HomeContent() {
   const hour = new Date().getHours()
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"
-
-  const effectiveRequest = useMemo(() => {
-    if (!selectedRequest) return null
-    const id = selectedRequest.id
-    return {
-      ...selectedRequest,
-      status: statusOverrides[id] || selectedRequest.status,
-      ...(reviewOverrides[id] ? {
-        reviewTurn: reviewOverrides[id].reviewTurn ?? selectedRequest.reviewTurn,
-        proposedEdits: reviewOverrides[id].proposedEdits ?? selectedRequest.proposedEdits,
-        revisionNotes: reviewOverrides[id].revisionNotes ?? selectedRequest.revisionNotes,
-      } : {}),
-    }
-  }, [selectedRequest, statusOverrides, reviewOverrides])
 
   return (
     <div className="space-y-10">
@@ -359,10 +267,10 @@ export function HomeContent() {
               const { label: statusLabel, color: statusColor } = getDisplayStatus(req)
 
               return (
-                <div
+                <Link
                   key={req.id}
-                  className={`flex cursor-pointer items-center gap-4 p-4${index < recentActivity.length - 1 ? " border-b" : ""}`}
-                  onClick={() => openPromotionSheet(req)}
+                  href={`/requests/${req.id}${personaParam}`}
+                  className={`flex items-center gap-4 p-4${index < recentActivity.length - 1 ? " border-b" : ""}`}
                 >
                   <div className="flex min-w-0 items-center gap-3 w-48 shrink-0">
                     <Avatar className="size-8">
@@ -376,10 +284,10 @@ export function HomeContent() {
                   <Badge variant="secondary" className={`shrink-0 ${statusColor}`}>
                     {statusLabel}
                   </Badge>
-                  <Button variant="outline" size="sm" onClick={() => openPromotionSheet(req)}>
-                    View
+                  <Button variant="outline" size="sm" asChild>
+                    <span>View</span>
                   </Button>
-                </div>
+                </Link>
               )
             })}
           </div>
@@ -413,16 +321,6 @@ export function HomeContent() {
           )}
         </div>
       </div>
-
-      {/* ── Promotion Sheet ── */}
-      <PromotionSheet
-        request={effectiveRequest}
-        role={role}
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        onStatusChange={handleStatusChange}
-        onReviewAction={handleReviewAction}
-      />
 
       {/* ── Hero profile Sheet ── */}
       <Sheet open={!!selectedHero} onOpenChange={(open) => !open && setSelectedHeroId(null)}>

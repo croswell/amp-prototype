@@ -1,4 +1,5 @@
 import { generatedHeroes } from "./generated-heroes"
+import { seedPromotions } from "./seed-promotions"
 
 // ============================================================
 // Types
@@ -49,6 +50,37 @@ export interface Hero {
   joinedDate: string
 }
 
+export type TimelineEventType =
+  | "proposal_sent"
+  | "accepted"
+  | "declined"
+  | "copy_suggested"
+  | "revision_requested"
+  | "copy_locked"
+  | "broadcast_created"
+  | "scheduled"
+  | "published"
+  | "payment_sent"
+  | "expired"
+
+export interface CopySnapshot {
+  adHeadline: string
+  adBody: string
+  adCta: string
+  adCtaUrl: string
+}
+
+export interface TimelineEvent {
+  id: string
+  type: TimelineEventType
+  actorId: string
+  timestamp: string
+  note?: string
+  copyBefore?: CopySnapshot
+  copyAfter?: CopySnapshot
+  metadata?: Record<string, string>
+}
+
 export interface PromotionRequest {
   id: string
   sponsorId: string
@@ -74,6 +106,7 @@ export interface PromotionRequest {
   scheduledAt?: string
   createdAt: string
   updatedAt: string
+  timeline?: TimelineEvent[]
 }
 
 // ============================================================
@@ -177,7 +210,7 @@ export const heroes: Hero[] = [
     clickRate: 4.2,
     recommendedFee: 150,
     budgetPerThousand: 25,
-    maxBudget: 750,
+    maxBudget: 1500,
     bio: "I teach creators how to package their knowledge into profitable online courses. Looking to reach new audiences through trusted publisher recommendations.",
     website: "https://jakemorrison.io",
     socialLinks: [
@@ -1343,6 +1376,8 @@ export const promotionRequests: PromotionRequest[] = [
     createdAt: "2025-02-03",
     updatedAt: "2025-02-06",
   },
+  // ── Seed promotions with full timeline data ──
+  ...seedPromotions,
 ]
 
 // ============================================================
@@ -1408,6 +1443,69 @@ export function getRequest(id: string): PromotionRequest | undefined {
   return promotionRequests.find((r) => r.id === id)
 }
 
+/**
+ * Derive the current state of a promotion request from its timeline.
+ * Returns whose turn it is, the current ad copy, whether copy is locked,
+ * and how many revision rounds have happened.
+ */
+export function deriveRequestState(request: PromotionRequest) {
+  const timeline = request.timeline || []
+
+  let currentCopy: CopySnapshot = {
+    adHeadline: request.adHeadline,
+    adBody: request.adBody,
+    adCta: request.adCta,
+    adCtaUrl: request.adCtaUrl,
+  }
+
+  let copyLocked = false
+  let revisionRound = 0
+  // Default: if pending with no timeline, the receiving party acts
+  let whoseTurn: "sponsor" | "publisher" | null =
+    request.status === "pending"
+      ? request.initiatedBy === "sponsor" ? "publisher" : "sponsor"
+      : null
+  let lastActorId: string | null = null
+
+  for (const event of timeline) {
+    lastActorId = event.actorId
+
+    switch (event.type) {
+      case "proposal_sent":
+        // The other party needs to respond
+        whoseTurn = event.actorId === request.sponsorId ? "publisher" : "sponsor"
+        break
+      case "accepted":
+        whoseTurn = null
+        break
+      case "copy_suggested":
+        revisionRound++
+        if (event.copyAfter) currentCopy = event.copyAfter
+        // The other party reviews the suggested copy
+        whoseTurn = event.actorId === request.sponsorId ? "publisher" : "sponsor"
+        break
+      case "revision_requested":
+        // Kicked back — other party needs to revise
+        whoseTurn = event.actorId === request.sponsorId ? "publisher" : "sponsor"
+        break
+      case "copy_locked":
+        copyLocked = true
+        whoseTurn = null
+        break
+      case "broadcast_created":
+      case "scheduled":
+      case "published":
+      case "payment_sent":
+      case "declined":
+      case "expired":
+        whoseTurn = null
+        break
+    }
+  }
+
+  return { currentCopy, copyLocked, revisionRound, whoseTurn, lastActorId }
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -1422,6 +1520,26 @@ export function formatNumber(num: number): string {
     return `${(num / 1000).toFixed(num >= 10000 ? 0 : 1)}k`
   }
   return num.toString()
+}
+
+export interface PayoutEstimate {
+  amount: number
+  ratePerK: number
+  maxPayout: number | undefined
+  audienceSize: number
+  capped: boolean
+}
+
+/** Calculate the payout for a promotion based on sponsor budget and publisher audience */
+export function calculatePayout(sponsor: Hero, publisher: Hero): PayoutEstimate | null {
+  if (!sponsor.budgetPerThousand) return null
+  const ratePerK = sponsor.budgetPerThousand
+  const audienceSize = publisher.subscriberCount
+  const raw = ratePerK * (audienceSize / 1000)
+  const maxPayout = sponsor.maxBudget
+  const capped = maxPayout ? raw > maxPayout : false
+  const amount = capped ? maxPayout! : raw
+  return { amount, ratePerK, maxPayout, audienceSize, capped }
 }
 
 export function getEngagementColor(tier: EngagementTier): string {

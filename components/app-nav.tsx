@@ -65,7 +65,7 @@ export function AppNav() {
   return (
     <>
       {/* ── Top nav ── */}
-      <nav className="border-b bg-card">
+      <nav className="border-b bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <div className="flex items-center gap-6">
             <Link href={`/${qs}`}>
@@ -130,7 +130,7 @@ export function AppNav() {
       </nav>
 
       {/* ── Mobile bottom tab bar (hidden on detail pages) ── */}
-      <div className={cn("fixed inset-x-0 bottom-0 z-50 border-t bg-card sm:hidden", /^\/requests\/[^/]+/.test(pathname) && "hidden")}>
+      <div className={cn("fixed inset-x-0 bottom-0 z-50 border-t bg-card pb-[env(safe-area-inset-bottom)] sm:hidden", /^\/requests\/[^/]+/.test(pathname) && "hidden")}>
         <div className="flex items-center justify-around py-2">
           {navLinks.map((link) => {
             const Icon = link.icon

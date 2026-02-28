@@ -130,7 +130,7 @@ export const heroes: Hero[] = [
     id: "hero-1",
     name: "Sarah Chen",
     avatar: "/avatars/sarah.jpg",
-    role: "publisher",
+    role: "both",
     tagline: "Helping coaches build 6-figure businesses",
     verticals: ["Business & Marketing", "Education"],
     subscriberCount: 45000,
@@ -138,6 +138,8 @@ export const heroes: Hero[] = [
     openRate: 42,
     clickRate: 8.2,
     recommendedFee: 350,
+    budgetPerThousand: 30,
+    maxBudget: 2000,
     bio: "I've helped over 2,000 coaches launch and scale their online businesses. My weekly newsletter breaks down the exact strategies that work — no fluff, just results.",
     website: "https://sarahchen.co",
     socialLinks: [
@@ -2857,6 +2859,273 @@ export const promotionRequests: PromotionRequest[] = [
       },
     ],
   },
+  // ── Requests where Sarah is the SPONSOR ──
+  // These populate the sponsor view (?role=sponsor) promotions tab
+
+  {
+    id: "req-sponsor-1",
+    sponsorId: "hero-1",
+    publisherId: "hero-5",
+    status: "pending",
+    initiatedBy: "sponsor",
+    brief:
+      "I'd love to get my coaching playbook in front of your audience. Your readers are working on their finances and mindset — building a coaching business is a natural next step for many of them.",
+    adHeadline: "The 6-Figure Coaching Playbook",
+    adBody:
+      "Sarah Chen's step-by-step system has helped 2,000+ coaches launch and scale online. Get her free playbook and start building your coaching business today.",
+    adCta: "Download the Playbook",
+    adCtaUrl: "https://sarahchen.co/playbook",
+    proposedFee: 225,
+    notes: "",
+    createdAt: "2025-02-27",
+    updatedAt: "2025-02-27",
+    timeline: [
+      {
+        id: "req-sponsor-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-1",
+        timestamp: "2025-02-27T09:00:00Z",
+        note: "I'd love to get my coaching playbook in front of your audience. Your readers are working on their finances and mindset — building a coaching business is a natural next step for many of them.",
+        copyAfter: {
+          adHeadline: "The 6-Figure Coaching Playbook",
+          adBody:
+            "Sarah Chen's step-by-step system has helped 2,000+ coaches launch and scale online. Get her free playbook and start building your coaching business today.",
+          adCta: "Download the Playbook",
+          adCtaUrl: "https://sarahchen.co/playbook",
+        },
+      },
+    ],
+  },
+  {
+    id: "req-sponsor-2",
+    sponsorId: "hero-1",
+    publisherId: "hero-8",
+    status: "in_review",
+    initiatedBy: "sponsor",
+    reviewTurn: "publisher",
+    brief:
+      "Your creative entrepreneur audience is exactly who I want to reach. Many freelancers and agency owners are one step away from launching a coaching offer — my framework can help them get there.",
+    adHeadline: "Turn Your Expertise Into a Coaching Business",
+    adBody:
+      "Sarah Chen has helped 2,000+ professionals package their skills into high-ticket coaching offers. Her free masterclass shows you how to land your first 3 clients in 30 days.",
+    adCta: "Watch the Free Masterclass",
+    adCtaUrl: "https://sarahchen.co/masterclass",
+    proposedFee: 175,
+    notes: "",
+    createdAt: "2025-02-22",
+    updatedAt: "2025-02-25",
+    timeline: [
+      {
+        id: "req-sponsor-2-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-1",
+        timestamp: "2025-02-22T14:00:00Z",
+        note: "Your creative entrepreneur audience is exactly who I want to reach. Many freelancers and agency owners are one step away from launching a coaching offer — my framework can help them get there.",
+        copyAfter: {
+          adHeadline: "Turn Your Expertise Into a Coaching Business",
+          adBody:
+            "Sarah Chen has helped 2,000+ professionals package their skills into high-ticket coaching offers. Her free masterclass shows you how to land your first 3 clients in 30 days.",
+          adCta: "Watch the Free Masterclass",
+          adCtaUrl: "https://sarahchen.co/masterclass",
+        },
+      },
+      {
+        id: "req-sponsor-2-evt-2",
+        type: "revision_requested",
+        actorId: "hero-8",
+        timestamp: "2025-02-25T10:30:00Z",
+        note: "Love the concept! Could we soften the headline a bit? My audience responds better to 'build' language than 'turn into' — feels less transactional.",
+      },
+    ],
+  },
+  {
+    id: "req-sponsor-3",
+    sponsorId: "hero-1",
+    publisherId: "hero-2",
+    status: "accepted",
+    initiatedBy: "sponsor",
+    brief:
+      "Fitness professionals often want to diversify into coaching and courses. My system helps them do that. I think your audience of fitness coaches would really resonate.",
+    adHeadline: "From Trainer to Online Coach: The Complete System",
+    adBody:
+      "Sarah Chen's coaching framework has helped hundreds of fitness pros build scalable online businesses. Stop trading time for money — learn how to coach at scale.",
+    adCta: "Get the Free Guide",
+    adCtaUrl: "https://sarahchen.co/fitness-coaches",
+    proposedFee: 275,
+    notes: "",
+    createdAt: "2025-02-18",
+    updatedAt: "2025-02-23",
+    timeline: [
+      {
+        id: "req-sponsor-3-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-1",
+        timestamp: "2025-02-18T11:00:00Z",
+        note: "Fitness professionals often want to diversify into coaching and courses. My system helps them do that.",
+        copyAfter: {
+          adHeadline: "From Trainer to Online Coach: The Complete System",
+          adBody:
+            "Sarah Chen's coaching framework has helped hundreds of fitness pros build scalable online businesses. Stop trading time for money — learn how to coach at scale.",
+          adCta: "Get the Free Guide",
+          adCtaUrl: "https://sarahchen.co/fitness-coaches",
+        },
+      },
+      {
+        id: "req-sponsor-3-evt-2",
+        type: "accepted",
+        actorId: "hero-2",
+        timestamp: "2025-02-23T09:00:00Z",
+        note: "This is a great fit — my readers are always asking how to build online income. Let's do it!",
+      },
+    ],
+  },
+  {
+    id: "req-sponsor-4",
+    sponsorId: "hero-1",
+    publisherId: "hero-3",
+    status: "scheduled",
+    initiatedBy: "sponsor",
+    scheduledAt: "2025-03-10T09:00:00Z",
+    brief:
+      "Your community of ambitious women is perfect for my coaching program. Many of them are already leaders — coaching is a natural extension of their skills.",
+    adHeadline: "Build a Coaching Business Around Your Leadership Skills",
+    adBody:
+      "Sarah Chen has helped 2,000+ women turn their professional expertise into thriving coaching businesses. Join her free workshop and map out your coaching offer in 60 minutes.",
+    adCta: "Reserve Your Spot",
+    adCtaUrl: "https://sarahchen.co/workshop",
+    proposedFee: 500,
+    notes: "",
+    createdAt: "2025-02-15",
+    updatedAt: "2025-02-28",
+    timeline: [
+      {
+        id: "req-sponsor-4-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-1",
+        timestamp: "2025-02-15T10:00:00Z",
+        note: "Your community of ambitious women is perfect for my coaching program.",
+        copyAfter: {
+          adHeadline: "Build a Coaching Business Around Your Leadership Skills",
+          adBody:
+            "Sarah Chen has helped 2,000+ women turn their professional expertise into thriving coaching businesses. Join her free workshop and map out your coaching offer in 60 minutes.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://sarahchen.co/workshop",
+        },
+      },
+      {
+        id: "req-sponsor-4-evt-2",
+        type: "accepted",
+        actorId: "hero-3",
+        timestamp: "2025-02-20T14:00:00Z",
+        note: "Absolutely — this aligns perfectly with what my community is looking for.",
+      },
+      {
+        id: "req-sponsor-4-evt-3",
+        type: "scheduled",
+        actorId: "hero-3",
+        timestamp: "2025-02-28T09:00:00Z",
+        note: "Scheduled for March 10th send.",
+      },
+    ],
+  },
+  {
+    id: "req-sponsor-5",
+    sponsorId: "hero-1",
+    publisherId: "hero-7",
+    status: "published",
+    initiatedBy: "sponsor",
+    scheduledAt: "2025-02-10T09:00:00Z",
+    brief:
+      "Many parents are looking for flexible income while raising kids. Coaching is ideal for that — and your audience already has the mindset for it.",
+    adHeadline: "Start Coaching From Home — While the Kids Nap",
+    adBody:
+      "Sarah Chen's coaching framework is designed for parents who want flexible, meaningful work. Over 500 parents have used it to launch coaching businesses around their family schedule.",
+    adCta: "Learn More",
+    adCtaUrl: "https://sarahchen.co/parent-coaches",
+    proposedFee: 325,
+    notes: "",
+    createdAt: "2025-02-01",
+    updatedAt: "2025-02-10",
+    timeline: [
+      {
+        id: "req-sponsor-5-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-1",
+        timestamp: "2025-02-01T10:00:00Z",
+        note: "Many parents are looking for flexible income while raising kids.",
+        copyAfter: {
+          adHeadline: "Start Coaching From Home — While the Kids Nap",
+          adBody:
+            "Sarah Chen's coaching framework is designed for parents who want flexible, meaningful work. Over 500 parents have used it to launch coaching businesses around their family schedule.",
+          adCta: "Learn More",
+          adCtaUrl: "https://sarahchen.co/parent-coaches",
+        },
+      },
+      {
+        id: "req-sponsor-5-evt-2",
+        type: "accepted",
+        actorId: "hero-7",
+        timestamp: "2025-02-04T11:00:00Z",
+        note: "This resonates so much with my audience. Let's go!",
+      },
+      {
+        id: "req-sponsor-5-evt-3",
+        type: "scheduled",
+        actorId: "hero-7",
+        timestamp: "2025-02-06T09:00:00Z",
+        note: "Scheduled for Feb 10.",
+      },
+      {
+        id: "req-sponsor-5-evt-4",
+        type: "published",
+        actorId: "hero-7",
+        timestamp: "2025-02-10T09:00:00Z",
+        note: "Sent to 41,000 subscribers.",
+      },
+    ],
+  },
+  {
+    id: "req-sponsor-6",
+    sponsorId: "hero-1",
+    publisherId: "hero-10",
+    status: "declined",
+    initiatedBy: "sponsor",
+    brief:
+      "I think your design audience could benefit from learning how to offer coaching services alongside their design work.",
+    adHeadline: "Add Coaching to Your Design Business",
+    adBody:
+      "Sarah Chen shows designers and creatives how to add high-ticket coaching to their business. Stop relying on project work alone.",
+    adCta: "Watch the Training",
+    adCtaUrl: "https://sarahchen.co/designers",
+    proposedFee: 200,
+    notes: "",
+    createdAt: "2025-02-12",
+    updatedAt: "2025-02-14",
+    timeline: [
+      {
+        id: "req-sponsor-6-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-1",
+        timestamp: "2025-02-12T15:00:00Z",
+        note: "I think your design audience could benefit from learning how to offer coaching services alongside their design work.",
+        copyAfter: {
+          adHeadline: "Add Coaching to Your Design Business",
+          adBody:
+            "Sarah Chen shows designers and creatives how to add high-ticket coaching to their business. Stop relying on project work alone.",
+          adCta: "Watch the Training",
+          adCtaUrl: "https://sarahchen.co/designers",
+        },
+      },
+      {
+        id: "req-sponsor-6-evt-2",
+        type: "declined",
+        actorId: "hero-10",
+        timestamp: "2025-02-14T12:00:00Z",
+        note: "Appreciate the offer, but coaching content doesn't align with what my audience expects from my newsletter. Best of luck!",
+      },
+    ],
+  },
+
   // ── Seed promotions with full timeline data ──
   ...seedPromotions,
 ]

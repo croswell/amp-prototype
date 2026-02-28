@@ -29,9 +29,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
 import {
   getRequest,
   getHero,
@@ -49,7 +46,7 @@ import {
   type RequestStatus,
   type CopySnapshot,
 } from "@/lib/mock-data"
-import { CaretLeft, ArrowRight, Broadcast, CheckCircle } from "@phosphor-icons/react"
+import { CaretLeft, ArrowRight, Broadcast } from "@phosphor-icons/react"
 import { toast } from "sonner"
 
 function formatDate(dateStr: string): string {
@@ -143,107 +140,6 @@ function FallbackTimeline({
   )
 }
 
-/** Dialog with a pre-filled copy edit form for requesting changes */
-function RequestChangesDialog({
-  open,
-  onOpenChange,
-  currentCopy,
-  onSubmit,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  currentCopy: CopySnapshot
-  onSubmit: (copyAfter: CopySnapshot, note?: string) => void
-}) {
-  const [headline, setHeadline] = useState(currentCopy.adHeadline)
-  const [body, setBody] = useState(currentCopy.adBody)
-  const [cta, setCta] = useState(currentCopy.adCta)
-  const [note, setNote] = useState("")
-
-  // Reset form fields when dialog opens with new copy
-  const handleOpenChange = (next: boolean) => {
-    if (next) {
-      setHeadline(currentCopy.adHeadline)
-      setBody(currentCopy.adBody)
-      setCta(currentCopy.adCta)
-      setNote("")
-    }
-    onOpenChange(next)
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(
-      {
-        adHeadline: headline,
-        adBody: body,
-        adCta: cta,
-        adCtaUrl: currentCopy.adCtaUrl,
-      },
-      note || undefined
-    )
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Suggest copy changes</DialogTitle>
-          <DialogDescription>
-            Edit the ad copy below. The sponsor will see a before/after
-            comparison.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="headline">Headline</Label>
-            <Input
-              id="headline"
-              value={headline}
-              onChange={(e) => setHeadline(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="body">Body</Label>
-            <Textarea
-              id="body"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={4}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cta">CTA button text</Label>
-            <Input
-              id="cta"
-              value={cta}
-              onChange={(e) => setCta(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="note">
-              Message{" "}
-              <span className="font-normal text-muted-foreground">
-                (optional)
-              </span>
-            </Label>
-            <Textarea
-              id="note"
-              placeholder="Explain what you changed and why..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
-            />
-          </div>
-          <DialogFooter>
-            <Button type="submit">Submit Changes</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 export function RequestDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -288,10 +184,10 @@ export function RequestDetailContent() {
   const [localTimeline, setLocalTimeline] =
     useState<TimelineEvent[]>(initialTimeline)
 
-  // Dialog open states
+  // Dialog/inline states
   const [declineOpen, setDeclineOpen] = useState(false)
   const [approveOpen, setApproveOpen] = useState(false)
-  const [changesOpen, setChangesOpen] = useState(false)
+  const [inlineEditing, setInlineEditing] = useState(false)
 
   // Merge local state with the original request so all JSX reads from one object
   const liveRequest: PromotionRequest = {
@@ -347,7 +243,7 @@ export function RequestDetailContent() {
   }
 
   const handleRequestChanges = () => {
-    setChangesOpen(true)
+    setInlineEditing(true)
   }
 
   const handleDecline = () => {
@@ -386,7 +282,7 @@ export function RequestDetailContent() {
       setLocalStatus("in_review")
     }
 
-    setChangesOpen(false)
+    setInlineEditing(false)
     toast.success("Changes submitted")
   }
 
@@ -398,29 +294,39 @@ export function RequestDetailContent() {
     toast.success("Redirecting to Kajabi broadcast setup...")
   }
 
-  const handleRequestRevision = (eventId: string) => {
-    toast("Revision requested — opening feedback form...")
+  const handleRequestRevision = (eventId: string, note: string) => {
+    setLocalTimeline((prev) => [
+      ...prev,
+      {
+        id: `evt-revision-${Date.now()}`,
+        type: "revision_requested" as const,
+        actorId: activeUser.id,
+        timestamp: new Date().toISOString(),
+        ...(note ? { note } : {}),
+      },
+    ])
+    toast.success("Revision requested")
   }
 
   return (
     <div className="space-y-6">
-      {/* Back button */}
-      <Button variant="outline" size="sm" asChild>
-        <Link href={`/requests${personaParam}`}>
-          <CaretLeft className="size-4" />
-          Back
-        </Link>
-      </Button>
-
       {/* Header */}
       <div className="space-y-4 border-b pb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{liveRequest.adHeadline}</h1>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon-sm" asChild>
+            <Link href={`/requests${personaParam}`}>
+              <CaretLeft className="size-4" />
+              <span className="sr-only">Back</span>
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-semibold tracking-tight">{liveRequest.adHeadline}</h1>
+        </div>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           <Badge
             variant="secondary"
             className={
               liveRequest.status === "pending" && liveRequest.initiatedBy !== viewerRole
-                ? "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]"
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                 : getStatusColor(liveRequest.status)
             }
           >
@@ -452,6 +358,11 @@ export function RequestDetailContent() {
                 onRequestRevision={handleRequestRevision}
                 canRequestRevision={canRequestRevision}
                 sponsorId={liveRequest.sponsorId}
+                inlineEditing={inlineEditing}
+                inlineEditActor={activeUser}
+                inlineEditCopy={currentCopy}
+                onInlineEditSubmit={handleSubmitChanges}
+                onInlineEditCancel={() => setInlineEditing(false)}
               />
             ) : (
               <FallbackTimeline request={liveRequest} initiator={liveRequest.initiatedBy === "sponsor" ? sponsor : publisher} payout={payout} />
@@ -471,6 +382,7 @@ export function RequestDetailContent() {
               onDecline={handleDecline}
               onApproveCopy={handleApproveCopy}
               onCreateBroadcast={handleCreateBroadcast}
+              publisher={publisher}
             />
           </div>
         </div>
@@ -507,8 +419,7 @@ export function RequestDetailContent() {
       <Dialog open={approveOpen} onOpenChange={setApproveOpen}>
         <DialogContent>
           <DialogHeader className="text-left">
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <CheckCircle className="size-5 text-foreground" weight="fill" />
+            <DialogTitle className="text-lg">
               Proposal approved
             </DialogTitle>
             <DialogDescription>
@@ -530,13 +441,6 @@ export function RequestDetailContent() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Request Changes Dialog ── */}
-      <RequestChangesDialog
-        open={changesOpen}
-        onOpenChange={setChangesOpen}
-        currentCopy={currentCopy}
-        onSubmit={handleSubmitChanges}
-      />
     </div>
   )
 }

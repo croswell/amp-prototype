@@ -80,16 +80,16 @@ export function HomeContent() {
 
   // ── Stats ──
   const publisherRevenue = incoming
-    .filter((r) => r.status === "published" || r.status === "paid")
+    .filter((r) => r.status === "published")
     .reduce((sum, r) => sum + r.proposedFee, 0)
   const sponsorSpend = outgoing
-    .filter((r) => r.status === "published" || r.status === "paid")
+    .filter((r) => r.status === "published")
     .reduce((sum, r) => sum + r.proposedFee, 0)
   const activeCount = [...incoming, ...outgoing].filter(
     (r) => r.status === "accepted" || r.status === "scheduled"
   ).length
   const completedCount = [...incoming, ...outgoing].filter(
-    (r) => r.status === "published" || r.status === "paid"
+    (r) => r.status === "published"
   ).length
   const pendingApprovals = outgoing.filter(
     (r) => r.status === "pending"
@@ -116,7 +116,7 @@ export function HomeContent() {
       }
       return {
         label: "New",
-        color: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
+        color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
       }
     }
     return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
@@ -156,7 +156,7 @@ export function HomeContent() {
               <div className="mt-3">
                 <Badge
                   variant="secondary"
-                  className="gap-1 text-xs bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
+                  className="gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
                 >
                   <CaretDoubleUp className="size-3" />
                   High Engagement
@@ -577,7 +577,7 @@ function PublisherProfileSheet({
             <>
               <Button variant="outline" onClick={() => setPhase("idle")}>Back</Button>
               <Button onClick={handleSendRequest}>
-                Send Request
+                Send
               </Button>
             </>
           ) : phase === "success" ? (

@@ -12,7 +12,7 @@ export function EngagementBadge({ tier, className }: EngagementBadgeProps) {
   return (
     <Badge
       variant="secondary"
-      className={`gap-1 text-xs bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9] ${className ?? ""}`}
+      className={`gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 ${className ?? ""}`}
     >
       <CaretDoubleUp className="size-3" />
       High Engagement

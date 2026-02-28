@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import type { PromotionRequest, RequestStatus } from "@/lib/mock-data"
+import type { PromotionRequest, RequestStatus, Hero } from "@/lib/mock-data"
 import {
   Check,
   X,
@@ -24,6 +24,7 @@ interface RequestActionCardProps {
   onDecline?: () => void
   onApproveCopy?: () => void
   onCreateBroadcast?: () => void
+  publisher?: Hero
 }
 
 export function RequestActionCard({
@@ -37,6 +38,7 @@ export function RequestActionCard({
   onDecline,
   onApproveCopy,
   onCreateBroadcast,
+  publisher,
 }: RequestActionCardProps) {
   const status = request.status
 
@@ -69,22 +71,41 @@ export function RequestActionCard({
     )
   }
 
+  // Published — show stats
+  if (status === "published") {
+    const subs = publisher?.subscriberCount ?? 0
+    const openRate = publisher?.openRate ?? 0
+    const clickRate = publisher?.clickRate ?? 0
+
+    return (
+      <Card>
+        <CardContent>
+          <p className="text-base font-medium">Email sent</p>
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Subscribers</p>
+              <p className="mt-1 text-lg font-semibold">{subs.toLocaleString()}</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Open rate</p>
+              <p className="mt-1 text-lg font-semibold">{openRate}%</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">Click rate</p>
+              <p className="mt-1 text-lg font-semibold">{clickRate}%</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   // Read-only states
   if (
-    status === "published" ||
-    status === "paid" ||
     status === "declined" ||
     status === "expired"
   ) {
     const messages: Record<string, { icon: React.ReactNode; text: string }> = {
-      published: {
-        icon: <Check className="size-4 text-emerald-500" />,
-        text: "Email sent successfully",
-      },
-      paid: {
-        icon: <Check className="size-4 text-emerald-500" />,
-        text: "Payment cleared — promotion complete",
-      },
       declined: {
         icon: <X className="size-4 text-muted-foreground" />,
         text: "This request was declined",
@@ -171,7 +192,7 @@ export function RequestActionCard({
         <Card>
           <CardContent>
             <div className="flex items-center justify-between gap-4">
-              <p className="text-base font-medium">Proposal accepted</p>
+              <p className="text-base font-medium">Proposal approved</p>
               <Button size="sm" onClick={onCreateBroadcast}>
                 <Broadcast className="size-3.5" />
                 Create Broadcast
@@ -186,7 +207,8 @@ export function RequestActionCard({
     return (
       <Card>
         <CardContent>
-          <p className="text-base font-medium">Proposal accepted</p>
+          <p className="text-base font-medium">Proposal approved</p>
+          <p className="mt-1 text-sm text-muted-foreground">Awaiting publisher to schedule the broadcast.</p>
         </CardContent>
       </Card>
     )
@@ -199,7 +221,7 @@ export function RequestActionCard({
         <Card>
           <CardContent>
             <div className="flex items-center justify-between gap-4">
-              <p className="text-base font-medium">Proposal accepted</p>
+              <p className="text-base font-medium">Proposal approved</p>
               <Button size="sm" onClick={onCreateBroadcast}>
                 <Broadcast className="size-3.5" />
                 Create Broadcast
@@ -213,7 +235,8 @@ export function RequestActionCard({
     return (
       <Card>
         <CardContent>
-          <p className="text-base font-medium">Proposal accepted</p>
+          <p className="text-base font-medium">Proposal approved</p>
+          <p className="mt-1 text-sm text-muted-foreground">Awaiting publisher to schedule the broadcast.</p>
         </CardContent>
       </Card>
     )
@@ -229,7 +252,11 @@ export function RequestActionCard({
           <CardContent>
             <div className="flex items-center gap-2">
               <HourglassMedium className="size-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Waiting for the other party to review</p>
+              <p className="text-sm text-muted-foreground">
+                {viewerRole === "publisher"
+                  ? "Waiting for sponsor to review"
+                  : "Waiting for publisher to review"}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -241,19 +268,12 @@ export function RequestActionCard({
       return (
         <Card>
           <CardContent>
-            <div className="space-y-3">
-              <p className="text-sm font-medium">
-                {revisionRound > 0 ? `Copy review · Round ${revisionRound} · ` : ""}
-                Your turn
-              </p>
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-base font-medium">Review proposal</p>
               <Button size="sm" onClick={onApproveCopy}>
                 <Check className="size-3.5" />
-                Approve Copy
+                Accept
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Or use &ldquo;Request Revision&rdquo; on the copy above to send
-                feedback
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -264,18 +284,11 @@ export function RequestActionCard({
     return (
       <Card>
         <CardContent>
-          <div className="space-y-3">
-            <p className="text-sm font-medium">
-              {revisionRound > 0 ? `Round ${revisionRound} · ` : ""}
-              Your turn to revise
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAcceptAndSuggestChanges}
-            >
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-base font-medium">Changes requested</p>
+            <Button size="sm" onClick={onAcceptAndSuggestChanges}>
               <PencilSimple className="size-3.5" />
-              Suggest Changes
+              Respond to Request
             </Button>
           </div>
         </CardContent>

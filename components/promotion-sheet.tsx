@@ -50,12 +50,12 @@ import {
 
 // Palette color pairs: light palette color as bg tint, darkened text for contrast
 export const BADGE_COLORS = {
-  green: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
-  greenOutline: "text-[#405B50] dark:text-[#86CEAC]",
-  blue: "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]",
-  gold: "bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]",
-  terracotta: "bg-[#AD715C]/30 text-[#4A2318] dark:bg-[#733725]/40 dark:text-[#AD715C]",
-  lavender: "bg-[#D7CBD5]/50 text-[#352938] dark:bg-[#52405B]/40 dark:text-[#D7CBD5]",
+  green: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  greenOutline: "text-emerald-600 dark:text-emerald-400",
+  blue: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+  gold: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  terracotta: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
+  lavender: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
 } as const
 
 // Deterministic days remaining based on request ID
@@ -327,10 +327,6 @@ export function PromotionSheet({
           <PublishedView request={request} role={role} />
         )}
 
-        {/* ── Paid (read-only) ── */}
-        {request && effectiveStatus === "paid" && (
-          <PaidView request={request} role={role} />
-        )}
 
         {/* ── Declined (read-only) ── */}
         {request && effectiveStatus === "declined" && (
@@ -1379,79 +1375,6 @@ function PublishedView({ request, role }: { request: PromotionRequest; role: str
 // ─────────────────────────────────────────────────────────────
 // Paid View (read-only)
 // ─────────────────────────────────────────────────────────────
-
-function PaidView({ request, role }: { request: PromotionRequest; role: string }) {
-  const isPublisherRole = role === "publisher" || role === "both"
-  const otherHero = isPublisherRole
-    ? getHero(request.sponsorId)
-    : getHero(request.publisherId)
-  const heroType = isPublisherRole ? "sponsor" : "publisher"
-
-  return (
-    <>
-      <SheetHeader>
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
-            <SheetTitle className="text-lg">Paid</SheetTitle>
-            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <FileText className="size-3.5 shrink-0" />
-              {request.adHeadline}
-            </p>
-          </div>
-          <Badge variant="secondary" className={getStatusColor("paid")}>
-            {STATUS_LABELS.paid}
-          </Badge>
-          <SheetClose asChild>
-            <Button variant="outline" size="icon-sm">
-              <X />
-              <span className="sr-only">Close</span>
-            </Button>
-          </SheetClose>
-        </div>
-      </SheetHeader>
-
-      <SheetBody className="space-y-4">
-        {otherHero && <HeroIdentity hero={otherHero} showEngagement={heroType === "publisher"} />}
-
-        <Tabs defaultValue="details">
-          <TabsList variant="line">
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="details" className="space-y-4 pt-2">
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
-              <div className="flex items-center gap-2">
-                <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
-                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                  Payment cleared
-                </p>
-              </div>
-            </div>
-
-            <DealTermsTable request={request} role={role} />
-
-            <EmailBlockPreview
-              headline={request.adHeadline}
-              body={request.adBody}
-              cta={request.adCta}
-            />
-          </TabsContent>
-
-          <TabsContent value="profile" className="space-y-6 pt-2">
-            {otherHero && <ProfileTab hero={otherHero} heroType={heroType} />}
-          </TabsContent>
-        </Tabs>
-      </SheetBody>
-
-      <SheetFooter>
-        <SheetClose asChild>
-          <Button variant="outline">Close</Button>
-        </SheetClose>
-      </SheetFooter>
-    </>
-  )
-}
 
 // ─────────────────────────────────────────────────────────────
 // Closed View (declined / expired — read-only)

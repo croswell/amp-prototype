@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 
 const VARIANT_STYLES = {
   outline: "text-muted-foreground",
-  filled: "bg-[#CBD7CC]/50 text-[#2A3D35] border-0 dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
+  filled: "bg-emerald-100 text-emerald-700 border-0 dark:bg-emerald-950 dark:text-emerald-300",
 } as const
 
 interface PayoutBadgeProps {

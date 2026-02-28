@@ -13,7 +13,6 @@ export type RequestStatus =
   | "in_review"
   | "scheduled"
   | "published"
-  | "paid"
   | "declined"
   | "expired"
 
@@ -60,7 +59,6 @@ export type TimelineEventType =
   | "broadcast_created"
   | "scheduled"
   | "published"
-  | "payment_sent"
   | "expired"
 
 export interface CopySnapshot {
@@ -119,7 +117,6 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
   in_review: "In Review",
   scheduled: "Scheduled",
   published: "Published",
-  paid: "Paid",
   declined: "Declined",
   expired: "Expired",
 }
@@ -745,6 +742,56 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-26",
     updatedAt: "2025-02-26",
+    timeline: [
+      {
+        id: "req-demo-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-02-26T10:00:00Z",
+        note: "I teach creators how to package their knowledge into profitable online courses. My Course Launch Blueprint has helped 500+ creators launch their first course. I think your audience of coaches building online businesses would be a perfect fit — many of them are sitting on expertise they haven't monetized yet.",
+        copyAfter: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+    ],
+  },
+  {
+    id: "req-demo-4",
+    sponsorId: "hero-3",
+    publisherId: "current-user",
+    status: "pending",
+    initiatedBy: "publisher",
+    brief:
+      "I'd love to feature your 'Ambitious Women' community in my newsletter. My audience of coaches and consultants skews 70% women — and they're always looking for communities to join. This feels like a natural fit.",
+    adHeadline: "Join 5,000 Ambitious Women Building Their Empires",
+    adBody:
+      "Priya Patel's community for women in leadership gives you weekly masterclasses, peer accountability, and a network of ambitious women who get it. Stop going it alone.",
+    adCta: "Join the Community",
+    adCtaUrl: "https://priyapatel.com/community",
+    proposedFee: 500,
+    notes: "",
+    createdAt: "2025-02-24",
+    updatedAt: "2025-02-24",
+    timeline: [
+      {
+        id: "req-demo-4-evt-1",
+        type: "proposal_sent",
+        actorId: "current-user",
+        timestamp: "2025-02-24T14:00:00Z",
+        note: "I'd love to feature your 'Ambitious Women' community in my newsletter. My audience of coaches and consultants skews 70% women — and they're always looking for communities to join. This feels like a natural fit.",
+        copyAfter: {
+          adHeadline: "Join 5,000 Ambitious Women Building Their Empires",
+          adBody:
+            "Priya Patel's community for women in leadership gives you weekly masterclasses, peer accountability, and a network of ambitious women who get it. Stop going it alone.",
+          adCta: "Join the Community",
+          adCtaUrl: "https://priyapatel.com/community",
+        },
+      },
+    ],
   },
   {
     id: "req-demo-2",
@@ -761,169 +808,78 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-20",
     updatedAt: "2025-02-24",
-  },
-  // ── Pending: waiting on the other party ──
-  {
-    id: "req-6",
-    sponsorId: "hero-6",
-    publisherId: "current-user",
-    status: "pending",
-    initiatedBy: "sponsor",
-    brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience using AI-powered growth strategies. We've helped 2,000+ podcasters double their downloads. I'd love to reach your audience since many of your subscribers are also launching podcasts.",
-    adHeadline: "Grow Your Podcast to 10K Downloads",
-    adBody: "PodGrowth helps podcasters double their audience in 90 days with AI-powered growth tools. Join 2,000+ podcasters already using the platform.",
-    adCta: "Try PodGrowth Free",
-    adCtaUrl: "https://podgrowth.co/trial",
-    proposedFee: 275,
-    notes: "",
-    createdAt: "2025-02-22",
-    updatedAt: "2025-02-22",
-  },
-  {
-    id: "req-7",
-    sponsorId: "hero-9",
-    publisherId: "current-user",
-    status: "pending",
-    initiatedBy: "sponsor",
-    brief: "I built a 7-figure membership site and now teach others to do the same. I'm promoting my free training on creating recurring revenue through memberships. Your audience of knowledge entrepreneurs would love this — memberships are the natural next step after courses.",
-    adHeadline: "Build a Membership Site That Runs Itself",
-    adBody: "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
-    adCta: "Watch the Free Training",
-    adCtaUrl: "https://lisapark.co/training",
-    proposedFee: 350,
-    notes: "",
-    createdAt: "2025-02-23",
-    updatedAt: "2025-02-23",
-  },
-  // ── Pending: publisher-initiated (publisher wants to run the sponsor's campaign) ──
-  {
-    id: "req-18",
-    sponsorId: "current-user",
-    publisherId: "hero-1",
-    status: "pending",
-    initiatedBy: "publisher",
-    brief: "Your Course Creator Accelerator is a perfect fit for my audience of coaches building online businesses. I'd love to feature it in my next send — my readers are always asking how to package their expertise into courses.",
-    adHeadline: "The Course Creator Accelerator",
-    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
-    adCta: "Apply Now",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedFee: 350,
-    notes: "",
-    createdAt: "2025-02-25",
-    updatedAt: "2025-02-25",
-  },
-  {
-    id: "req-19",
-    sponsorId: "current-user",
-    publisherId: "hero-10",
-    status: "pending",
-    initiatedBy: "publisher",
-    brief: "I think the Course Creator Accelerator would resonate strongly with my solopreneur audience. Many of them are sitting on expertise they haven't monetized yet — your program is exactly what they need to take the leap.",
-    adHeadline: "The Course Creator Accelerator",
-    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
-    adCta: "Apply Now",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedFee: 425,
-    notes: "",
-    createdAt: "2025-02-24",
-    updatedAt: "2025-02-24",
-  },
-  {
-    id: "req-20",
-    sponsorId: "current-user",
-    publisherId: "hero-6",
-    status: "pending",
-    initiatedBy: "publisher",
-    brief: "My audience of tech professionals and aspiring entrepreneurs would love the Course Creator Accelerator. I've been recommending online course platforms for years — your program is the missing piece that shows them how to actually build one.",
-    adHeadline: "The Course Creator Accelerator",
-    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
-    adCta: "Apply Now",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedFee: 350,
-    notes: "",
-    createdAt: "2025-02-25",
-    updatedAt: "2025-02-25",
-  },
-  {
-    id: "req-21",
-    sponsorId: "current-user",
-    publisherId: "hero-5",
-    status: "pending",
-    initiatedBy: "publisher",
-    brief: "I run a newsletter for creative professionals looking to monetize their skills. The Course Creator Accelerator is exactly the kind of resource my readers ask about — I'd love to feature it in an upcoming send.",
-    adHeadline: "The Course Creator Accelerator",
-    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
-    adCta: "Apply Now",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedFee: 275,
-    notes: "",
-    createdAt: "2025-02-26",
-    updatedAt: "2025-02-26",
-  },
-  // ── Accepted: other party said yes ──
-  {
-    id: "req-16",
-    sponsorId: "current-user",
-    publisherId: "hero-1",
-    status: "accepted",
-    initiatedBy: "sponsor",
-    brief: "I'm promoting the spring cohort of my Course Creator Accelerator to Sarah's mindset coaching audience. Many mindset coaches want to package their expertise into courses.",
-    adHeadline: "The Course Creator Accelerator",
-    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
-    adCta: "Apply Now",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedFee: 350,
-    notes: "",
-    createdAt: "2025-02-24",
-    updatedAt: "2025-02-25",
-  },
-  {
-    id: "req-17",
-    sponsorId: "current-user",
-    publisherId: "hero-5",
-    status: "accepted",
-    initiatedBy: "sponsor",
-    brief: "I'm promoting the Course Creator Accelerator to Aisha's finance audience. Financial educators are increasingly packaging their expertise into online courses.",
-    adHeadline: "Scale Your Knowledge Business",
-    adBody: "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Join the next cohort.",
-    adCta: "Learn More",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedFee: 275,
-    notes: "",
-    createdAt: "2025-02-23",
-    updatedAt: "2025-02-25",
-  },
-  {
-    id: "req-1",
-    sponsorId: "hero-4",
-    publisherId: "current-user",
-    status: "accepted",
-    initiatedBy: "sponsor",
-    brief: "I teach creators how to package their knowledge into profitable online courses. I'm looking to promote my free Course Launch Blueprint — a step-by-step framework that's helped 500+ creators launch their first course. I think your audience of knowledge entrepreneurs would be a perfect fit.",
-    adHeadline: "Create Your First Online Course in 30 Days",
-    adBody: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
-    adCta: "Get the Free Blueprint",
-    adCtaUrl: "https://jakemorrison.io/blueprint",
-    proposedFee: 300,
-    notes: "",
-    createdAt: "2025-02-20",
-    updatedAt: "2025-02-20",
-  },
-  {
-    id: "req-2",
-    sponsorId: "hero-6",
-    publisherId: "hero-1",
-    status: "accepted",
-    initiatedBy: "sponsor",
-    brief: "I run PodGrowth, a SaaS tool that helps podcasters grow their audience. Your coaching audience includes a lot of creators launching podcasts, so I think this would be a natural fit.",
-    adHeadline: "Grow Your Podcast to 10K Downloads",
-    adBody: "PodGrowth helps podcasters double their audience in 90 days with AI-powered growth tools. Join 2,000+ podcasters already using the platform.",
-    adCta: "Try PodGrowth Free",
-    adCtaUrl: "https://podgrowth.co/trial",
-    proposedFee: 350,
-    notes: "",
-    createdAt: "2025-02-18",
-    updatedAt: "2025-02-21",
+    timeline: [
+      {
+        id: "req-demo-2-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-02-20T10:00:00Z",
+        note: "Promoting the Weekend Course Sprint to Sarah's coaching audience. Many coaches want a quick way to create their first course without spending months on it.",
+        copyAfter: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-demo-2-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-21T14:30:00Z",
+        note: "Love the Sprint concept! I tweaked the angle to acknowledge my readers' existing expertise — they respond better when we speak to what they already know.",
+        copyBefore: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "From Expertise to Course in 48 Hours",
+          adBody:
+            "You already have the knowledge — Jake Morrison's Weekend Course Sprint helps you package it into a live course in just one weekend. 200+ creators have done it. No tech skills needed.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-demo-2-evt-3",
+        type: "revision_requested",
+        actorId: "hero-4",
+        timestamp: "2025-02-22T09:15:00Z",
+        note: "Love the angle of acknowledging their expertise! But can we keep 'Weekend' in the headline? That's our key differentiator. The body is great.",
+      },
+      {
+        id: "req-demo-2-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-23T11:00:00Z",
+        note: "Done! Kept 'Weekend' front and center while preserving the expertise angle.",
+        copyBefore: {
+          adHeadline: "From Expertise to Course in 48 Hours",
+          adBody:
+            "You already have the knowledge — Jake Morrison's Weekend Course Sprint helps you package it into a live course in just one weekend. 200+ creators have done it. No tech skills needed.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "Turn Your Expertise Into a Course This Weekend",
+          adBody:
+            "You already have the knowledge — Jake Morrison's Weekend Course Sprint helps you package it into a live course in just 48 hours. 200+ creators have already done it, no tech skills needed.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-demo-2-evt-5",
+        type: "copy_locked",
+        actorId: "hero-4",
+        timestamp: "2025-02-24T08:00:00Z",
+        note: "Perfect — approved!",
+      },
+    ],
   },
   // ── In Review: revision loop in progress ──
   {
@@ -948,76 +904,71 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-22",
     updatedAt: "2025-02-26",
-  },
-  {
-    id: "req-22",
-    sponsorId: "hero-4",
-    publisherId: "current-user",
-    status: "in_review",
-    initiatedBy: "sponsor",
-    reviewTurn: "sponsor",
-    brief: "I'm promoting my Advanced Course Launch System — a premium program for experienced creators. I think this would resonate well with your audience of knowledge entrepreneurs.",
-    adHeadline: "Create Your First Online Course in 30 Days",
-    adBody: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
-    adCta: "Get the Free Blueprint",
-    adCtaUrl: "https://jakemorrison.io/blueprint",
-    proposedEdits: {
-      adHeadline: "Launch a Profitable Online Course This Month",
-      adBody: "Jake Morrison's proven framework has helped 500+ creators build and launch courses that sell. Get his free Course Launch Blueprint — designed for busy knowledge entrepreneurs.",
-      adCta: "Download the Blueprint",
-      adCtaUrl: "https://jakemorrison.io/blueprint",
-    },
-    proposedFee: 300,
-    notes: "",
-    createdAt: "2025-02-21",
-    updatedAt: "2025-02-26",
-  },
-  {
-    id: "req-23",
-    sponsorId: "hero-9",
-    publisherId: "current-user",
-    status: "in_review",
-    initiatedBy: "sponsor",
-    reviewTurn: "publisher",
-    revisionNotes: "Love the direction! Could you make the CTA more action-oriented? Something like 'Start Building' instead of 'Watch the Training'. Also, the body copy could mention the recurring revenue angle more prominently.",
-    brief: "I'm promoting my membership site masterclass. Your audience of knowledge entrepreneurs would benefit from learning how to build recurring revenue through memberships.",
-    adHeadline: "Build a Membership Site That Runs Itself",
-    adBody: "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
-    adCta: "Watch the Free Training",
-    adCtaUrl: "https://lisapark.co/training",
-    proposedEdits: {
-      adHeadline: "Turn Your Expertise Into Recurring Revenue",
-      adBody: "Lisa Park's membership model generates 7 figures on autopilot. In this free training, she reveals the exact system — so you can build a membership site your audience will love.",
-      adCta: "Watch the Training",
-      adCtaUrl: "https://lisapark.co/training",
-    },
-    proposedFee: 350,
-    notes: "",
-    createdAt: "2025-02-22",
-    updatedAt: "2025-02-26",
-  },
-  {
-    id: "req-24",
-    sponsorId: "current-user",
-    publisherId: "hero-2",
-    status: "in_review",
-    initiatedBy: "sponsor",
-    reviewTurn: "sponsor",
-    brief: "I'm promoting the Course Creator Accelerator to Marcus's fitness coaching audience. Many fitness coaches want to create online courses but don't know where to start.",
-    adHeadline: "The Course Creator Accelerator",
-    adBody: "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
-    adCta: "Apply Now",
-    adCtaUrl: "https://alexjohnson.co/accelerator",
-    proposedEdits: {
-      adHeadline: "Turn Your Coaching Into a Course",
-      adBody: "Alex Johnson's 12-week accelerator helps fitness coaches package their expertise into online courses that sell. Over $2M in student revenue generated. Spring cohort spots are limited.",
-      adCta: "Apply for Spring Cohort",
-      adCtaUrl: "https://alexjohnson.co/accelerator",
-    },
-    proposedFee: 275,
-    notes: "",
-    createdAt: "2025-02-20",
-    updatedAt: "2025-02-26",
+    timeline: [
+      {
+        id: "req-demo-3-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-6",
+        timestamp: "2025-02-22T10:00:00Z",
+        note: "I run PodGrowth, a SaaS tool that helps podcasters grow. Sarah's coaching audience includes creators launching podcasts, so this is a natural fit.",
+        copyAfter: {
+          adHeadline: "Grow Your Podcast to 10K Downloads",
+          adBody:
+            "PodGrowth helps podcasters double their audience in 90 days with AI-powered growth tools. Join 2,000+ podcasters already using the platform.",
+          adCta: "Try PodGrowth Free",
+          adCtaUrl: "https://podgrowth.co/trial",
+        },
+      },
+      {
+        id: "req-demo-3-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-23T15:00:00Z",
+        note: "Love the product! I tweaked the angle to focus on the ease of getting started — my audience responds better to 'made easy' framing than big number promises.",
+        copyBefore: {
+          adHeadline: "Grow Your Podcast to 10K Downloads",
+          adBody:
+            "PodGrowth helps podcasters double their audience in 90 days with AI-powered growth tools. Join 2,000+ podcasters already using the platform.",
+          adCta: "Try PodGrowth Free",
+          adCtaUrl: "https://podgrowth.co/trial",
+        },
+        copyAfter: {
+          adHeadline: "Podcasting Made Easy — Grow Your Audience Faster",
+          adBody:
+            "Whether you're just starting or trying to scale, PodGrowth's AI-powered tools help podcasters reach more listeners. Over 2,000 podcasters already use it to grow smarter.",
+          adCta: "Try PodGrowth Free",
+          adCtaUrl: "https://podgrowth.co/trial",
+        },
+      },
+      {
+        id: "req-demo-3-evt-3",
+        type: "revision_requested",
+        actorId: "hero-6",
+        timestamp: "2025-02-25T09:00:00Z",
+        note: "Good direction! But I'd rather lead with the specific '90 days' promise — that's our key selling point. Can you make it more results-focused?",
+      },
+      {
+        id: "req-demo-3-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-26T14:00:00Z",
+        note: "Got it — led with the 90-day result and tightened the CTA. This should hit harder.",
+        copyBefore: {
+          adHeadline: "Podcasting Made Easy — Grow Your Audience Faster",
+          adBody:
+            "Whether you're just starting or trying to scale, PodGrowth's AI-powered tools help podcasters reach more listeners. Over 2,000 podcasters already use it to grow smarter.",
+          adCta: "Try PodGrowth Free",
+          adCtaUrl: "https://podgrowth.co/trial",
+        },
+        copyAfter: {
+          adHeadline: "Double Your Podcast Audience in 90 Days",
+          adBody:
+            "PodGrowth's AI-powered tools have helped 2,000+ podcasters grow faster. Whether you're just starting or scaling, get the downloads your content deserves.",
+          adCta: "Start Free Trial",
+          adCtaUrl: "https://podgrowth.co/trial",
+        },
+      },
+    ],
   },
   // ── Scheduled: date is set, waiting to go live ──
   {
@@ -1036,6 +987,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-19",
     updatedAt: "2025-02-22",
+    timeline: [
+      {
+        id: "req-10-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-3",
+        timestamp: "2025-02-19T10:00:00Z",
+        note: "I'm launching a new leadership coaching program for women and want to reach Alex's audience of knowledge entrepreneurs. Many of them are women building businesses who'd benefit from leadership skills.",
+        copyAfter: {
+          adHeadline: "Lead With Confidence",
+          adBody:
+            "Priya Patel's new leadership program helps ambitious women step into their power. Join 5,000+ women already in the community.",
+          adCta: "Join the Program",
+          adCtaUrl: "https://priyapatel.com/lead",
+        },
+      },
+      {
+        id: "req-10-evt-2",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-19T16:00:00Z",
+        note: "Love this Priya! Tweaked the body to make it feel more personal and less like a generic ad. My audience responds to transformation language.",
+        copyBefore: {
+          adHeadline: "Lead With Confidence",
+          adBody:
+            "Priya Patel's new leadership program helps ambitious women step into their power. Join 5,000+ women already in the community.",
+          adCta: "Join the Program",
+          adCtaUrl: "https://priyapatel.com/lead",
+        },
+        copyAfter: {
+          adHeadline: "Confidence in Leadership Starts Here",
+          adBody:
+            "Priya Patel's leadership program is designed for ambitious professionals ready to step up. Join 5,000+ women already building confidence and influence.",
+          adCta: "Join the Program",
+          adCtaUrl: "https://priyapatel.com/lead",
+        },
+      },
+      {
+        id: "req-10-evt-3",
+        type: "revision_requested",
+        actorId: "hero-3",
+        timestamp: "2025-02-20T09:00:00Z",
+        note: "Love it! But can we emphasize the community aspect more? And 'step up' might feel vague — can we be more specific about what they'll get?",
+      },
+      {
+        id: "req-10-evt-4",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-20T15:00:00Z",
+        note: "Revised! Brought back 'Lead With Confidence' and emphasized the community support angle.",
+        copyBefore: {
+          adHeadline: "Confidence in Leadership Starts Here",
+          adBody:
+            "Priya Patel's leadership program is designed for ambitious professionals ready to step up. Join 5,000+ women already building confidence and influence.",
+          adCta: "Join the Program",
+          adCtaUrl: "https://priyapatel.com/lead",
+        },
+        copyAfter: {
+          adHeadline: "Lead With Confidence",
+          adBody:
+            "Priya Patel's leadership program helps ambitious women build the confidence and skills to lead. With a 5,000-member community behind you, you'll never lead alone.",
+          adCta: "Join the Program",
+          adCtaUrl: "https://priyapatel.com/lead",
+        },
+      },
+      {
+        id: "req-10-evt-5",
+        type: "copy_locked",
+        actorId: "hero-3",
+        timestamp: "2025-02-21T09:00:00Z",
+        note: "That's perfect — approved!",
+      },
+      {
+        id: "req-10-evt-6",
+        type: "broadcast_created",
+        actorId: "current-user",
+        timestamp: "2025-02-22T10:00:00Z",
+      },
+      {
+        id: "req-10-evt-7",
+        type: "scheduled",
+        actorId: "current-user",
+        timestamp: "2025-02-22T14:00:00Z",
+        metadata: { scheduledAt: "2025-03-05T10:00:00" },
+      },
+    ],
   },
   {
     id: "req-11",
@@ -1053,6 +1089,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-20",
     updatedAt: "2025-02-23",
+    timeline: [
+      {
+        id: "req-11-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-7",
+        timestamp: "2025-02-20T10:00:00Z",
+        note: "I'm promoting my Connected Parenting digital workshop. Many knowledge entrepreneurs are also parents looking for better work-life balance strategies.",
+        copyAfter: {
+          adHeadline: "The Connected Parenting Workshop",
+          adBody:
+            "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+      },
+      {
+        id: "req-11-evt-2",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-20T15:00:00Z",
+        note: "Perfect fit for my audience, Emma! Adjusted the body to speak to busy entrepreneurs specifically.",
+        copyBefore: {
+          adHeadline: "The Connected Parenting Workshop",
+          adBody:
+            "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+        copyAfter: {
+          adHeadline: "Build Deeper Connections With Your Kids",
+          adBody:
+            "Even busy entrepreneurs can be present parents. Emma Nguyen's Connected Parenting Workshop gives you practical tools to strengthen your relationship with your kids — no matter how packed your schedule is.",
+          adCta: "Get Workshop Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+      },
+      {
+        id: "req-11-evt-3",
+        type: "revision_requested",
+        actorId: "hero-7",
+        timestamp: "2025-02-21T09:00:00Z",
+        note: "Great angle! But can we mention the 3,000 families stat? Social proof matters here. Also, 'present parents' might feel guilt-inducing — can we soften that?",
+      },
+      {
+        id: "req-11-evt-4",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-22T11:00:00Z",
+        note: "Good call — removed the guilt angle and brought back the social proof.",
+        copyBefore: {
+          adHeadline: "Build Deeper Connections With Your Kids",
+          adBody:
+            "Even busy entrepreneurs can be present parents. Emma Nguyen's Connected Parenting Workshop gives you practical tools to strengthen your relationship with your kids — no matter how packed your schedule is.",
+          adCta: "Get Workshop Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+        copyAfter: {
+          adHeadline: "The Connected Parenting Workshop",
+          adBody:
+            "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+      },
+      {
+        id: "req-11-evt-5",
+        type: "copy_locked",
+        actorId: "hero-7",
+        timestamp: "2025-02-22T16:00:00Z",
+        note: "Looks great — approved!",
+      },
+      {
+        id: "req-11-evt-6",
+        type: "broadcast_created",
+        actorId: "current-user",
+        timestamp: "2025-02-23T10:00:00Z",
+      },
+      {
+        id: "req-11-evt-7",
+        type: "scheduled",
+        actorId: "current-user",
+        timestamp: "2025-02-23T14:00:00Z",
+        metadata: { scheduledAt: "2025-03-07T09:00:00" },
+      },
+    ],
   },
   {
     id: "req-3",
@@ -1070,6 +1191,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-15",
     updatedAt: "2025-02-22",
+    timeline: [
+      {
+        id: "req-3-evt-1",
+        type: "proposal_sent",
+        actorId: "current-user",
+        timestamp: "2025-02-15T10:00:00Z",
+        note: "I'm promoting the spring cohort of my Course Creator Accelerator. Priya's community of ambitious women would be a perfect audience.",
+        copyAfter: {
+          adHeadline: "The Course Creator Accelerator",
+          adBody:
+            "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+      },
+      {
+        id: "req-3-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-3",
+        timestamp: "2025-02-16T14:00:00Z",
+        note: "Love this Alex! I tailored the headline for my community — they respond to ambition-driven language and specific outcomes.",
+        copyBefore: {
+          adHeadline: "The Course Creator Accelerator",
+          adBody:
+            "Build and launch a 6-figure online course in 12 weeks. Alex Johnson's proven system has generated over $2M in student revenue. Limited spots available for the spring cohort.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+        copyAfter: {
+          adHeadline: "Turn Your Ambition Into a Course That Sells",
+          adBody:
+            "Alex Johnson's 12-week Course Creator Accelerator is designed for ambitious leaders who want to share their expertise with the world. Over $2M in student revenue generated. Spring cohort spots are limited.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+      },
+      {
+        id: "req-3-evt-3",
+        type: "revision_requested",
+        actorId: "current-user",
+        timestamp: "2025-02-17T09:00:00Z",
+        note: "Love the ambition angle! Can we make the headline more about the outcome (6-figure course) and keep it inclusive? My accelerator is for all ambitious leaders.",
+      },
+      {
+        id: "req-3-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-3",
+        timestamp: "2025-02-19T11:00:00Z",
+        note: "Updated! Led with the 6-figure outcome and kept it broad. Added urgency around spots.",
+        copyBefore: {
+          adHeadline: "Turn Your Ambition Into a Course That Sells",
+          adBody:
+            "Alex Johnson's 12-week Course Creator Accelerator is designed for ambitious leaders who want to share their expertise with the world. Over $2M in student revenue generated. Spring cohort spots are limited.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+        copyAfter: {
+          adHeadline: "Build a 6-Figure Course in 12 Weeks",
+          adBody:
+            "Alex Johnson's Course Creator Accelerator helps ambitious leaders package their expertise into profitable online courses. Over $2M in student revenue generated — and spring cohort spots are going fast.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+      },
+      {
+        id: "req-3-evt-5",
+        type: "copy_locked",
+        actorId: "current-user",
+        timestamp: "2025-02-20T09:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-3-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-3",
+        timestamp: "2025-02-21T10:00:00Z",
+      },
+      {
+        id: "req-3-evt-7",
+        type: "scheduled",
+        actorId: "hero-3",
+        timestamp: "2025-02-22T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-10T11:00:00" },
+      },
+    ],
   },
   {
     id: "req-4",
@@ -1087,6 +1293,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-10",
     updatedAt: "2025-02-23",
+    timeline: [
+      {
+        id: "req-4-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-9",
+        timestamp: "2025-02-10T10:00:00Z",
+        note: "I built a 7-figure membership site and now teach my system to others. I'm promoting a free training on creating recurring revenue through memberships. Ryan's solopreneur audience would be a perfect fit.",
+        copyAfter: {
+          adHeadline: "Build a Membership Site That Runs Itself",
+          adBody:
+            "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
+          adCta: "Watch the Free Training",
+          adCtaUrl: "https://lisapark.co/training",
+        },
+      },
+      {
+        id: "req-4-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-10",
+        timestamp: "2025-02-12T14:00:00Z",
+        note: "Great fit for my audience Lisa! I reframed it around the 'recurring revenue without the hustle' angle — that resonates with solopreneurs who are tired of launch cycles.",
+        copyBefore: {
+          adHeadline: "Build a Membership Site That Runs Itself",
+          adBody:
+            "Lisa Park built a 7-figure membership site and now she's teaching her system. Learn how to create recurring revenue with a membership your audience will love.",
+          adCta: "Watch the Free Training",
+          adCtaUrl: "https://lisapark.co/training",
+        },
+        copyAfter: {
+          adHeadline: "Recurring Revenue Without the Hustle",
+          adBody:
+            "Lisa Park built a 7-figure membership site that practically runs itself. In this free training, she breaks down the system — so you can build predictable recurring revenue without the launch rollercoaster.",
+          adCta: "Watch the Training",
+          adCtaUrl: "https://lisapark.co/training",
+        },
+      },
+      {
+        id: "req-4-evt-3",
+        type: "revision_requested",
+        actorId: "hero-9",
+        timestamp: "2025-02-14T09:00:00Z",
+        note: "Love the 'without the hustle' angle! But can we keep 'teaching her system' language? And make it clearer that this is a free training — my best conversions happen when the value is obvious upfront.",
+      },
+      {
+        id: "req-4-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-10",
+        timestamp: "2025-02-17T11:00:00Z",
+        note: "Updated! Brought back the original headline for clarity and made the 'free' part more prominent.",
+        copyBefore: {
+          adHeadline: "Recurring Revenue Without the Hustle",
+          adBody:
+            "Lisa Park built a 7-figure membership site that practically runs itself. In this free training, she breaks down the system — so you can build predictable recurring revenue without the launch rollercoaster.",
+          adCta: "Watch the Training",
+          adCtaUrl: "https://lisapark.co/training",
+        },
+        copyAfter: {
+          adHeadline: "Build a Membership Site That Runs Itself",
+          adBody:
+            "Lisa Park built a 7-figure membership site and now she's teaching her exact system. This free training shows solopreneurs how to create recurring revenue your audience will love.",
+          adCta: "Watch the Free Training",
+          adCtaUrl: "https://lisapark.co/training",
+        },
+      },
+      {
+        id: "req-4-evt-5",
+        type: "copy_locked",
+        actorId: "hero-9",
+        timestamp: "2025-02-19T09:00:00Z",
+        note: "That's it — approved!",
+      },
+      {
+        id: "req-4-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-10",
+        timestamp: "2025-02-22T10:00:00Z",
+      },
+      {
+        id: "req-4-evt-7",
+        type: "scheduled",
+        actorId: "hero-10",
+        timestamp: "2025-02-23T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-12T08:30:00" },
+      },
+    ],
   },
   {
     id: "req-5",
@@ -1104,6 +1395,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-01",
     updatedAt: "2025-02-24",
+    timeline: [
+      {
+        id: "req-5-evt-1",
+        type: "proposal_sent",
+        actorId: "current-user",
+        timestamp: "2025-02-01T10:00:00Z",
+        note: "I'm promoting the Course Creator Accelerator to Emma's parenting community. Many parents are looking for flexible ways to earn income, and an online course is a natural fit for their expertise.",
+        copyAfter: {
+          adHeadline: "Scale Your Knowledge Business",
+          adBody:
+            "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Join the next cohort and build your course with expert guidance.",
+          adCta: "Learn More",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+      },
+      {
+        id: "req-5-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-7",
+        timestamp: "2025-02-04T14:00:00Z",
+        note: "Love this Alex! I personalized it for my parent audience — they care about flexible schedules and building something on their own terms.",
+        copyBefore: {
+          adHeadline: "Scale Your Knowledge Business",
+          adBody:
+            "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Join the next cohort and build your course with expert guidance.",
+          adCta: "Learn More",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+        copyAfter: {
+          adHeadline: "From Parenting Expert to Course Creator",
+          adBody:
+            "Many parents have expertise worth sharing. Alex Johnson's Course Creator Accelerator helps you package your knowledge into a profitable online course — on your own schedule. Join 200+ entrepreneurs who've already done it.",
+          adCta: "Learn More",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+      },
+      {
+        id: "req-5-evt-3",
+        type: "revision_requested",
+        actorId: "current-user",
+        timestamp: "2025-02-07T09:00:00Z",
+        note: "Love the parenting angle! But let's not limit it to parents — some of your readers are general knowledge entrepreneurs too. Can we broaden while keeping the flexible schedule angle?",
+      },
+      {
+        id: "req-5-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-7",
+        timestamp: "2025-02-12T11:00:00Z",
+        note: "Broadened the headline and kept the 'own pace' angle that works for my audience.",
+        copyBefore: {
+          adHeadline: "From Parenting Expert to Course Creator",
+          adBody:
+            "Many parents have expertise worth sharing. Alex Johnson's Course Creator Accelerator helps you package your knowledge into a profitable online course — on your own schedule. Join 200+ entrepreneurs who've already done it.",
+          adCta: "Learn More",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+        copyAfter: {
+          adHeadline: "Scale Your Knowledge Business",
+          adBody:
+            "Alex Johnson's Course Creator Accelerator has helped 200+ entrepreneurs package their expertise into profitable online courses. Build your course at your own pace with expert guidance.",
+          adCta: "Learn More",
+          adCtaUrl: "https://alexjohnson.co/accelerator",
+        },
+      },
+      {
+        id: "req-5-evt-5",
+        type: "copy_locked",
+        actorId: "current-user",
+        timestamp: "2025-02-15T09:00:00Z",
+        note: "Perfect — let's go!",
+      },
+      {
+        id: "req-5-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-7",
+        timestamp: "2025-02-20T10:00:00Z",
+      },
+      {
+        id: "req-5-evt-7",
+        type: "scheduled",
+        actorId: "hero-7",
+        timestamp: "2025-02-24T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-14T10:00:00" },
+      },
+    ],
   },
   {
     id: "req-13",
@@ -1121,6 +1497,70 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-16",
     updatedAt: "2025-02-24",
+    timeline: [
+      {
+        id: "req-13-evt-1",
+        type: "proposal_sent",
+        actorId: "current-user",
+        timestamp: "2025-02-16T10:00:00Z",
+        note: "I'm launching a Marketing Fundamentals bootcamp and want to reach Alex's audience of knowledge entrepreneurs who need marketing skills to grow.",
+        copyAfter: {
+          adHeadline: "Marketing Bootcamp for Solopreneurs",
+          adBody:
+            "Ryan Brooks distills 15 years of marketing into a 5-day bootcamp. Learn the exact strategies that have generated $10M+ for his clients.",
+          adCta: "Enroll Now",
+          adCtaUrl: "https://ryanbrooks.com/bootcamp",
+        },
+      },
+      {
+        id: "req-13-evt-2",
+        type: "revision_requested",
+        actorId: "hero-10",
+        timestamp: "2025-02-18T09:00:00Z",
+        note: "Love that you're featuring the bootcamp! Can we make the body copy feel more urgent? Mention that it's only 5 days and spots fill fast.",
+      },
+      {
+        id: "req-13-evt-3",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-20T14:00:00Z",
+        note: "Added urgency with the 5-day format and limited spots angle.",
+        copyBefore: {
+          adHeadline: "Marketing Bootcamp for Solopreneurs",
+          adBody:
+            "Ryan Brooks distills 15 years of marketing into a 5-day bootcamp. Learn the exact strategies that have generated $10M+ for his clients.",
+          adCta: "Enroll Now",
+          adCtaUrl: "https://ryanbrooks.com/bootcamp",
+        },
+        copyAfter: {
+          adHeadline: "Marketing Bootcamp for Solopreneurs",
+          adBody:
+            "In just 5 days, Ryan Brooks teaches you the marketing strategies that have generated $10M+ for his clients. Spots fill fast — don't miss this cohort.",
+          adCta: "Enroll Now",
+          adCtaUrl: "https://ryanbrooks.com/bootcamp",
+        },
+      },
+      {
+        id: "req-13-evt-4",
+        type: "copy_locked",
+        actorId: "hero-10",
+        timestamp: "2025-02-21T09:00:00Z",
+        note: "Looks great — approved!",
+      },
+      {
+        id: "req-13-evt-5",
+        type: "broadcast_created",
+        actorId: "current-user",
+        timestamp: "2025-02-23T10:00:00Z",
+      },
+      {
+        id: "req-13-evt-6",
+        type: "scheduled",
+        actorId: "current-user",
+        timestamp: "2025-02-24T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-03T14:00:00" },
+      },
+    ],
   },
   {
     id: "req-14",
@@ -1138,6 +1578,70 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-08",
     updatedAt: "2025-02-24",
+    timeline: [
+      {
+        id: "req-14-evt-1",
+        type: "proposal_sent",
+        actorId: "current-user",
+        timestamp: "2025-02-08T10:00:00Z",
+        note: "I'm promoting Marcus's Fit Founder Challenge — a 30-day fitness program designed specifically for busy entrepreneurs.",
+        copyAfter: {
+          adHeadline: "The Fit Founder Challenge",
+          adBody:
+            "Marcus Rivera's 30-day program helps busy entrepreneurs build sustainable fitness habits. No gym required. Join 800+ founders who've already transformed their health.",
+          adCta: "Start the Challenge",
+          adCtaUrl: "https://marcusrivera.fit/challenge",
+        },
+      },
+      {
+        id: "req-14-evt-2",
+        type: "revision_requested",
+        actorId: "hero-2",
+        timestamp: "2025-02-10T09:00:00Z",
+        note: "Love that you're featuring the challenge! Can we emphasize the '30-day' timeframe and the 'no gym required' part more? Those are the biggest hooks for busy founders.",
+      },
+      {
+        id: "req-14-evt-3",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-13T14:00:00Z",
+        note: "Made the 30-day and no-gym angles more prominent. Added the transformation stat.",
+        copyBefore: {
+          adHeadline: "The Fit Founder Challenge",
+          adBody:
+            "Marcus Rivera's 30-day program helps busy entrepreneurs build sustainable fitness habits. No gym required. Join 800+ founders who've already transformed their health.",
+          adCta: "Start the Challenge",
+          adCtaUrl: "https://marcusrivera.fit/challenge",
+        },
+        copyAfter: {
+          adHeadline: "The Fit Founder Challenge",
+          adBody:
+            "Build sustainable fitness habits in just 30 days — no gym required. Marcus Rivera's program is built for busy entrepreneurs. 800+ founders have already transformed their health.",
+          adCta: "Start the Challenge",
+          adCtaUrl: "https://marcusrivera.fit/challenge",
+        },
+      },
+      {
+        id: "req-14-evt-4",
+        type: "copy_locked",
+        actorId: "hero-2",
+        timestamp: "2025-02-16T09:00:00Z",
+        note: "Looks great — approved!",
+      },
+      {
+        id: "req-14-evt-5",
+        type: "broadcast_created",
+        actorId: "current-user",
+        timestamp: "2025-02-20T10:00:00Z",
+      },
+      {
+        id: "req-14-evt-6",
+        type: "scheduled",
+        actorId: "current-user",
+        timestamp: "2025-02-24T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-08T09:30:00" },
+      },
+    ],
   },
   // ── Published: broadcast sent ──
   {
@@ -1155,6 +1659,97 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-17",
     updatedAt: "2025-02-23",
+    timeline: [
+      {
+        id: "req-12-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-5",
+        timestamp: "2025-02-17T10:00:00Z",
+        note: "I'm promoting my Wealth Mindset Masterclass to Alex's audience. Entrepreneurs need strong money mindsets to scale, and this masterclass delivers exactly that.",
+        copyAfter: {
+          adHeadline: "Unlock Your Wealth Mindset",
+          adBody:
+            "Aisha Thompson's Wealth Mindset Masterclass has helped 1,200+ entrepreneurs transform their relationship with money. Free 90-minute session.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+      },
+      {
+        id: "req-12-evt-2",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-17T16:00:00Z",
+        note: "Love this Aisha! Tweaked the body to emphasize the transformation and speak more directly to my entrepreneurial audience.",
+        copyBefore: {
+          adHeadline: "Unlock Your Wealth Mindset",
+          adBody:
+            "Aisha Thompson's Wealth Mindset Masterclass has helped 1,200+ entrepreneurs transform their relationship with money. Free 90-minute session.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+        copyAfter: {
+          adHeadline: "Transform Your Money Mindset",
+          adBody:
+            "Aisha Thompson has helped 1,200+ entrepreneurs rewire their relationship with money. In this free 90-minute masterclass, she shares the exact framework that separates 6-figure entrepreneurs from everyone else.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+      },
+      {
+        id: "req-12-evt-3",
+        type: "revision_requested",
+        actorId: "hero-5",
+        timestamp: "2025-02-18T09:00:00Z",
+        note: "Love it! But can we keep 'Wealth Mindset' in the headline? It's how my audience knows me. Also, 'rewire' feels too clinical — can we soften to 'transform'?",
+      },
+      {
+        id: "req-12-evt-4",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-02-19T11:00:00Z",
+        note: "Brought back 'Wealth Mindset' and softened the language. Kept it clean and simple.",
+        copyBefore: {
+          adHeadline: "Transform Your Money Mindset",
+          adBody:
+            "Aisha Thompson has helped 1,200+ entrepreneurs rewire their relationship with money. In this free 90-minute masterclass, she shares the exact framework that separates 6-figure entrepreneurs from everyone else.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+        copyAfter: {
+          adHeadline: "Unlock Your Wealth Mindset",
+          adBody:
+            "Aisha Thompson's Wealth Mindset Masterclass has helped 1,200+ entrepreneurs transform their relationship with money. Free 90-minute session.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+      },
+      {
+        id: "req-12-evt-5",
+        type: "copy_locked",
+        actorId: "hero-5",
+        timestamp: "2025-02-19T16:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-12-evt-6",
+        type: "broadcast_created",
+        actorId: "current-user",
+        timestamp: "2025-02-21T10:00:00Z",
+      },
+      {
+        id: "req-12-evt-7",
+        type: "scheduled",
+        actorId: "current-user",
+        timestamp: "2025-02-21T14:00:00Z",
+        metadata: { scheduledAt: "2025-02-23T09:00:00" },
+      },
+      {
+        id: "req-12-evt-8",
+        type: "published",
+        actorId: "current-user",
+        timestamp: "2025-02-23T09:00:00Z",
+      },
+    ],
   },
   {
     id: "req-8",
@@ -1171,6 +1766,97 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-01-10",
     updatedAt: "2025-02-01",
+    timeline: [
+      {
+        id: "req-8-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-01-10T10:00:00Z",
+        note: "I promoted my Weekend Course Sprint — a 48-hour intensive that helps creators go from idea to live course. No tech skills required. This was aimed at Alex's audience of knowledge entrepreneurs.",
+        copyAfter: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-8-evt-2",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-01-12T14:00:00Z",
+        note: "Love the Sprint concept Jake! I made the headline punchier and the body more specific about the transformation.",
+        copyBefore: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "Build a Course in 48 Hours — Seriously",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint takes you from idea to live course in just one weekend. 200+ creators have already done it — no tech skills needed.",
+          adCta: "Join the Next Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-8-evt-3",
+        type: "revision_requested",
+        actorId: "hero-4",
+        timestamp: "2025-01-14T09:00:00Z",
+        note: "Great copy! But let's keep the original headline — 'Launch Your Course in a Weekend' tested better. And the CTA should stay 'Join the Sprint' for consistency across campaigns.",
+      },
+      {
+        id: "req-8-evt-4",
+        type: "copy_suggested",
+        actorId: "current-user",
+        timestamp: "2025-01-16T11:00:00Z",
+        note: "Reverted to the original headline and CTA. Kept the updated body flow.",
+        copyBefore: {
+          adHeadline: "Build a Course in 48 Hours — Seriously",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint takes you from idea to live course in just one weekend. 200+ creators have already done it — no tech skills needed.",
+          adCta: "Join the Next Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-8-evt-5",
+        type: "copy_locked",
+        actorId: "hero-4",
+        timestamp: "2025-01-18T09:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-8-evt-6",
+        type: "broadcast_created",
+        actorId: "current-user",
+        timestamp: "2025-01-25T10:00:00Z",
+      },
+      {
+        id: "req-8-evt-7",
+        type: "scheduled",
+        actorId: "current-user",
+        timestamp: "2025-01-27T09:00:00Z",
+        metadata: { scheduledAt: "2025-02-01T09:00:00" },
+      },
+      {
+        id: "req-8-evt-8",
+        type: "published",
+        actorId: "current-user",
+        timestamp: "2025-02-01T09:00:00Z",
+      },
+    ],
   },
   // ── Paid: payment cleared ──
   // (none yet for the current user)
@@ -1190,6 +1876,29 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-12",
     updatedAt: "2025-02-25",
+    timeline: [
+      {
+        id: "req-15-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-8",
+        timestamp: "2025-02-12T10:00:00Z",
+        note: "I'm promoting my Brand Builder Workshop for creative professionals. Alex's audience includes creators who need to build their personal brand to grow.",
+        copyAfter: {
+          adHeadline: "Build Your Brand in a Weekend",
+          adBody:
+            "Carlos Mendez's Brand Builder Workshop helps creative entrepreneurs craft a professional brand in just 2 days. Templates, tools, and live feedback included.",
+          adCta: "Register Now",
+          adCtaUrl: "https://carlosmendez.design/brand",
+        },
+      },
+      {
+        id: "req-15-evt-2",
+        type: "declined",
+        actorId: "current-user",
+        timestamp: "2025-02-25T09:00:00Z",
+        note: "Thanks for the offer Carlos, but branding workshops aren't the best fit for my audience right now. My subscribers are more focused on course creation and scaling — I'd want something more directly tied to that.",
+      },
+    ],
   },
   // ── Expired ──
   {
@@ -1207,6 +1916,28 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-01-20",
     updatedAt: "2025-02-05",
+    timeline: [
+      {
+        id: "req-9-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-8",
+        timestamp: "2025-01-20T10:00:00Z",
+        note: "I teach creative entrepreneurs how to build a professional brand without hiring a designer. I'm promoting my Design Toolkit, which would be useful for education-focused creators building their personal brand.",
+        copyAfter: {
+          adHeadline: "Design Systems for Non-Designers",
+          adBody:
+            "Carlos Mendez teaches creative entrepreneurs how to build a professional brand without hiring a designer.",
+          adCta: "Get the Toolkit",
+          adCtaUrl: "https://carlosmendez.design/toolkit",
+        },
+      },
+      {
+        id: "req-9-evt-2",
+        type: "expired",
+        actorId: "hero-8",
+        timestamp: "2025-02-05T00:00:00Z",
+      },
+    ],
   },
 
   // ── Sarah (hero-1, publisher) — scheduled, published, declined ──
@@ -1226,6 +1957,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-10",
     updatedAt: "2025-02-20",
+    timeline: [
+      {
+        id: "req-s-sched-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-9",
+        timestamp: "2025-02-10T10:00:00Z",
+        note: "I'm promoting my membership masterclass to Sarah's coaching audience. Coaches are a natural fit for recurring-revenue models.",
+        copyAfter: {
+          adHeadline: "Turn Your Expertise Into Recurring Revenue",
+          adBody:
+            "Lisa Park's free masterclass reveals how she built a 7-figure membership site — and how you can too. Perfect for coaches ready to scale beyond 1:1.",
+          adCta: "Save Your Seat",
+          adCtaUrl: "https://lisapark.co/masterclass",
+        },
+      },
+      {
+        id: "req-s-sched-1-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-11T15:00:00Z",
+        note: "Love this Lisa! I adjusted the headline for my coaching audience — they respond to the idea of escaping the time-for-money trap.",
+        copyBefore: {
+          adHeadline: "Turn Your Expertise Into Recurring Revenue",
+          adBody:
+            "Lisa Park's free masterclass reveals how she built a 7-figure membership site — and how you can too. Perfect for coaches ready to scale beyond 1:1.",
+          adCta: "Save Your Seat",
+          adCtaUrl: "https://lisapark.co/masterclass",
+        },
+        copyAfter: {
+          adHeadline: "Recurring Revenue for Coaches",
+          adBody:
+            "Tired of trading time for money? Lisa Park's free masterclass shows you how to build a membership site that generates revenue on autopilot. She built hers to 7 figures — and she'll show you exactly how.",
+          adCta: "Save Your Seat",
+          adCtaUrl: "https://lisapark.co/masterclass",
+        },
+      },
+      {
+        id: "req-s-sched-1-evt-3",
+        type: "revision_requested",
+        actorId: "hero-9",
+        timestamp: "2025-02-13T09:00:00Z",
+        note: "Great angle! But let's keep the 'beyond 1:1' language — that resonates with coaches who are already successful but want to scale. Can we work that back in?",
+      },
+      {
+        id: "req-s-sched-1-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-15T11:00:00Z",
+        note: "Done! Brought back the 'beyond 1:1' angle and kept the revenue-focused headline.",
+        copyBefore: {
+          adHeadline: "Recurring Revenue for Coaches",
+          adBody:
+            "Tired of trading time for money? Lisa Park's free masterclass shows you how to build a membership site that generates revenue on autopilot. She built hers to 7 figures — and she'll show you exactly how.",
+          adCta: "Save Your Seat",
+          adCtaUrl: "https://lisapark.co/masterclass",
+        },
+        copyAfter: {
+          adHeadline: "Turn Your Expertise Into Recurring Revenue",
+          adBody:
+            "Lisa Park's free masterclass reveals how she built a 7-figure membership site — and how you can too. Perfect for coaches ready to scale beyond 1:1.",
+          adCta: "Save Your Seat",
+          adCtaUrl: "https://lisapark.co/masterclass",
+        },
+      },
+      {
+        id: "req-s-sched-1-evt-5",
+        type: "copy_locked",
+        actorId: "hero-9",
+        timestamp: "2025-02-17T09:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-s-sched-1-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-1",
+        timestamp: "2025-02-19T10:00:00Z",
+      },
+      {
+        id: "req-s-sched-1-evt-7",
+        type: "scheduled",
+        actorId: "hero-1",
+        timestamp: "2025-02-20T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-04T10:00:00" },
+      },
+    ],
   },
   {
     id: "req-s-sched-2",
@@ -1243,6 +2059,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-08",
     updatedAt: "2025-02-18",
+    timeline: [
+      {
+        id: "req-s-sched-2-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-3",
+        timestamp: "2025-02-08T10:00:00Z",
+        note: "Promoting my leadership retreat to Sarah's audience of coaches building online businesses. Leadership is the next level for successful coaches.",
+        copyAfter: {
+          adHeadline: "The Women's Leadership Retreat",
+          adBody:
+            "Priya Patel's 3-day virtual retreat has helped 500+ women step into leadership. Join the next cohort and build the confidence to lead.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://priyapatel.com/retreat",
+        },
+      },
+      {
+        id: "req-s-sched-2-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-09T14:00:00Z",
+        note: "Great fit for my audience Priya! Tweaked the headline to feel more empowering and personal.",
+        copyBefore: {
+          adHeadline: "The Women's Leadership Retreat",
+          adBody:
+            "Priya Patel's 3-day virtual retreat has helped 500+ women step into leadership. Join the next cohort and build the confidence to lead.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://priyapatel.com/retreat",
+        },
+        copyAfter: {
+          adHeadline: "Lead Like the Woman You Are",
+          adBody:
+            "Priya Patel's 3-day virtual retreat is designed for women who are ready to step into leadership. Build confidence, clarity, and connection with 500+ women who've already transformed their careers.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://priyapatel.com/retreat",
+        },
+      },
+      {
+        id: "req-s-sched-2-evt-3",
+        type: "revision_requested",
+        actorId: "hero-3",
+        timestamp: "2025-02-11T09:00:00Z",
+        note: "Love the energy! But 'Lead Like the Woman You Are' might feel too casual for my audience. Can we keep it more aspirational? Also, mention 'next cohort' — scarcity drives signups.",
+      },
+      {
+        id: "req-s-sched-2-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-02-13T11:00:00Z",
+        note: "Reverted to the original headline for that aspirational feel. Kept the cohort scarcity angle.",
+        copyBefore: {
+          adHeadline: "Lead Like the Woman You Are",
+          adBody:
+            "Priya Patel's 3-day virtual retreat is designed for women who are ready to step into leadership. Build confidence, clarity, and connection with 500+ women who've already transformed their careers.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://priyapatel.com/retreat",
+        },
+        copyAfter: {
+          adHeadline: "The Women's Leadership Retreat",
+          adBody:
+            "Priya Patel's 3-day virtual retreat has helped 500+ women step into leadership. Join the next cohort and build the confidence to lead.",
+          adCta: "Apply Now",
+          adCtaUrl: "https://priyapatel.com/retreat",
+        },
+      },
+      {
+        id: "req-s-sched-2-evt-5",
+        type: "copy_locked",
+        actorId: "hero-3",
+        timestamp: "2025-02-15T09:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-s-sched-2-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-1",
+        timestamp: "2025-02-17T10:00:00Z",
+      },
+      {
+        id: "req-s-sched-2-evt-7",
+        type: "scheduled",
+        actorId: "hero-1",
+        timestamp: "2025-02-18T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-11T09:00:00" },
+      },
+    ],
   },
   {
     id: "req-s-pub-1",
@@ -1259,12 +2160,103 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-01-15",
     updatedAt: "2025-02-01",
+    timeline: [
+      {
+        id: "req-s-pub-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-7",
+        timestamp: "2025-01-15T10:00:00Z",
+        note: "Emma promoted her Connected Parenting Workshop to Sarah's audience. Many coaches are also parents looking for balance.",
+        copyAfter: {
+          adHeadline: "The Connected Parenting Workshop",
+          adBody:
+            "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+      },
+      {
+        id: "req-s-pub-1-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-01-16T15:00:00Z",
+        note: "Perfect for my audience Emma! I tweaked the headline to lead with the outcome and made the body more conversational.",
+        copyBefore: {
+          adHeadline: "The Connected Parenting Workshop",
+          adBody:
+            "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+        copyAfter: {
+          adHeadline: "Parenting That Actually Works",
+          adBody:
+            "Emma Nguyen's Connected Parenting Workshop gives busy professionals practical tools to connect with their kids — even when life is chaos. 3,000+ families have already seen the difference.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+      },
+      {
+        id: "req-s-pub-1-evt-3",
+        type: "revision_requested",
+        actorId: "hero-7",
+        timestamp: "2025-01-18T09:00:00Z",
+        note: "Love the angle! But 'Parenting That Actually Works' sounds like other approaches aren't valid — can we soften? And keep 'Connected' in the name, it's our brand.",
+      },
+      {
+        id: "req-s-pub-1-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-01-20T11:00:00Z",
+        note: "Good call — brought back the Connected Parenting name and kept the social proof.",
+        copyBefore: {
+          adHeadline: "Parenting That Actually Works",
+          adBody:
+            "Emma Nguyen's Connected Parenting Workshop gives busy professionals practical tools to connect with their kids — even when life is chaos. 3,000+ families have already seen the difference.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+        copyAfter: {
+          adHeadline: "The Connected Parenting Workshop",
+          adBody:
+            "Emma Nguyen's digital workshop helps busy parents build deeper connections with their kids — even with a packed schedule. Over 3,000 families transformed.",
+          adCta: "Get Instant Access",
+          adCtaUrl: "https://emmanguyen.com/workshop",
+        },
+      },
+      {
+        id: "req-s-pub-1-evt-5",
+        type: "copy_locked",
+        actorId: "hero-7",
+        timestamp: "2025-01-22T09:00:00Z",
+        note: "That's perfect — approved!",
+      },
+      {
+        id: "req-s-pub-1-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-1",
+        timestamp: "2025-01-28T10:00:00Z",
+      },
+      {
+        id: "req-s-pub-1-evt-7",
+        type: "scheduled",
+        actorId: "hero-1",
+        timestamp: "2025-01-29T09:00:00Z",
+        metadata: { scheduledAt: "2025-02-01T09:00:00" },
+      },
+      {
+        id: "req-s-pub-1-evt-8",
+        type: "published",
+        actorId: "hero-1",
+        timestamp: "2025-02-01T09:00:00Z",
+      },
+    ],
   },
   {
     id: "req-s-pub-2",
     sponsorId: "hero-5",
     publisherId: "hero-1",
-    status: "paid",
+    status: "published",
     initiatedBy: "sponsor",
     brief: "Aisha promoted her Wealth Mindset Masterclass to Sarah's coaching audience. Coaches need strong money mindsets to scale their businesses.",
     adHeadline: "Unlock Your Wealth Mindset",
@@ -1275,6 +2267,97 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-01-05",
     updatedAt: "2025-01-25",
+    timeline: [
+      {
+        id: "req-s-pub-2-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-5",
+        timestamp: "2025-01-05T10:00:00Z",
+        note: "Aisha promoted her Wealth Mindset Masterclass to Sarah's coaching audience. Coaches need strong money mindsets to scale their businesses.",
+        copyAfter: {
+          adHeadline: "Unlock Your Wealth Mindset",
+          adBody:
+            "Aisha Thompson's Wealth Mindset Masterclass has helped 1,200+ entrepreneurs transform their relationship with money. Free 90-minute session.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+      },
+      {
+        id: "req-s-pub-2-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-01-06T15:00:00Z",
+        note: "Great fit for my readers Aisha! I personalized the headline to lead with the emotional transformation coaches want.",
+        copyBefore: {
+          adHeadline: "Unlock Your Wealth Mindset",
+          adBody:
+            "Aisha Thompson's Wealth Mindset Masterclass has helped 1,200+ entrepreneurs transform their relationship with money. Free 90-minute session.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+        copyAfter: {
+          adHeadline: "Rewrite Your Money Story",
+          adBody:
+            "Aisha Thompson has helped 1,200+ entrepreneurs transform their relationship with money. Join her free 90-minute Wealth Mindset Masterclass and start building the financial confidence to scale.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+      },
+      {
+        id: "req-s-pub-2-evt-3",
+        type: "revision_requested",
+        actorId: "hero-5",
+        timestamp: "2025-01-08T09:00:00Z",
+        note: "Great angle! But 'Rewrite Your Money Story' sounds more like therapy than business growth. Keep 'Unlock Your Wealth Mindset' — it's what my audience expects and it's my brand.",
+      },
+      {
+        id: "req-s-pub-2-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-1",
+        timestamp: "2025-01-09T11:00:00Z",
+        note: "Got it — brought back the branded headline and kept the body clean.",
+        copyBefore: {
+          adHeadline: "Rewrite Your Money Story",
+          adBody:
+            "Aisha Thompson has helped 1,200+ entrepreneurs transform their relationship with money. Join her free 90-minute Wealth Mindset Masterclass and start building the financial confidence to scale.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+        copyAfter: {
+          adHeadline: "Unlock Your Wealth Mindset",
+          adBody:
+            "Aisha Thompson's Wealth Mindset Masterclass has helped 1,200+ entrepreneurs transform their relationship with money. Free 90-minute session.",
+          adCta: "Reserve Your Spot",
+          adCtaUrl: "https://aishathompson.com/masterclass",
+        },
+      },
+      {
+        id: "req-s-pub-2-evt-5",
+        type: "copy_locked",
+        actorId: "hero-5",
+        timestamp: "2025-01-10T09:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-s-pub-2-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-1",
+        timestamp: "2025-01-14T10:00:00Z",
+      },
+      {
+        id: "req-s-pub-2-evt-7",
+        type: "scheduled",
+        actorId: "hero-1",
+        timestamp: "2025-01-15T09:00:00Z",
+        metadata: { scheduledAt: "2025-01-20T09:00:00" },
+      },
+      {
+        id: "req-s-pub-2-evt-8",
+        type: "published",
+        actorId: "hero-1",
+        timestamp: "2025-01-20T09:00:00Z",
+      },
+    ],
   },
   {
     id: "req-s-dec-1",
@@ -1291,6 +2374,29 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-05",
     updatedAt: "2025-02-08",
+    timeline: [
+      {
+        id: "req-s-dec-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-10",
+        timestamp: "2025-02-05T10:00:00Z",
+        note: "Ryan wanted to promote his Marketing Bootcamp to Sarah's coaching audience, but it wasn't the right fit for her subscribers.",
+        copyAfter: {
+          adHeadline: "Marketing Bootcamp for Solopreneurs",
+          adBody:
+            "Ryan Brooks distills 15 years of marketing into a 5-day bootcamp. Learn the exact strategies that have generated $10M+ for his clients.",
+          adCta: "Enroll Now",
+          adCtaUrl: "https://ryanbrooks.com/bootcamp",
+        },
+      },
+      {
+        id: "req-s-dec-1-evt-2",
+        type: "declined",
+        actorId: "hero-1",
+        timestamp: "2025-02-08T09:30:00Z",
+        note: "Hey Ryan, appreciate the pitch! Marketing bootcamps are a bit outside what my coaching audience looks for. They're more focused on business strategy and client acquisition — I'd need something more aligned with that.",
+      },
+    ],
   },
 
   // ── Jake (hero-4, sponsor) — scheduled, published, declined ──
@@ -1310,6 +2416,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-12",
     updatedAt: "2025-02-22",
+    timeline: [
+      {
+        id: "req-j-sched-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-02-12T10:00:00Z",
+        note: "Jake is promoting the Course Launch Blueprint to Priya's community of ambitious women. Many women leaders want to create courses to amplify their impact.",
+        copyAfter: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+      {
+        id: "req-j-sched-1-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-3",
+        timestamp: "2025-02-13T14:00:00Z",
+        note: "Love this Jake! Reframed the headline around sharing expertise with the world — that's what drives my community.",
+        copyBefore: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+        copyAfter: {
+          adHeadline: "Share Your Expertise With the World",
+          adBody:
+            "Jake Morrison's free Course Launch Blueprint gives you a step-by-step framework to turn your knowledge into a profitable course. 500+ creators have used it. You could be next.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+      {
+        id: "req-j-sched-1-evt-3",
+        type: "revision_requested",
+        actorId: "hero-4",
+        timestamp: "2025-02-15T09:00:00Z",
+        note: "Love the empowerment angle! Can we keep '30 Days' in the headline though? That's a concrete promise that drives conversions. Body is great.",
+      },
+      {
+        id: "req-j-sched-1-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-3",
+        timestamp: "2025-02-17T11:00:00Z",
+        note: "Brought back the 30-day promise and kept the empowering body copy.",
+        copyBefore: {
+          adHeadline: "Share Your Expertise With the World",
+          adBody:
+            "Jake Morrison's free Course Launch Blueprint gives you a step-by-step framework to turn your knowledge into a profitable course. 500+ creators have used it. You could be next.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+        copyAfter: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's free Course Launch Blueprint gives you a step-by-step framework to turn your knowledge into a profitable course. 500+ creators have used it — you could be next.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+      {
+        id: "req-j-sched-1-evt-5",
+        type: "copy_locked",
+        actorId: "hero-4",
+        timestamp: "2025-02-19T09:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-j-sched-1-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-3",
+        timestamp: "2025-02-21T10:00:00Z",
+      },
+      {
+        id: "req-j-sched-1-evt-7",
+        type: "scheduled",
+        actorId: "hero-3",
+        timestamp: "2025-02-22T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-06T11:00:00" },
+      },
+    ],
   },
   {
     id: "req-j-sched-2",
@@ -1327,6 +2518,91 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-09",
     updatedAt: "2025-02-19",
+    timeline: [
+      {
+        id: "req-j-sched-2-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-02-09T10:00:00Z",
+        note: "Jake is promoting the Weekend Course Sprint to Emma's parenting audience. Parents often want to create courses to share their expertise while working flexibly.",
+        copyAfter: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-j-sched-2-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-7",
+        timestamp: "2025-02-10T14:00:00Z",
+        note: "Great fit for my audience Jake! I reframed it for busy parents who want to create something on their own schedule.",
+        copyBefore: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "Create a Course on Your Schedule",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint helps busy creators go from idea to live course in 48 hours. Perfect for parents who want to share their knowledge without months of prep.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-j-sched-2-evt-3",
+        type: "revision_requested",
+        actorId: "hero-4",
+        timestamp: "2025-02-12T09:00:00Z",
+        note: "Love the parent angle! But can we keep 'Weekend' prominent in the headline? That's our key selling point — it communicates speed and simplicity.",
+      },
+      {
+        id: "req-j-sched-2-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-7",
+        timestamp: "2025-02-14T11:00:00Z",
+        note: "Brought 'Weekend' back to the headline and kept the simplicity angle in the body.",
+        copyBefore: {
+          adHeadline: "Create a Course on Your Schedule",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint helps busy creators go from idea to live course in 48 hours. Perfect for parents who want to share their knowledge without months of prep.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint helps busy creators go from idea to live course in 48 hours. No tech skills needed — just your expertise and a weekend.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-j-sched-2-evt-5",
+        type: "copy_locked",
+        actorId: "hero-4",
+        timestamp: "2025-02-16T09:00:00Z",
+        note: "Love it — approved!",
+      },
+      {
+        id: "req-j-sched-2-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-7",
+        timestamp: "2025-02-18T10:00:00Z",
+      },
+      {
+        id: "req-j-sched-2-evt-7",
+        type: "scheduled",
+        actorId: "hero-7",
+        timestamp: "2025-02-19T09:00:00Z",
+        metadata: { scheduledAt: "2025-03-13T08:00:00" },
+      },
+    ],
   },
   {
     id: "req-j-pub-1",
@@ -1343,12 +2619,103 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-01-10",
     updatedAt: "2025-01-28",
+    timeline: [
+      {
+        id: "req-j-pub-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-01-10T10:00:00Z",
+        note: "Jake promoted the Course Launch Blueprint to Aisha's finance audience. Financial educators increasingly want to package their expertise into courses.",
+        copyAfter: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+      {
+        id: "req-j-pub-1-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-5",
+        timestamp: "2025-01-12T14:00:00Z",
+        note: "Hey Jake! I reframed the headline for my finance audience — they respond to the idea of turning financial knowledge into something scalable.",
+        copyBefore: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+        copyAfter: {
+          adHeadline: "Turn Your Financial Knowledge Into a Course",
+          adBody:
+            "Jake Morrison's step-by-step framework helps experts package their knowledge into profitable courses. 500+ creators have used his free Blueprint. Get yours today.",
+          adCta: "Download the Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+      {
+        id: "req-j-pub-1-evt-3",
+        type: "revision_requested",
+        actorId: "hero-4",
+        timestamp: "2025-01-14T09:00:00Z",
+        note: "Nice! But let's keep the original headline — it's broader and tested well across audiences. '30 Days' gives a concrete promise that drives clicks.",
+      },
+      {
+        id: "req-j-pub-1-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-5",
+        timestamp: "2025-01-16T11:00:00Z",
+        note: "Reverted to the original headline. Kept the body copy streamlined.",
+        copyBefore: {
+          adHeadline: "Turn Your Financial Knowledge Into a Course",
+          adBody:
+            "Jake Morrison's step-by-step framework helps experts package their knowledge into profitable courses. 500+ creators have used his free Blueprint. Get yours today.",
+          adCta: "Download the Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+        copyAfter: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+      {
+        id: "req-j-pub-1-evt-5",
+        type: "copy_locked",
+        actorId: "hero-4",
+        timestamp: "2025-01-18T09:00:00Z",
+        note: "Perfect — approved!",
+      },
+      {
+        id: "req-j-pub-1-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-5",
+        timestamp: "2025-01-24T10:00:00Z",
+      },
+      {
+        id: "req-j-pub-1-evt-7",
+        type: "scheduled",
+        actorId: "hero-5",
+        timestamp: "2025-01-25T09:00:00Z",
+        metadata: { scheduledAt: "2025-01-28T09:00:00" },
+      },
+      {
+        id: "req-j-pub-1-evt-8",
+        type: "published",
+        actorId: "hero-5",
+        timestamp: "2025-01-28T09:00:00Z",
+      },
+    ],
   },
   {
     id: "req-j-pub-2",
     sponsorId: "hero-4",
     publisherId: "hero-10",
-    status: "paid",
+    status: "published",
     initiatedBy: "sponsor",
     brief: "Jake promoted the Weekend Course Sprint to Ryan's solopreneur audience. Campaign completed and payment settled.",
     adHeadline: "Launch Your Course in a Weekend",
@@ -1359,6 +2726,97 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-01-01",
     updatedAt: "2025-01-20",
+    timeline: [
+      {
+        id: "req-j-pub-2-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-01-01T10:00:00Z",
+        note: "Jake promoted the Weekend Course Sprint to Ryan's solopreneur audience. Campaign completed and payment settled.",
+        copyAfter: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-j-pub-2-evt-2",
+        type: "copy_suggested",
+        actorId: "hero-10",
+        timestamp: "2025-01-02T14:00:00Z",
+        note: "Great product Jake! I adjusted the angle for my solopreneur audience — they love the idea of building something fast without a huge time commitment.",
+        copyBefore: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "Your Weekend Course is Waiting",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint takes solopreneurs from idea to live course in 48 hours. Over 200 creators have already launched. No tech skills needed.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-j-pub-2-evt-3",
+        type: "revision_requested",
+        actorId: "hero-4",
+        timestamp: "2025-01-04T09:00:00Z",
+        note: "Nice! But 'Your Weekend Course is Waiting' sounds passive. Let's keep the 'Launch' framing — it's more action-oriented and tested better across audiences.",
+      },
+      {
+        id: "req-j-pub-2-evt-4",
+        type: "copy_suggested",
+        actorId: "hero-10",
+        timestamp: "2025-01-06T11:00:00Z",
+        note: "Reverted to the original headline. Kept it tight and action-oriented.",
+        copyBefore: {
+          adHeadline: "Your Weekend Course is Waiting",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint takes solopreneurs from idea to live course in 48 hours. Over 200 creators have already launched. No tech skills needed.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+        copyAfter: {
+          adHeadline: "Launch Your Course in a Weekend",
+          adBody:
+            "Jake Morrison's Weekend Course Sprint has helped 200+ creators go from idea to live course in 48 hours. No tech skills required.",
+          adCta: "Join the Sprint",
+          adCtaUrl: "https://jakemorrison.io/sprint",
+        },
+      },
+      {
+        id: "req-j-pub-2-evt-5",
+        type: "copy_locked",
+        actorId: "hero-4",
+        timestamp: "2025-01-08T09:00:00Z",
+        note: "Love it — approved!",
+      },
+      {
+        id: "req-j-pub-2-evt-6",
+        type: "broadcast_created",
+        actorId: "hero-10",
+        timestamp: "2025-01-12T10:00:00Z",
+      },
+      {
+        id: "req-j-pub-2-evt-7",
+        type: "scheduled",
+        actorId: "hero-10",
+        timestamp: "2025-01-13T09:00:00Z",
+        metadata: { scheduledAt: "2025-01-16T09:00:00" },
+      },
+      {
+        id: "req-j-pub-2-evt-8",
+        type: "published",
+        actorId: "hero-10",
+        timestamp: "2025-01-16T09:00:00Z",
+      },
+    ],
   },
   {
     id: "req-j-dec-1",
@@ -1375,6 +2833,29 @@ export const promotionRequests: PromotionRequest[] = [
     notes: "",
     createdAt: "2025-02-03",
     updatedAt: "2025-02-06",
+    timeline: [
+      {
+        id: "req-j-dec-1-evt-1",
+        type: "proposal_sent",
+        actorId: "hero-4",
+        timestamp: "2025-02-03T10:00:00Z",
+        note: "Jake wanted to promote the Course Launch Blueprint to Carlos's design audience, but it wasn't the right fit for creative professionals.",
+        copyAfter: {
+          adHeadline: "Create Your First Online Course in 30 Days",
+          adBody:
+            "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+          adCta: "Get the Free Blueprint",
+          adCtaUrl: "https://jakemorrison.io/blueprint",
+        },
+      },
+      {
+        id: "req-j-dec-1-evt-2",
+        type: "declined",
+        actorId: "hero-8",
+        timestamp: "2025-02-06T11:00:00Z",
+        note: "Hey Jake, thanks for thinking of me! My audience is more visual/design-focused — online course creation isn't really their thing. I think you'd get better results with a business or education publisher.",
+      },
+    ],
   },
   // ── Seed promotions with full timeline data ──
   ...seedPromotions,
@@ -1495,7 +2976,6 @@ export function deriveRequestState(request: PromotionRequest) {
       case "broadcast_created":
       case "scheduled":
       case "published":
-      case "payment_sent":
       case "declined":
       case "expired":
         whoseTurn = null
@@ -1556,21 +3036,19 @@ export function getEngagementColor(tier: EngagementTier): string {
 export function getStatusColor(status: RequestStatus): string {
   switch (status) {
     case "pending":
-      return "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]"
+      return "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
     case "accepted":
-      return "bg-[#EFD3A9]/50 text-[#6B4A15] dark:bg-[#D6A151]/30 dark:text-[#EFD3A9]"
+      return "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
     case "in_review":
-      return "bg-[#AD715C]/30 text-[#4A2318] dark:bg-[#733725]/40 dark:text-[#AD715C]"
+      return "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300"
     case "scheduled":
-      return "bg-[#9FC2CC]/50 text-[#1E3A4D] dark:bg-[#3A6278]/40 dark:text-[#9FC2CC]"
+      return "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
     case "published":
-      return "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]"
-    case "paid":
-      return "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
     case "declined":
-      return "bg-[#D7CBD5]/50 text-[#352938] dark:bg-[#52405B]/40 dark:text-[#D7CBD5]"
+      return "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
     case "expired":
-      return "bg-[#D7CBD5]/50 text-[#352938] dark:bg-[#52405B]/40 dark:text-[#D7CBD5]"
+      return "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
   }
 }
 

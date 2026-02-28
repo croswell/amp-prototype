@@ -29,7 +29,7 @@ type TabKey = "open" | "scheduled" | "published" | "declined"
 const TAB_STATUSES: Record<TabKey, RequestStatus[]> = {
   open: ["pending", "in_review", "accepted"],
   scheduled: ["scheduled"],
-  published: ["published", "paid"],
+  published: ["published"],
   declined: ["declined", "expired"],
 }
 
@@ -75,7 +75,7 @@ export function RequestsContent() {
       }
       return {
         label: "New",
-        color: "bg-[#CBD7CC]/50 text-[#2A3D35] dark:bg-[#405B50]/40 dark:text-[#CBD7CC]",
+        color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
       }
     }
     return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }

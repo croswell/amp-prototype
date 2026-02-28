@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useRef, useEffect } from "react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
@@ -82,6 +82,10 @@ export function HomeContent() {
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
   const selectedHero = selectedHeroId ? getHero(selectedHeroId) ?? null : null
 
+  // Carousel state
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [activeCardIndex, setActiveCardIndex] = useState(0)
+
   const incoming = promotionRequests.filter((r) => r.publisherId === activeUser.id)
   const outgoing = promotionRequests.filter((r) => r.sponsorId === activeUser.id)
 
@@ -101,6 +105,173 @@ export function HomeContent() {
   const pendingApprovals = outgoing.filter(
     (r) => r.status === "pending"
   ).length
+
+  // ── Stat cards array (for carousel + grid) ──
+  const statCards = useMemo(() => {
+    const cards: { key: string; content: React.ReactNode }[] = []
+
+    // Money metric first
+    if (isPublisher) {
+      cards.push({
+        key: "ad-revenue",
+        content: (
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
+                Ad Revenue
+                <CurrencyDollar className="size-4" />
+              </p>
+              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
+                {formatCurrency(isNewAccount ? 0 : publisherRevenue)}
+              </p>
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
+                Last 30 days
+              </p>
+            </CardContent>
+          </Card>
+        ),
+      })
+    }
+    if (isSponsor) {
+      cards.push({
+        key: "ad-spend",
+        content: (
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
+                Ad Spend
+                <CurrencyDollar className="size-4" />
+              </p>
+              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
+                {formatCurrency(isNewAccount ? 0 : sponsorSpend)}
+              </p>
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
+                Last 30 days
+              </p>
+            </CardContent>
+          </Card>
+        ),
+      })
+    }
+
+    // Active promotions (always)
+    cards.push({
+      key: "active",
+      content: (
+        <Card className="py-5">
+          <CardContent className="flex h-full flex-col">
+            <p className="flex items-center justify-between text-sm text-muted-foreground">
+              Active Promotions
+              <Lightning className="size-4" />
+            </p>
+            <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
+              {isNewAccount ? 0 : activeCount}
+            </p>
+            <p className="mt-auto pt-3 text-xs text-muted-foreground">
+              Last 30 days
+            </p>
+          </CardContent>
+        </Card>
+      ),
+    })
+
+    // Completed (always)
+    cards.push({
+      key: "completed",
+      content: (
+        <Card className="py-5">
+          <CardContent className="flex h-full flex-col">
+            <p className="flex items-center justify-between text-sm text-muted-foreground">
+              Completed
+              <CheckCircle className="size-4" />
+            </p>
+            <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
+              {isNewAccount ? 0 : completedCount}
+            </p>
+            <p className="mt-auto pt-3 text-xs text-muted-foreground">
+              Last 30 days
+            </p>
+          </CardContent>
+        </Card>
+      ),
+    })
+
+    // Pending approvals (sponsor-only, non-publisher)
+    if (isSponsor && !isPublisher) {
+      cards.push({
+        key: "pending",
+        content: (
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
+                Pending Approvals
+                <Clock className="size-4" />
+              </p>
+              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
+                {isNewAccount ? 0 : pendingApprovals}
+              </p>
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
+                Last 30 days
+              </p>
+            </CardContent>
+          </Card>
+        ),
+      })
+    }
+
+    // Audience (publisher) — engagement card at the end
+    if (isPublisher) {
+      cards.push({
+        key: "audience",
+        content: (
+          <Card className="py-5">
+            <CardContent className="flex h-full flex-col">
+              <p className="flex items-center justify-between text-sm text-muted-foreground">
+                Audience
+                <Users className="size-4" />
+              </p>
+              <div className="mt-3">
+                <EngagementBadge tier={activeUser.engagementTier} />
+              </div>
+              <p className="mt-auto pt-3 text-xs text-muted-foreground">
+                {formatNumber(activeUser.subscriberCount)} subscribers · {activeUser.openRate}% open rate
+              </p>
+            </CardContent>
+          </Card>
+        ),
+      })
+    }
+
+    return cards
+  }, [isPublisher, isSponsor, isNewAccount, publisherRevenue, sponsorSpend, activeCount, completedCount, pendingApprovals, activeUser])
+
+  // ── Carousel IntersectionObserver ──
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+
+    // Reset scroll position and index when card count changes (persona switch)
+    container.scrollTo({ left: 0 })
+    setActiveCardIndex(0)
+
+    const cards = container.querySelectorAll<HTMLElement>("[data-carousel-card]")
+    if (cards.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const index = Number((entry.target as HTMLElement).dataset.index)
+            if (!Number.isNaN(index)) setActiveCardIndex(index)
+          }
+        }
+      },
+      { root: container, threshold: 0.5 }
+    )
+
+    cards.forEach((card) => observer.observe(card))
+    return () => observer.disconnect()
+  }, [statCards.length])
 
   // ── Recent activity: 3 most recent open items (needing action) ──
   const OPEN_STATUSES: RequestStatus[] = ["pending", "in_review", "accepted"]
@@ -130,7 +301,7 @@ export function HomeContent() {
 
   return (
     <div className="space-y-10">
-      <div className="relative space-y-8 pb-10 after:absolute after:bottom-0 after:left-1/2 after:w-screen after:-translate-x-1/2 after:border-b after:border-border">
+      <div className="relative space-y-8 pb-2 after:absolute after:bottom-0 after:left-1/2 after:w-screen after:-translate-x-1/2 after:border-b after:border-border sm:pb-10">
       <h1 className="text-balance text-2xl font-medium tracking-tight">
         {greeting}, {activeUser.name.split(" ")[0]}
       </h1>
@@ -159,100 +330,57 @@ export function HomeContent() {
         </div>
       )}
 
-      {/* ── Stat cards ── */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {isPublisher && (
-          <Card className="py-5">
-            <CardContent className="flex h-full flex-col">
-              <p className="flex items-center justify-between text-sm text-muted-foreground">
-                Audience
-                <Users className="size-4" />
-              </p>
-              <div className="mt-3">
-                <EngagementBadge tier={activeUser.engagementTier} />
-              </div>
-              <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                {formatNumber(activeUser.subscriberCount)} subscribers · {activeUser.openRate}% open rate
-              </p>
-            </CardContent>
-          </Card>
+      {/* ── Stat cards: mobile carousel ── */}
+      <div className="space-y-3 sm:hidden">
+        <div
+          ref={scrollRef}
+          className="no-scrollbar -mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2"
+        >
+          {statCards.map((card, i) => (
+            <div
+              key={card.key}
+              className="w-full shrink-0 snap-center"
+              data-carousel-card
+              data-index={i}
+            >
+              {card.content}
+            </div>
+          ))}
+        </div>
+
+        {/* Progress indicator */}
+        {statCards.length > 1 && (
+          <div
+            role="tablist"
+            aria-label="Stat cards"
+            className="mx-auto flex w-full max-w-[120px] gap-1.5"
+          >
+            {statCards.map((card, i) => (
+              <button
+                key={card.key}
+                role="tab"
+                aria-selected={i === activeCardIndex}
+                aria-label={`Go to card ${i + 1}`}
+                className={`h-0.5 flex-1 rounded-full transition-colors duration-300 ${
+                  i === activeCardIndex ? "bg-foreground" : "bg-muted-foreground/40"
+                }`}
+                onClick={() => {
+                  const container = scrollRef.current
+                  if (!container) return
+                  const target = container.querySelector<HTMLElement>(`[data-index="${i}"]`)
+                  target?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })
+                }}
+              />
+            ))}
+          </div>
         )}
-        {isPublisher && (
-          <Card className="py-5">
-            <CardContent className="flex h-full flex-col">
-              <p className="flex items-center justify-between text-sm text-muted-foreground">
-                Ad Revenue
-                <CurrencyDollar className="size-4" />
-              </p>
-              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-                {formatCurrency(isNewAccount ? 0 : publisherRevenue)}
-              </p>
-              <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                Last 30 days
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        {isSponsor && (
-          <Card className="py-5">
-            <CardContent className="flex h-full flex-col">
-              <p className="flex items-center justify-between text-sm text-muted-foreground">
-                Ad Spend
-                <CurrencyDollar className="size-4" />
-              </p>
-              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-                {formatCurrency(isNewAccount ? 0 : sponsorSpend)}
-              </p>
-              <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                Last 30 days
-              </p>
-            </CardContent>
-          </Card>
-        )}
-        <Card className="py-5">
-          <CardContent className="flex h-full flex-col">
-            <p className="flex items-center justify-between text-sm text-muted-foreground">
-              Active Promotions
-              <Lightning className="size-4" />
-            </p>
-            <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-              {isNewAccount ? 0 : activeCount}
-            </p>
-            <p className="mt-auto pt-3 text-xs text-muted-foreground">
-              Last 30 days
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="py-5">
-          <CardContent className="flex h-full flex-col">
-            <p className="flex items-center justify-between text-sm text-muted-foreground">
-              Completed
-              <CheckCircle className="size-4" />
-            </p>
-            <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-              {isNewAccount ? 0 : completedCount}
-            </p>
-            <p className="mt-auto pt-3 text-xs text-muted-foreground">
-              Last 30 days
-            </p>
-          </CardContent>
-        </Card>
-        {isSponsor && !isPublisher && (
-          <Card className="py-5">
-            <CardContent className="flex h-full flex-col">
-              <p className="flex items-center justify-between text-sm text-muted-foreground">
-                Pending Approvals
-                <Clock className="size-4" />
-              </p>
-              <p className="mt-3 text-2xl font-medium tracking-tight tabular-nums">
-                {isNewAccount ? 0 : pendingApprovals}
-              </p>
-              <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                Last 30 days
-              </p>
-            </CardContent>
-          </Card>
-        )}
+      </div>
+
+      {/* ── Stat cards: desktop grid ── */}
+      <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-4">
+        {statCards.map((card) => (
+          <div key={card.key}>{card.content}</div>
+        ))}
       </div>
       </div>
 

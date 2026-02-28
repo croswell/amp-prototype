@@ -186,7 +186,7 @@ export function RequestsContent() {
                   <Link
                     key={req.id}
                     href={`/requests/${req.id}${personaParam}`}
-                    className="flex w-full items-center gap-3 rounded-lg border p-3 text-left"
+                    className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 text-left"
                   >
                     <Avatar className="size-8 shrink-0">
                       <AvatarFallback className="text-xs">{initials}</AvatarFallback>

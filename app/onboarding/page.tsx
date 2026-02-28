@@ -133,7 +133,14 @@ export default function OnboardingPage() {
     <div className="flex min-h-svh flex-col items-center justify-center bg-card px-4 py-16">
       <div className="w-full max-w-lg space-y-8">
         {showProgress && (
-          <div className="mx-auto flex w-full max-w-[120px] gap-1.5">
+          <div
+            role="progressbar"
+            aria-valuenow={getFilledSegments(step, role)}
+            aria-valuemin={1}
+            aria-valuemax={getSegmentCount(role)}
+            aria-label="Onboarding progress"
+            className="mx-auto flex w-full max-w-[120px] gap-1.5"
+          >
             {Array.from({ length: getSegmentCount(role) }).map((_, i) => (
               <div
                 key={i}
@@ -201,7 +208,7 @@ export default function OnboardingPage() {
 
             <div className="rounded-lg border p-6 space-y-4">
               <div className="flex justify-center">
-                <button type="button" className="group relative cursor-pointer">
+                <button type="button" aria-label="Change profile photo" className="group relative cursor-pointer">
                   <Avatar className="size-16">
                     <AvatarFallback className="text-lg">
                       {profileName.charAt(0)}
@@ -234,9 +241,9 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Niche</Label>
+                <Label htmlFor="niche-select">Niche</Label>
                 <Select value={profileNiche} onValueChange={(v) => setProfileNiche(v as Vertical)}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="niche-select" className="w-full">
                     <SelectValue placeholder="Choose your niche" />
                   </SelectTrigger>
                   <SelectContent>
@@ -281,7 +288,7 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={() => setSelectedRole("publisher")}
-                className={`flex items-start gap-4 rounded-lg p-5 text-left transition-colors hover:bg-muted/50 ${
+                className={`flex items-start gap-4 rounded-lg p-5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   selectedRole === "publisher"
                     ? "border border-border ring-2 ring-primary"
                     : "border border-border"
@@ -301,7 +308,7 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={() => setSelectedRole("sponsor")}
-                className={`flex items-start gap-4 rounded-lg p-5 text-left transition-colors hover:bg-muted/50 ${
+                className={`flex items-start gap-4 rounded-lg p-5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   selectedRole === "sponsor"
                     ? "border border-border ring-2 ring-primary"
                     : "border border-border"
@@ -407,7 +414,7 @@ export default function OnboardingPage() {
                       key={n}
                       type="button"
                       onClick={() => setPromotionsPerMonth(n)}
-                      className={`flex h-9 flex-1 items-center justify-center rounded-sm border text-sm font-medium transition-colors ${
+                      className={`flex h-9 flex-1 items-center justify-center rounded-sm border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                         promotionsPerMonth === n
                           ? "border-foreground bg-foreground text-background"
                           : "border-border hover:bg-muted"

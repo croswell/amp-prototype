@@ -177,14 +177,22 @@ export function SettingsContent() {
         </div>
         {/* Desktop: vertical tab list */}
         <TabsList className="hidden w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-1.5 sm:flex">
-          <TabsTrigger value="profile" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Profile</TabsTrigger>
-          {isPublisher && (
-            <TabsTrigger value="publisher" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Pricing</TabsTrigger>
-          )}
-          {isSponsor && (
-            <TabsTrigger value="campaigns" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Ad Campaign</TabsTrigger>
-          )}
-          <TabsTrigger value="account" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Account</TabsTrigger>
+          {[
+            { value: "profile", label: "Profile", show: true },
+            { value: "publisher", label: "Pricing", show: isPublisher },
+            { value: "campaigns", label: "Ad Campaign", show: isSponsor },
+            { value: "account", label: "Account", show: true },
+          ]
+            .filter((tab) => tab.show)
+            .map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground"
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
         </TabsList>
 
         {/* ── Profile Tab ────────────────────────────────────── */}
@@ -228,9 +236,9 @@ export function SettingsContent() {
               </div>
 
               <div className="space-y-2">
-                <Label>Niche</Label>
+                <Label htmlFor="settings-niche-select">Niche</Label>
                 <Select value={vertical} onValueChange={(v) => setVertical(v as Vertical)}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="settings-niche-select" className="w-full">
                     <SelectValue placeholder="Choose your niche" />
                   </SelectTrigger>
                   <SelectContent>
@@ -279,12 +287,13 @@ export function SettingsContent() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Social links</Label>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">Social links</legend>
                 <div className="space-y-2">
                   <div className="relative">
                     <LinkSimple className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
+                      aria-label="Twitter URL"
                       placeholder="Twitter URL"
                       value={twitter}
                       onChange={(e) => setTwitter(e.target.value)}
@@ -295,6 +304,7 @@ export function SettingsContent() {
                   <div className="relative">
                     <LinkSimple className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
+                      aria-label="Instagram URL"
                       placeholder="Instagram URL"
                       value={instagram}
                       onChange={(e) => setInstagram(e.target.value)}
@@ -305,6 +315,7 @@ export function SettingsContent() {
                   <div className="relative">
                     <LinkSimple className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
+                      aria-label="LinkedIn URL"
                       placeholder="LinkedIn URL"
                       value={linkedin}
                       onChange={(e) => setLinkedin(e.target.value)}
@@ -313,7 +324,7 @@ export function SettingsContent() {
                     />
                   </div>
                 </div>
-              </div>
+              </fieldset>
             </CardContent>
             <CardFooter className="justify-end border-t px-6 pt-4">
               <Button disabled={!linksChanged}>Save</Button>

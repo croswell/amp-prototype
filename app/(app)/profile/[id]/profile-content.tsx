@@ -102,19 +102,25 @@ export function ProfileContent() {
                   <div className="flex flex-wrap gap-x-4 gap-y-1">
                     <a
                       href={hero.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
                     >
                       <Globe className="size-3.5" />
                       Website
+                      <span className="sr-only">(opens in new tab)</span>
                     </a>
                     {hero.socialLinks.map((link) => (
                       <a
                         key={link.platform}
                         href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-sm capitalize text-muted-foreground hover:text-foreground"
                       >
                         <SocialIcon platform={link.platform} className="size-3.5" />
                         {link.platform}
+                        <span className="sr-only">(opens in new tab)</span>
                       </a>
                     ))}
                   </div>
@@ -327,19 +333,25 @@ export function ProfileContent() {
                 </p>
                 <a
                   href={hero.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
                 >
                   <Globe className="size-3.5" />
                   Website
+                  <span className="sr-only">(opens in new tab)</span>
                 </a>
                 {hero.socialLinks.map((link) => (
                   <a
                     key={link.platform}
                     href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm capitalize text-muted-foreground hover:text-foreground"
                   >
                     <SocialIcon platform={link.platform} className="size-3.5" />
                     {link.platform}
+                    <span className="sr-only">(opens in new tab)</span>
                   </a>
                 ))}
               </div>

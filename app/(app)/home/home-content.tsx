@@ -443,16 +443,18 @@ function SponsorProfileDialog({
             <SectionTitle>Ad copy</SectionTitle>
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground">Headline</label>
+                <label htmlFor="ad-headline" className="text-xs text-muted-foreground">Headline</label>
                 <Input
+                  id="ad-headline"
                   value={adHeadline}
                   onChange={(e) => setAdHeadline(e.target.value)}
                   disabled={phase !== "composing"}
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground">Body</label>
+                <label htmlFor="ad-body" className="text-xs text-muted-foreground">Body</label>
                 <Textarea
+                  id="ad-body"
                   value={adBody}
                   onChange={(e) => setAdBody(e.target.value)}
                   rows={3}
@@ -460,8 +462,9 @@ function SponsorProfileDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground">Call to action</label>
+                <label htmlFor="ad-cta" className="text-xs text-muted-foreground">Call to action</label>
                 <Input
+                  id="ad-cta"
                   value={adCta}
                   onChange={(e) => setAdCta(e.target.value)}
                   disabled={phase !== "composing"}

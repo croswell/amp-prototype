@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { getActiveUser, getRoleForPersona, getActiveViewRole } from "@/lib/mock-data"
+import { cn } from "@/lib/utils"
 import { CaretUpDown, Check, House, Megaphone, Gear } from "@phosphor-icons/react"
 
 const viewOptions = [
@@ -94,7 +95,7 @@ export function AppNav() {
             {role === "both" ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-md sm:border sm:px-2.5 sm:py-1.5 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
+                  <button aria-label={`Switch role, current: ${activeViewRole === "publisher" ? "Publisher" : "Sponsor"}`} className="flex items-center gap-2 rounded-md sm:border sm:px-2.5 sm:py-1.5 outline-none transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring">
                     <Avatar className="size-8 sm:size-6">
                       <AvatarFallback>{firstInitial}</AvatarFallback>
                     </Avatar>
@@ -129,7 +130,7 @@ export function AppNav() {
       </nav>
 
       {/* ── Mobile bottom tab bar (hidden on detail pages) ── */}
-      <div className={`fixed inset-x-0 bottom-0 z-50 border-t bg-card sm:hidden${/^\/requests\/[^/]+/.test(pathname) ? " hidden" : ""}`}>
+      <div className={cn("fixed inset-x-0 bottom-0 z-50 border-t bg-card sm:hidden", /^\/requests\/[^/]+/.test(pathname) && "hidden")}>
         <div className="flex items-center justify-around py-2">
           {navLinks.map((link) => {
             const Icon = link.icon
@@ -137,7 +138,7 @@ export function AppNav() {
               <Link
                 key={link.label}
                 href={link.href}
-                className={`flex flex-col items-center gap-1 px-3 py-1 text-xs ${
+                className={`flex min-h-[44px] flex-col items-center justify-center gap-1 px-3 py-1.5 text-xs ${
                   link.active ? "text-foreground" : "text-muted-foreground"
                 }`}
               >

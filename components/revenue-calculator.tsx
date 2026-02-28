@@ -27,16 +27,16 @@ export function RevenueCalculator({
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <label className="text-xs font-medium text-muted-foreground">
+        <p className="text-xs font-medium text-muted-foreground" id="freq-label">
           Promotions per month
-        </label>
-        <div className="flex gap-2">
+        </p>
+        <div className="flex gap-2" role="group" aria-labelledby="freq-label">
           {FREQUENCY_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => setFrequency(opt.value)}
               className={cn(
-                "flex-1 rounded-sm border px-3 py-2 text-sm font-medium transition-colors",
+                "flex-1 rounded-sm border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 frequency === opt.value
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-background text-foreground hover:bg-muted"

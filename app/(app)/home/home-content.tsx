@@ -8,15 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetBody,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-  SheetClose,
-} from "@/components/ui/sheet"
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   Table,
@@ -24,6 +20,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { PayoutBadge } from "@/components/payout-badge"
 import { EmailBlockPreview } from "@/components/email-block-preview"
@@ -57,6 +54,7 @@ import {
   Globe,
   CaretRight,
   CaretDoubleUp,
+  CaretLeft,
   Users,
 } from "@phosphor-icons/react"
 
@@ -323,17 +321,17 @@ export function HomeContent() {
         </div>
       </div>
 
-      {/* ── Hero profile Sheet ── */}
-      <Sheet open={!!selectedHero} onOpenChange={(open) => !open && setSelectedHeroId(null)}>
-        <SheetContent className="sm:max-w-lg">
+      {/* ── Hero profile Dialog ── */}
+      <Dialog open={!!selectedHero} onOpenChange={(open) => !open && setSelectedHeroId(null)}>
+        <DialogContent showCloseButton={false} className="sm:max-w-lg gap-0 p-0">
           {selectedHero && (selectedHero.role === "sponsor" || (selectedHero.role === "both" && role === "publisher")) && (
-            <SponsorProfileSheet hero={selectedHero} />
+            <SponsorProfileDialog hero={selectedHero} activeUser={activeUser} personaParam={personaParam} />
           )}
           {selectedHero && (selectedHero.role === "publisher" || (selectedHero.role === "both" && role !== "publisher")) && (
-            <PublisherProfileSheet hero={selectedHero} activeUser={activeUser} personaParam={personaParam} />
+            <PublisherProfileDialog hero={selectedHero} activeUser={activeUser} personaParam={personaParam} />
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -342,40 +340,177 @@ export function HomeContent() {
 // Profile sheets (reused from directory — simplified here)
 // ─────────────────────────────────────────────────────────────
 
-function SponsorProfileSheet({ hero }: { hero: Hero }) {
-  const [phase, setPhase] = useState<"idle" | "loading" | "success">("idle")
+function SponsorProfileDialog({
+  hero,
+  activeUser,
+  personaParam,
+}: {
+  hero: Hero
+  activeUser: Hero
+  personaParam: string
+}) {
+  const router = useRouter()
+  const [phase, setPhase] = useState<"idle" | "composing" | "loading" | "success">("idle")
+  const [message, setMessage] = useState("")
+
+  // Editable ad copy — pre-filled from the sponsor's profile
+  const [adHeadline, setAdHeadline] = useState(hero.tagline)
+  const [adBody, setAdBody] = useState(hero.bio)
+  const [adCta, setAdCta] = useState("Learn More")
+  const adCtaUrl = hero.website || ""
 
   const handleSendProposal = useCallback(() => {
     setPhase("loading")
-    setTimeout(() => setPhase("success"), 1200)
-  }, [])
 
-  return (
-    <>
-      <SheetHeader>
-        <div className="flex items-center gap-3">
-          <SheetTitle className="flex-1 text-lg">Recommended sponsor</SheetTitle>
-          <SheetClose asChild>
+    const newId = `req-new-${Date.now()}`
+    const now = new Date().toISOString().split("T")[0]
+    promotionRequests.push({
+      id: newId,
+      sponsorId: hero.id,
+      publisherId: activeUser.id,
+      status: "pending",
+      initiatedBy: "publisher",
+      brief: message,
+      adHeadline,
+      adBody,
+      adCta,
+      adCtaUrl,
+      proposedFee: hero.recommendedFee,
+      notes: "",
+      createdAt: now,
+      updatedAt: now,
+      timeline: [
+        {
+          id: "tl-1",
+          type: "proposal_sent",
+          actorId: activeUser.id,
+          timestamp: new Date().toISOString(),
+          note: message || undefined,
+          copyAfter: {
+            adHeadline,
+            adBody,
+            adCta,
+            adCtaUrl,
+          },
+        },
+      ],
+    })
+
+    setTimeout(() => {
+      setPhase("success")
+      setTimeout(() => {
+        router.push(`/requests/${newId}${personaParam}`)
+      }, 600)
+    }, 1200)
+  }, [activeUser.id, hero.id, hero.recommendedFee, adHeadline, adBody, adCta, adCtaUrl, message, personaParam, router])
+
+  // ── Composing phase: proposal form ──
+  if (phase === "composing" || phase === "loading" || phase === "success") {
+    return (
+      <>
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b px-6 py-4">
+          <Button variant="outline" size="icon-sm" onClick={() => phase === "composing" && setPhase("idle")}>
+            <CaretLeft />
+            <span className="sr-only">Back</span>
+          </Button>
+          <DialogTitle className="sr-only">Send proposal to {hero.name}</DialogTitle>
+          <h2 className="flex-1 text-lg font-medium leading-none">Send proposal to {hero.name}</h2>
+          <DialogClose asChild>
             <Button variant="outline" size="icon-sm">
               <XIcon />
               <span className="sr-only">Close</span>
             </Button>
-          </SheetClose>
+          </DialogClose>
         </div>
-      </SheetHeader>
 
-      <SheetBody className="space-y-6">
-        {phase === "success" && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
-            <div className="flex items-center gap-2">
-              <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
-              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                Proposal sent to {hero.name}
-              </p>
+        {/* Scrollable body */}
+        <div className="overflow-y-auto px-6 py-6 space-y-6" style={{ maxHeight: "60vh" }}>
+          {/* Editable ad copy */}
+          <div className="space-y-3">
+            <SectionTitle>Ad copy</SectionTitle>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">Headline</label>
+                <Input
+                  value={adHeadline}
+                  onChange={(e) => setAdHeadline(e.target.value)}
+                  disabled={phase !== "composing"}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">Body</label>
+                <Textarea
+                  value={adBody}
+                  onChange={(e) => setAdBody(e.target.value)}
+                  rows={3}
+                  disabled={phase !== "composing"}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">Call to action</label>
+                <Input
+                  value={adCta}
+                  onChange={(e) => setAdCta(e.target.value)}
+                  disabled={phase !== "composing"}
+                />
+              </div>
             </div>
           </div>
-        )}
 
+          <Separator />
+
+          {/* Custom message */}
+          <div className="space-y-3">
+            <SectionTitle>Custom message <span className="font-normal text-muted-foreground">(optional)</span></SectionTitle>
+            <Textarea
+              placeholder={`Tell ${hero.name.split(" ")[0]} why your newsletter is a great fit for their brand...`}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              disabled={phase !== "composing"}
+            />
+          </div>
+
+        </div>
+
+        {/* Sticky footer */}
+        <div className="flex justify-end gap-2 border-t px-6 py-4">
+          {phase === "composing" ? (
+            <>
+              <Button variant="outline" onClick={() => setPhase("idle")}>Back</Button>
+              <Button onClick={handleSendProposal}>Send</Button>
+            </>
+          ) : phase === "success" ? (
+            <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+              <Check weight="bold" className="size-4" />
+              Sent
+            </Button>
+          ) : (
+            <Button loading disabled>Sending...</Button>
+          )}
+        </div>
+      </>
+    )
+  }
+
+  // ── Idle phase: sponsor profile ──
+  return (
+    <>
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b px-6 py-4">
+        <DialogTitle className="sr-only">Recommended sponsor</DialogTitle>
+        <h2 className="flex-1 text-lg font-medium leading-none">Recommended sponsor</h2>
+        <DialogClose asChild>
+          <Button variant="outline" size="icon-sm">
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </Button>
+        </DialogClose>
+      </div>
+
+      {/* Scrollable body */}
+      <div className="overflow-y-auto px-6 py-6 space-y-6" style={{ maxHeight: "60vh" }}>
         <HeroIdentity hero={hero} />
 
         {/* Bio */}
@@ -405,12 +540,20 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
         <div className="rounded-lg border">
           <Table>
             <TableBody>
-              <TableRow className="border-0 hover:bg-transparent">
-                <TableCell className="text-muted-foreground">Payout per send</TableCell>
-                <TableCell className="text-right">
-                  <PayoutBadge amount={hero.recommendedFee} variant="filled" />
+              <TableRow className="hover:bg-transparent">
+                <TableCell className="text-muted-foreground">Budget per 1,000 emails</TableCell>
+                <TableCell className="text-right font-medium text-foreground">
+                  {formatCurrency(hero.budgetPerThousand ?? hero.recommendedFee)}
                 </TableCell>
               </TableRow>
+              {hero.maxBudget && (
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableCell className="text-muted-foreground">Max budget</TableCell>
+                  <TableCell className="text-right font-medium text-foreground">
+                    {formatCurrency(hero.maxBudget)}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
@@ -426,28 +569,20 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
             cta="Learn More"
           />
         </div>
-      </SheetBody>
+      </div>
 
-      <SheetFooter>
-        <SheetClose asChild>
+      {/* Sticky footer */}
+      <div className="flex justify-end gap-2 border-t px-6 py-4">
+        <DialogClose asChild>
           <Button variant="outline">Close</Button>
-        </SheetClose>
-        {phase === "success" ? (
-          <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
-            <Check weight="bold" className="size-4" />
-            Sent
-          </Button>
-        ) : (
-          <Button loading={phase === "loading"} onClick={handleSendProposal}>
-            {phase === "loading" ? "Sending..." : "Send Proposal"}
-          </Button>
-        )}
-      </SheetFooter>
+        </DialogClose>
+        <Button onClick={() => setPhase("composing")}>Send Proposal</Button>
+      </div>
     </>
   )
 }
 
-function PublisherProfileSheet({
+function PublisherProfileDialog({
   hero,
   activeUser,
   personaParam,
@@ -472,7 +607,6 @@ function PublisherProfileSheet({
   const handleSendRequest = useCallback(() => {
     setPhase("loading")
 
-    // Create a new mock request and push it into the array
     const newId = `req-new-${Date.now()}`
     const now = new Date().toISOString().split("T")[0]
     promotionRequests.push({
@@ -509,7 +643,6 @@ function PublisherProfileSheet({
 
     setTimeout(() => {
       setPhase("success")
-      // Navigate to the new request detail page
       setTimeout(() => {
         router.push(`/requests/${newId}${personaParam}`)
       }, 600)
@@ -520,19 +653,24 @@ function PublisherProfileSheet({
   if (phase === "composing" || phase === "loading" || phase === "success") {
     return (
       <>
-        <SheetHeader>
-          <div className="flex items-center gap-3">
-            <SheetTitle className="flex-1 text-lg">Send request to {hero.name}</SheetTitle>
-            <SheetClose asChild>
-              <Button variant="outline" size="icon-sm">
-                <XIcon />
-                <span className="sr-only">Close</span>
-              </Button>
-            </SheetClose>
-          </div>
-        </SheetHeader>
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b px-6 py-4">
+          <Button variant="outline" size="icon-sm" onClick={() => phase === "composing" && setPhase("idle")}>
+            <CaretLeft />
+            <span className="sr-only">Back</span>
+          </Button>
+          <DialogTitle className="sr-only">Send request to {hero.name}</DialogTitle>
+          <h2 className="flex-1 text-lg font-medium leading-none">Send request to {hero.name}</h2>
+          <DialogClose asChild>
+            <Button variant="outline" size="icon-sm">
+              <XIcon />
+              <span className="sr-only">Close</span>
+            </Button>
+          </DialogClose>
+        </div>
 
-        <SheetBody className="space-y-6">
+        {/* Scrollable body */}
+        <div className="overflow-y-auto px-6 py-6 space-y-6" style={{ maxHeight: "60vh" }}>
           {/* Ad preview (from sponsor settings) */}
           <div className="space-y-3">
             <SectionTitle>Ad preview</SectionTitle>
@@ -557,46 +695,24 @@ function PublisherProfileSheet({
             />
           </div>
 
-          {/* Price summary */}
-          <div className="rounded-lg border">
-            <Table>
-              <TableBody>
-                <TableRow className="border-0 hover:bg-transparent">
-                  <TableCell className="text-muted-foreground">Price per send</TableCell>
-                  <TableCell className="text-right">
-                    <PayoutBadge amount={hero.recommendedFee} variant="filled" />
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </SheetBody>
+        </div>
 
-        <SheetFooter>
+        {/* Sticky footer */}
+        <div className="flex justify-end gap-2 border-t px-6 py-4">
           {phase === "composing" ? (
             <>
               <Button variant="outline" onClick={() => setPhase("idle")}>Back</Button>
-              <Button onClick={handleSendRequest}>
-                Send
-              </Button>
+              <Button onClick={handleSendRequest}>Send</Button>
             </>
           ) : phase === "success" ? (
-            <>
-              <div />
-              <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
-                <Check weight="bold" className="size-4" />
-                Sent
-              </Button>
-            </>
+            <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+              <Check weight="bold" className="size-4" />
+              Sent
+            </Button>
           ) : (
-            <>
-              <div />
-              <Button loading disabled>
-                Sending...
-              </Button>
-            </>
+            <Button loading disabled>Sending...</Button>
           )}
-        </SheetFooter>
+        </div>
       </>
     )
   }
@@ -604,19 +720,20 @@ function PublisherProfileSheet({
   // ── Idle phase: publisher profile ──
   return (
     <>
-      <SheetHeader>
-        <div className="flex items-center gap-3">
-          <SheetTitle className="flex-1 text-lg">Recommended publisher</SheetTitle>
-          <SheetClose asChild>
-            <Button variant="outline" size="icon-sm">
-              <XIcon />
-              <span className="sr-only">Close</span>
-            </Button>
-          </SheetClose>
-        </div>
-      </SheetHeader>
+      {/* Header */}
+      <div className="flex items-center gap-3 border-b px-6 py-4">
+        <DialogTitle className="sr-only">Recommended publisher</DialogTitle>
+        <h2 className="flex-1 text-lg font-medium leading-none">Recommended publisher</h2>
+        <DialogClose asChild>
+          <Button variant="outline" size="icon-sm">
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </Button>
+        </DialogClose>
+      </div>
 
-      <SheetBody className="space-y-6">
+      {/* Scrollable body */}
+      <div className="overflow-y-auto px-6 py-6 space-y-6" style={{ maxHeight: "60vh" }}>
         <HeroIdentity hero={hero} showEngagement />
 
         {/* Audience stats */}
@@ -673,16 +790,15 @@ function PublisherProfileSheet({
             </TableBody>
           </Table>
         </div>
-      </SheetBody>
+      </div>
 
-      <SheetFooter>
-        <SheetClose asChild>
+      {/* Sticky footer */}
+      <div className="flex justify-end gap-2 border-t px-6 py-4">
+        <DialogClose asChild>
           <Button variant="outline">Close</Button>
-        </SheetClose>
-        <Button onClick={() => setPhase("composing")}>
-          Send Request
-        </Button>
-      </SheetFooter>
+        </DialogClose>
+        <Button onClick={() => setPhase("composing")}>Send Request</Button>
+      </div>
     </>
   )
 }

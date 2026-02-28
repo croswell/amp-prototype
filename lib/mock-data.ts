@@ -3034,23 +3034,53 @@ export function getEngagementColor(tier: EngagementTier): string {
   }
 }
 
+/** Shared color token pairs for badges (light + dark mode). */
+export const COLOR_PAIRS = {
+  emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  amber: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  indigo: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
+  yellow: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300",
+  blue: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  zinc: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
+} as const
+
 export function getStatusColor(status: RequestStatus): string {
   switch (status) {
     case "pending":
-      return "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+      return COLOR_PAIRS.indigo
     case "accepted":
-      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+      return COLOR_PAIRS.emerald
     case "in_review":
-      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
+      return COLOR_PAIRS.yellow
     case "scheduled":
-      return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+      return COLOR_PAIRS.blue
     case "published":
-      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+      return COLOR_PAIRS.emerald
     case "declined":
-      return "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+      return COLOR_PAIRS.zinc
     case "expired":
-      return "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+      return COLOR_PAIRS.zinc
   }
+}
+
+/** Direction-aware status label for pending items (shared by home + requests pages) */
+export function getDisplayStatus(
+  req: PromotionRequest,
+  viewerRole: "publisher" | "sponsor"
+): { label: string; color: string } {
+  if (req.status === "pending") {
+    const userInitiated =
+      (viewerRole === "publisher" && req.initiatedBy === "publisher") ||
+      (viewerRole === "sponsor" && req.initiatedBy === "sponsor")
+    if (userInitiated) {
+      return { label: "Requested", color: getStatusColor("pending") }
+    }
+    return {
+      label: "New",
+      color: COLOR_PAIRS.indigo,
+    }
+  }
+  return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
 }
 
 /** Get heroes that would be good matches for the active user based on shared verticals */

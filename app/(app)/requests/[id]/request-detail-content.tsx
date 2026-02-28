@@ -48,15 +48,9 @@ import {
   type CopySnapshot,
 } from "@/lib/mock-data"
 import { CaretLeft, ArrowRight, Broadcast } from "@phosphor-icons/react"
+import { buildPersonaParams } from "@/lib/utils"
 import { toast } from "sonner"
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  })
-}
+import { formatDateShort } from "@/lib/date"
 
 function PayoutBreakdown({ payout }: { payout: PayoutEstimate }) {
   return (
@@ -110,7 +104,7 @@ function FallbackTimeline({
               <span className="text-muted-foreground">sent a sponsorship request</span>
             </p>
             <span className="shrink-0 text-xs text-muted-foreground">
-              {formatDate(request.createdAt)}
+              {formatDateShort(request.createdAt)}
             </span>
           </div>
           {/* Body */}
@@ -145,21 +139,17 @@ export function RequestDetailContent() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const persona = searchParams.get("role")
-  const qsParams = new URLSearchParams()
-  if (persona) qsParams.set("role", persona)
+  const persona = searchParams.get("role") || "publisher"
   const view = searchParams.get("view")
-  if (view && persona === "both") qsParams.set("view", view)
-  const personaParam = qsParams.toString() ? `?${qsParams.toString()}` : ""
+  const activeUser = getActiveUser(persona)
+  const role = getRoleForPersona(persona)
+  const viewerRole = getActiveViewRole(role, view)
+  const personaParam = buildPersonaParams(persona, view, role)
 
   const request = getRequest(params.id as string)
   if (!request) {
     notFound()
   }
-
-  const activeUser = getActiveUser(persona)
-  const role = getRoleForPersona(persona)
-  const viewerRole = getActiveViewRole(role, view)
 
   // ── Local state so actions update the page in real time ──
   const [localStatus, setLocalStatus] = useState<RequestStatus>(request.status)
@@ -346,7 +336,7 @@ export function RequestDetailContent() {
             {publisher.name}
           </span>
           <span className="text-muted-foreground/50">&middot;</span>
-          <span>{formatDate(liveRequest.createdAt)}</span>
+          <span>{formatDateShort(liveRequest.createdAt)}</span>
         </div>
       </div>
 

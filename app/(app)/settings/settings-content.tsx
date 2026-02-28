@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { EmailBlockPreview } from "@/components/email-block-preview"
+import { StatCard } from "@/components/stat-card"
 import { EngagementBadge } from "@/components/engagement-badge"
 import { currentUser, formatCurrency, formatNumber, getActiveUser, getRoleForPersona, getActiveViewRole } from "@/lib/mock-data"
 import type { Vertical } from "@/lib/mock-data"
@@ -50,8 +51,11 @@ const INITIAL_CAMPAIGN = {
 
 // ── Main component ───────────────────────────────────────────
 
+const SETTINGS_TABS = ["profile", "publisher", "campaigns", "account"] as const
+
 export function SettingsContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const persona = searchParams.get("role") || "publisher"
   const view = searchParams.get("view")
   const activeUser = getActiveUser(persona)
@@ -130,7 +134,24 @@ export function SettingsContent() {
     campMaxBudget !== INITIAL_CAMPAIGN.maxBudget
 
   // ── Which tab is default ───────────────────────────────────
-  const defaultTab = "profile"
+  const tabFromUrl = searchParams.get("tab")
+  const defaultTab =
+    tabFromUrl && (SETTINGS_TABS as readonly string[]).includes(tabFromUrl)
+      ? tabFromUrl
+      : "profile"
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const next = new URLSearchParams(searchParams.toString())
+      if (value === "profile") {
+        next.delete("tab")
+      } else {
+        next.set("tab", value)
+      }
+      router.replace(`?${next.toString()}`, { scroll: false })
+    },
+    [searchParams, router]
+  )
 
   return (
     <div className="space-y-10">
@@ -139,7 +160,7 @@ export function SettingsContent() {
         description="Manage your profile, campaigns, and account."
       />
 
-      <Tabs defaultValue={defaultTab} orientation="vertical" className="gap-8">
+      <Tabs value={defaultTab} onValueChange={handleTabChange} orientation="vertical" className="gap-8">
         <TabsList className="w-48 shrink-0 flex-col items-stretch bg-transparent p-0 gap-1.5">
           <TabsTrigger value="profile" className="justify-start rounded-md border-0 px-3 py-2 text-sm font-medium text-muted-foreground !shadow-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:!shadow-none after:hidden hover:text-foreground">Profile</TabsTrigger>
           {isPublisher && (
@@ -168,6 +189,7 @@ export function SettingsContent() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
                 />
               </div>
 
@@ -236,6 +258,7 @@ export function SettingsContent() {
                     placeholder="https://yoursite.com"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
+                    autoComplete="url"
                     className="pl-9"
                   />
                 </div>
@@ -250,6 +273,7 @@ export function SettingsContent() {
                       placeholder="Twitter URL"
                       value={twitter}
                       onChange={(e) => setTwitter(e.target.value)}
+                      autoComplete="url"
                       className="pl-9"
                     />
                   </div>
@@ -259,6 +283,7 @@ export function SettingsContent() {
                       placeholder="Instagram URL"
                       value={instagram}
                       onChange={(e) => setInstagram(e.target.value)}
+                      autoComplete="url"
                       className="pl-9"
                     />
                   </div>
@@ -268,6 +293,7 @@ export function SettingsContent() {
                       placeholder="LinkedIn URL"
                       value={linkedin}
                       onChange={(e) => setLinkedin(e.target.value)}
+                      autoComplete="url"
                       className="pl-9"
                     />
                   </div>
@@ -293,18 +319,9 @@ export function SettingsContent() {
               <CardContent className="space-y-6">
                 {/* Engagement stats */}
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-lg border p-4 space-y-1">
-                    <p className="text-xs text-muted-foreground">Subscribers</p>
-                    <p className="text-lg font-medium tabular-nums">{formatNumber(activeUser.subscriberCount)}</p>
-                  </div>
-                  <div className="rounded-lg border p-4 space-y-1">
-                    <p className="text-xs text-muted-foreground">Open Rate</p>
-                    <p className="text-lg font-medium tabular-nums">{activeUser.openRate}%</p>
-                  </div>
-                  <div className="rounded-lg border p-4 space-y-1">
-                    <p className="text-xs text-muted-foreground">Click Rate</p>
-                    <p className="text-lg font-medium tabular-nums">{activeUser.clickRate}%</p>
-                  </div>
+                  <StatCard label="Subscribers" value={formatNumber(activeUser.subscriberCount)} />
+                  <StatCard label="Open Rate" value={`${activeUser.openRate}%`} />
+                  <StatCard label="Click Rate" value={`${activeUser.clickRate}%`} />
                 </div>
 
                 <EngagementBadge tier={activeUser.engagementTier} />

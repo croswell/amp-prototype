@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { formatCurrency } from "@/lib/mock-data"
+import { cn } from "@/lib/utils"
 
 interface RevenueCalculatorProps {
   recommendedFee: number
@@ -34,11 +35,12 @@ export function RevenueCalculator({
             <button
               key={opt.value}
               onClick={() => setFrequency(opt.value)}
-              className={`flex-1 rounded-sm border px-3 py-2 text-sm font-medium transition-colors ${
+              className={cn(
+                "flex-1 rounded-sm border px-3 py-2 text-sm font-medium transition-colors",
                 frequency === opt.value
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-background text-foreground hover:bg-muted"
-              }`}
+              )}
             >
               {opt.label}
             </button>

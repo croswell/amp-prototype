@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { PayoutBadge } from "@/components/payout-badge"
 import { EngagementBadge } from "@/components/engagement-badge"
 import {
@@ -41,14 +41,14 @@ interface HeroCardProps {
 
 export function HeroCard({ hero, onClick, showPublisherStats, children }: HeroCardProps) {
   return (
-    <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.() }} className="h-full w-full cursor-pointer text-left">
+    <button type="button" onClick={onClick} className="h-full w-full cursor-pointer text-left">
       <Card className="h-full transition-colors hover:border-foreground/15">
         <CardHeader className="space-y-3">
           <div className="flex items-center gap-3.5">
             <HeroIdentity hero={hero} />
-            <Button variant="outline" size="sm" className="ml-auto hidden shrink-0 cursor-pointer sm:inline-flex">
+            <span aria-hidden="true" className={buttonVariants({ variant: "outline", size: "sm", className: "ml-auto hidden shrink-0 sm:inline-flex" })}>
               View
-            </Button>
+            </span>
           </div>
           {showPublisherStats && (
             <p className="text-sm text-foreground">
@@ -76,6 +76,6 @@ export function HeroCard({ hero, onClick, showPublisherStats, children }: HeroCa
           {children}
         </CardContent>
       </Card>
-    </div>
+    </button>
   )
 }

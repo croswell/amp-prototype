@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency } from "@/lib/mock-data"
+import { formatCurrency, COLOR_PAIRS } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
 const VARIANT_STYLES = {
   outline: "text-muted-foreground",
-  filled: "bg-emerald-100 text-emerald-700 border-0 dark:bg-emerald-950 dark:text-emerald-300",
+  filled: `${COLOR_PAIRS.emerald} border-0`,
 } as const
 
 interface PayoutBadgeProps {

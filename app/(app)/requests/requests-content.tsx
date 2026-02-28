@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useCallback } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { type ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,13 +11,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { DataTable } from "@/components/ui/data-table"
 import { PageHeader } from "@/components/page-header"
 import { CaretRight } from "@phosphor-icons/react"
+import { buildPersonaParams } from "@/lib/utils"
 import {
   type RequestStatus,
   type PromotionRequest,
   promotionRequests,
   getHero,
-  getStatusColor,
-  STATUS_LABELS,
+  getDisplayStatus,
   getActiveUser,
   getRoleForPersona,
   getActiveViewRole,
@@ -43,17 +43,14 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export function RequestsContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const persona = searchParams.get("role") || "publisher"
   const view = searchParams.get("view")
   const activeUser = getActiveUser(persona)
   const role = getRoleForPersona(persona)
   const activeViewRole = getActiveViewRole(role, view)
 
-  // Build query string preserving persona and view params
-  const qsParams = new URLSearchParams()
-  if (persona !== "publisher") qsParams.set("role", persona)
-  if (view && role === "both") qsParams.set("view", view)
-  const personaParam = qsParams.toString() ? `?${qsParams.toString()}` : ""
+  const personaParam = buildPersonaParams(persona, view, role)
 
   // Filter requests by active view role
   const requests = useMemo(() => {
@@ -69,24 +66,27 @@ export function RequestsContent() {
     TABS.map((tab) => [tab.key, requests.filter((r) => filterByTab(r, tab.key)).length])
   ) as Record<TabKey, number>
 
-  const defaultTab: TabKey = TABS.find((t) => tabCounts[t.key] > 0)?.key ?? "open"
+  // Read tab from URL, falling back to first tab with items
+  const tabFromUrl = searchParams.get("tab") as TabKey | null
+  const defaultTab: TabKey =
+    (tabFromUrl && TABS.some((t) => t.key === tabFromUrl) ? tabFromUrl : null) ??
+    TABS.find((t) => tabCounts[t.key] > 0)?.key ??
+    "open"
 
-  // Direction-aware status label for pending items
-  function getDisplayStatus(req: PromotionRequest): { label: string; color: string } {
-    if (req.status === "pending") {
-      const userInitiated =
-        (activeViewRole === "publisher" && req.initiatedBy === "publisher") ||
-        (activeViewRole === "sponsor" && req.initiatedBy === "sponsor")
-      if (userInitiated) {
-        return { label: "Requested", color: getStatusColor("pending") }
+  // Sync tab changes to the URL
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const next = new URLSearchParams(searchParams.toString())
+      if (value === "open") {
+        next.delete("tab")
+      } else {
+        next.set("tab", value)
       }
-      return {
-        label: "New",
-        color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
-      }
-    }
-    return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
-  }
+      router.replace(`?${next.toString()}`, { scroll: false })
+    },
+    [searchParams, router]
+  )
+
 
   // ── Table columns ──
   const columns = useMemo<ColumnDef<PromotionRequest>[]>(
@@ -123,7 +123,7 @@ export function RequestsContent() {
         id: "status",
         header: "Status",
         cell: ({ row }) => {
-          const { label, color } = getDisplayStatus(row.original)
+          const { label, color } = getDisplayStatus(row.original, activeViewRole)
           return (
             <Badge variant="secondary" className={color}>
               {label}
@@ -170,7 +170,7 @@ export function RequestsContent() {
         description="Track and manage your promotion partnerships."
       />
 
-      <Tabs defaultValue={defaultTab}>
+      <Tabs value={defaultTab} onValueChange={handleTabChange}>
         <TabsList variant="line">
           {TABS.map((tab) => (
             <TabsTrigger key={tab.key} value={tab.key}>
@@ -215,8 +215,8 @@ export function RequestsContent() {
                           <p className="truncate text-sm font-medium">{otherHero?.name}</p>
                           <p className="truncate text-xs text-muted-foreground">{req.adHeadline}</p>
                         </div>
-                        <Badge variant="secondary" className={`shrink-0 ${getDisplayStatus(req).color}`}>
-                          {getDisplayStatus(req).label}
+                        <Badge variant="secondary" className={`shrink-0 ${getDisplayStatus(req, activeViewRole).color}`}>
+                          {getDisplayStatus(req, activeViewRole).label}
                         </Badge>
                         <CaretRight className="size-4 shrink-0 text-muted-foreground" />
                       </Link>

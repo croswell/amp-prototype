@@ -22,23 +22,7 @@ import {
   Timer,
   CaretDown,
 } from "@phosphor-icons/react"
-
-function formatTimestamp(timestamp: string): string {
-  const date = new Date(timestamp)
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  })
-}
-
-function formatTimestampFull(timestamp: string): string {
-  const date = new Date(timestamp)
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
-}
+import { formatDateShort, formatDateFull } from "@/lib/date"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EVENT_ICONS: Record<string, React.ElementType> = {
@@ -223,7 +207,7 @@ function RichEvent({
               </span>
             </p>
             <span className="shrink-0 text-xs text-muted-foreground">
-              {formatTimestamp(event.timestamp)}
+              {formatDateShort(event.timestamp)}
             </span>
           </div>
 
@@ -330,7 +314,7 @@ function SimpleEvent({
     copy_locked: "Copy approved and locked",
     broadcast_created: `${actor.name} created the broadcast`,
     scheduled: event.metadata?.scheduledAt
-      ? `Broadcast scheduled for ${formatTimestampFull(event.metadata.scheduledAt)}`
+      ? `Broadcast scheduled for ${formatDateFull(event.metadata.scheduledAt)}`
       : "Broadcast scheduled",
     published: "Email sent",
     expired: "Request expired",
@@ -362,7 +346,7 @@ function SimpleEvent({
           {labels[event.type] || event.type}
         </p>
         <span className="shrink-0 text-xs text-muted-foreground">
-          {formatTimestamp(event.timestamp)}
+          {formatDateShort(event.timestamp)}
         </span>
       </div>
     </div>

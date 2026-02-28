@@ -26,8 +26,14 @@ import { PayoutBadge } from "@/components/payout-badge"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { Separator } from "@/components/ui/separator"
 import { HeroCard, HeroIdentity } from "@/components/hero-card"
+import { EngagementBadge } from "@/components/engagement-badge"
+import { StatCard } from "@/components/stat-card"
 import { SocialIcon } from "@/components/social-icon"
-import { SectionTitle } from "@/components/promotion-sheet"
+// Simple heading helper (was imported from deleted promotion-sheet.tsx)
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <p className="text-base font-medium">{children}</p>
+}
+import { buildPersonaParams, stripProtocol } from "@/lib/utils"
 import {
   type RequestStatus,
   type PromotionRequest,
@@ -36,8 +42,7 @@ import {
   getHero,
   formatCurrency,
   formatNumber,
-  getStatusColor,
-  STATUS_LABELS,
+  getDisplayStatus,
   getRecommendedHeroes,
   getActiveUser,
   getRoleForPersona,
@@ -54,7 +59,6 @@ import {
   X as XIcon,
   Globe,
   CaretRight,
-  CaretDoubleUp,
   CaretLeft,
   Users,
   CreditCard,
@@ -72,11 +76,7 @@ export function HomeContent() {
   const isPublisher = activeViewRole === "publisher"
   const isSponsor = activeViewRole === "sponsor"
 
-  // Build query string preserving persona and view params
-  const params = new URLSearchParams()
-  if (persona !== "publisher") params.set("role", persona)
-  if (view && role === "both") params.set("view", view)
-  const personaParam = params.toString() ? `?${params.toString()}` : ""
+  const personaParam = buildPersonaParams(persona, view, role)
 
   // Profile sheet state
   const [selectedHeroId, setSelectedHeroId] = useState<string | null>(null)
@@ -112,22 +112,6 @@ export function HomeContent() {
       .slice(0, 3)
   }, [incoming, outgoing])
 
-  // Direction-aware status label for pending items
-  function getDisplayStatus(req: PromotionRequest): { label: string; color: string } {
-    if (req.status === "pending") {
-      const userInitiated =
-        (isPublisher && req.initiatedBy === "publisher") ||
-        (isSponsor && req.initiatedBy === "sponsor")
-      if (userInitiated) {
-        return { label: "Requested", color: getStatusColor("pending") }
-      }
-      return {
-        label: "New",
-        color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
-      }
-    }
-    return { label: STATUS_LABELS[req.status], color: getStatusColor(req.status) }
-  }
 
   // ── Recommended heroes ──
   const recommendedSponsors = useMemo(
@@ -183,13 +167,7 @@ export function HomeContent() {
                 <Users className="size-4" />
               </p>
               <div className="mt-3">
-                <Badge
-                  variant="secondary"
-                  className="gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
-                >
-                  <CaretDoubleUp className="size-3" />
-                  High Engagement
-                </Badge>
+                <EngagementBadge tier={activeUser.engagementTier} />
               </div>
               <p className="mt-auto pt-3 text-xs text-muted-foreground">
                 {formatNumber(activeUser.subscriberCount)} subscribers · {activeUser.openRate}% open rate
@@ -294,7 +272,7 @@ export function HomeContent() {
               const isIncoming = req.publisherId === activeUser.id
               const otherHero = getHero(isIncoming ? req.sponsorId : req.publisherId)
               const initials = otherHero ? otherHero.name.charAt(0) : "?"
-              const { label: statusLabel, color: statusColor } = getDisplayStatus(req)
+              const { label: statusLabel, color: statusColor } = getDisplayStatus(req, activeViewRole)
 
               return (
                 <Link
@@ -555,7 +533,7 @@ function SponsorProfileDialog({
           {hero.website && (
             <Badge variant="outline" className="text-xs">
               <Globe className="size-3" />
-              {hero.website.replace(/^https?:\/\//, "")}
+              {stripProtocol(hero.website)}
             </Badge>
           )}
           {hero.socialLinks.map((link) => (
@@ -769,18 +747,9 @@ function PublisherProfileDialog({
 
         {/* Audience stats */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-lg border p-4 space-y-1">
-            <p className="text-xs text-muted-foreground">Subscribers</p>
-            <p className="text-lg font-medium tabular-nums">{formatNumber(hero.subscriberCount)}</p>
-          </div>
-          <div className="rounded-lg border p-4 space-y-1">
-            <p className="text-xs text-muted-foreground">Open Rate</p>
-            <p className="text-lg font-medium tabular-nums">{hero.openRate}%</p>
-          </div>
-          <div className="rounded-lg border p-4 space-y-1">
-            <p className="text-xs text-muted-foreground">Click Rate</p>
-            <p className="text-lg font-medium tabular-nums">{hero.clickRate}%</p>
-          </div>
+          <StatCard label="Subscribers" value={formatNumber(hero.subscriberCount)} />
+          <StatCard label="Open Rate" value={`${hero.openRate}%`} />
+          <StatCard label="Click Rate" value={`${hero.clickRate}%`} />
         </div>
 
         <Separator />
@@ -796,7 +765,7 @@ function PublisherProfileDialog({
           {hero.website && (
             <Badge variant="outline" className="text-xs">
               <Globe className="size-3" />
-              {hero.website.replace(/^https?:\/\//, "")}
+              {stripProtocol(hero.website)}
             </Badge>
           )}
           {hero.socialLinks.map((link) => (

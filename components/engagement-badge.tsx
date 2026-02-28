@@ -1,4 +1,6 @@
 import { Badge } from "@/components/ui/badge"
+import { COLOR_PAIRS } from "@/lib/mock-data"
+import { cn } from "@/lib/utils"
 import { CaretDoubleUp } from "@phosphor-icons/react"
 
 interface EngagementBadgeProps {
@@ -12,7 +14,7 @@ export function EngagementBadge({ tier, className }: EngagementBadgeProps) {
   return (
     <Badge
       variant="secondary"
-      className={`gap-1 text-xs bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 ${className ?? ""}`}
+      className={cn("gap-1 text-xs", COLOR_PAIRS.amber, className)}
     >
       <CaretDoubleUp className="size-3" />
       High Engagement

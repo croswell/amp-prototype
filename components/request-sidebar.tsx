@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { SocialIcon } from "@/components/social-icon"
 import type { Hero, PromotionRequest } from "@/lib/mock-data"
+import { stripProtocol } from "@/lib/utils"
 import { Globe } from "@phosphor-icons/react"
 
 interface RequestSidebarProps {
@@ -54,7 +55,7 @@ export function RequestSidebar({
               <Badge variant="outline" className="text-xs" asChild>
                 <a href={otherParty.website}>
                   <Globe className="size-3" />
-                  {otherParty.website.replace(/^https?:\/\//, "")}
+                  {stripProtocol(otherParty.website)}
                 </a>
               </Badge>
             )}

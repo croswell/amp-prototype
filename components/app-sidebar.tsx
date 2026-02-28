@@ -23,6 +23,7 @@ import {
   Gear,
 } from "@phosphor-icons/react"
 import { getActiveUser, getRoleForPersona, getActiveViewRole } from "@/lib/mock-data"
+import { buildPersonaParams, cn } from "@/lib/utils"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -34,11 +35,7 @@ export function AppSidebar() {
   const activeViewRole = getActiveViewRole(role, view)
   const { setOpenMobile } = useSidebar()
 
-  // Build query string for links
-  const params = new URLSearchParams()
-  if (persona !== "publisher") params.set("role", persona)
-  if (view && role === "both") params.set("view", view)
-  const qs = params.toString() ? `?${params.toString()}` : ""
+  const qs = buildPersonaParams(persona, view, role)
 
   // Initials from active user's name
   const initials = activeUser.name
@@ -89,7 +86,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={link.label}>
                   <SidebarMenuButton asChild isActive={link.active}>
                     <Link href={link.href}>
-                      <link.icon className={`size-4${link.label === "Promotions" ? " -scale-x-100" : ""}`} />
+                      <link.icon className={cn("size-4", link.label === "Promotions" && "-scale-x-100")} />
                       <span>{link.label}</span>
                     </Link>
                   </SidebarMenuButton>

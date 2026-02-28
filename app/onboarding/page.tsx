@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/input-group"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { EngagementBadge } from "@/components/engagement-badge"
+import { StatCard } from "@/components/stat-card"
 import {
   Select,
   SelectContent,
@@ -218,6 +219,7 @@ export default function OnboardingPage() {
                   id="profile-name"
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
+                  autoComplete="name"
                 />
               </div>
 
@@ -350,18 +352,9 @@ export default function OnboardingPage() {
 
             {/* Email stats */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg border p-4 space-y-1">
-                <p className="text-xs text-muted-foreground">Subscribers</p>
-                <p className="text-lg font-medium tabular-nums">{formatNumber(currentUser.subscriberCount)}</p>
-              </div>
-              <div className="rounded-lg border p-4 space-y-1">
-                <p className="text-xs text-muted-foreground">Open Rate</p>
-                <p className="text-lg font-medium tabular-nums">{currentUser.openRate}%</p>
-              </div>
-              <div className="rounded-lg border p-4 space-y-1">
-                <p className="text-xs text-muted-foreground">Click Rate</p>
-                <p className="text-lg font-medium tabular-nums">{currentUser.clickRate}%</p>
-              </div>
+              <StatCard label="Subscribers" value={formatNumber(currentUser.subscriberCount)} />
+              <StatCard label="Open Rate" value={`${currentUser.openRate}%`} />
+              <StatCard label="Click Rate" value={`${currentUser.clickRate}%`} />
             </div>
 
             <EngagementBadge tier={currentUser.engagementTier} />

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,6 +24,7 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
 import { PayoutBadge } from "@/components/payout-badge"
 import { EmailBlockPreview } from "@/components/email-block-preview"
 import { Separator } from "@/components/ui/separator"
@@ -329,7 +330,7 @@ export function HomeContent() {
             <SponsorProfileSheet hero={selectedHero} />
           )}
           {selectedHero && (selectedHero.role === "publisher" || (selectedHero.role === "both" && role !== "publisher")) && (
-            <PublisherProfileSheet hero={selectedHero} />
+            <PublisherProfileSheet hero={selectedHero} activeUser={activeUser} personaParam={personaParam} />
           )}
         </SheetContent>
       </Sheet>
@@ -446,14 +447,161 @@ function SponsorProfileSheet({ hero }: { hero: Hero }) {
   )
 }
 
-function PublisherProfileSheet({ hero }: { hero: Hero }) {
-  const [phase, setPhase] = useState<"idle" | "loading" | "success">("idle")
+function PublisherProfileSheet({
+  hero,
+  activeUser,
+  personaParam,
+}: {
+  hero: Hero
+  activeUser: Hero
+  personaParam: string
+}) {
+  const router = useRouter()
+  const [phase, setPhase] = useState<"idle" | "composing" | "loading" | "success">("idle")
+
+  // Sponsor's pre-configured ad (from settings)
+  const sponsorAd = {
+    headline: "Create Your First Online Course in 30 Days",
+    body: "Jake Morrison's step-by-step framework has helped 500+ creators launch profitable courses. Get his free Course Launch Blueprint and start building your course today.",
+    cta: "Get the Free Blueprint",
+    ctaUrl: "https://jakemorrison.io/blueprint",
+  }
+
+  const [message, setMessage] = useState("")
 
   const handleSendRequest = useCallback(() => {
     setPhase("loading")
-    setTimeout(() => setPhase("success"), 1200)
-  }, [])
 
+    // Create a new mock request and push it into the array
+    const newId = `req-new-${Date.now()}`
+    const now = new Date().toISOString().split("T")[0]
+    promotionRequests.push({
+      id: newId,
+      sponsorId: activeUser.id,
+      publisherId: hero.id,
+      status: "pending",
+      initiatedBy: "sponsor",
+      brief: message,
+      adHeadline: sponsorAd.headline,
+      adBody: sponsorAd.body,
+      adCta: sponsorAd.cta,
+      adCtaUrl: sponsorAd.ctaUrl,
+      proposedFee: hero.recommendedFee,
+      notes: "",
+      createdAt: now,
+      updatedAt: now,
+      timeline: [
+        {
+          id: "tl-1",
+          type: "proposal_sent",
+          actorId: activeUser.id,
+          timestamp: new Date().toISOString(),
+          note: message || undefined,
+          copyAfter: {
+            adHeadline: sponsorAd.headline,
+            adBody: sponsorAd.body,
+            adCta: sponsorAd.cta,
+            adCtaUrl: sponsorAd.ctaUrl,
+          },
+        },
+      ],
+    })
+
+    setTimeout(() => {
+      setPhase("success")
+      // Navigate to the new request detail page
+      setTimeout(() => {
+        router.push(`/requests/${newId}${personaParam}`)
+      }, 600)
+    }, 1200)
+  }, [activeUser.id, hero.id, hero.recommendedFee, sponsorAd, message, personaParam, router])
+
+  // ── Composing phase: proposal form ──
+  if (phase === "composing" || phase === "loading" || phase === "success") {
+    return (
+      <>
+        <SheetHeader>
+          <div className="flex items-center gap-3">
+            <SheetTitle className="flex-1 text-lg">Send request to {hero.name}</SheetTitle>
+            <SheetClose asChild>
+              <Button variant="outline" size="icon-sm">
+                <XIcon />
+                <span className="sr-only">Close</span>
+              </Button>
+            </SheetClose>
+          </div>
+        </SheetHeader>
+
+        <SheetBody className="space-y-6">
+          {/* Ad preview (from sponsor settings) */}
+          <div className="space-y-3">
+            <SectionTitle>Ad preview</SectionTitle>
+            <EmailBlockPreview
+              headline={sponsorAd.headline}
+              body={sponsorAd.body}
+              cta={sponsorAd.cta}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Custom message */}
+          <div className="space-y-3">
+            <SectionTitle>Custom message <span className="font-normal text-muted-foreground">(optional)</span></SectionTitle>
+            <Textarea
+              placeholder={`Tell ${hero.name.split(" ")[0]} why you'd be a great fit for their audience...`}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              disabled={phase !== "composing"}
+            />
+          </div>
+
+          {/* Price summary */}
+          <div className="rounded-lg border">
+            <Table>
+              <TableBody>
+                <TableRow className="border-0 hover:bg-transparent">
+                  <TableCell className="text-muted-foreground">Price per send</TableCell>
+                  <TableCell className="text-right">
+                    <PayoutBadge amount={hero.recommendedFee} variant="filled" />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </SheetBody>
+
+        <SheetFooter>
+          {phase === "composing" ? (
+            <>
+              <Button variant="outline" onClick={() => setPhase("idle")}>Back</Button>
+              <Button onClick={handleSendRequest}>
+                Send Request
+              </Button>
+            </>
+          ) : phase === "success" ? (
+            <>
+              <div />
+              <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
+                <Check weight="bold" className="size-4" />
+                Sent
+              </Button>
+            </>
+          ) : (
+            <>
+              <div />
+              <Button loading disabled>
+                Sending...
+              </Button>
+            </>
+          )}
+        </SheetFooter>
+      </>
+    )
+  }
+
+  // ── Idle phase: publisher profile ──
   return (
     <>
       <SheetHeader>
@@ -469,17 +617,6 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
       </SheetHeader>
 
       <SheetBody className="space-y-6">
-        {phase === "success" && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/50">
-            <div className="flex items-center gap-2">
-              <CheckCircle weight="fill" className="size-5 text-emerald-600 dark:text-emerald-400" />
-              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
-                Request sent to {hero.name}
-              </p>
-            </div>
-          </div>
-        )}
-
         <HeroIdentity hero={hero} showEngagement />
 
         {/* Audience stats */}
@@ -542,16 +679,9 @@ function PublisherProfileSheet({ hero }: { hero: Hero }) {
         <SheetClose asChild>
           <Button variant="outline">Close</Button>
         </SheetClose>
-        {phase === "success" ? (
-          <Button className="bg-emerald-600 hover:bg-emerald-600 text-white" disabled>
-            <Check weight="bold" className="size-4" />
-            Sent
-          </Button>
-        ) : (
-          <Button loading={phase === "loading"} onClick={handleSendRequest}>
-            {phase === "loading" ? "Sending..." : "Send Request"}
-          </Button>
-        )}
+        <Button onClick={() => setPhase("composing")}>
+          Send Request
+        </Button>
       </SheetFooter>
     </>
   )

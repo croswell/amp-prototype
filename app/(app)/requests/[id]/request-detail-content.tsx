@@ -74,7 +74,7 @@ function PayoutBreakdown({ payout }: { payout: PayoutEstimate }) {
         </div>
       )}
       <div className="flex items-center justify-between border-t px-3 py-2">
-        <span className="text-muted-foreground">Your audience</span>
+        <span className="text-muted-foreground">Publisher audience</span>
         <span>{payout.audienceSize.toLocaleString()} subs</span>
       </div>
       <div className="flex items-center justify-between border-t bg-muted/50 px-3 py-2 font-medium">
